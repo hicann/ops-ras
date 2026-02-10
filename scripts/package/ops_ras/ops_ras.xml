@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config name="ops_ras" copy_type="delivery" src_path="" dst_path="ops_ras" install_type="all" install_mod="550" install_own="$username:$usergroup">
+    <package_info>
+        <product_name>cann</product_name>
+        <func_name>ops-ras</func_name>
+        <suffix>run</suffix>
+        <install_script>share/info/ops_ras/script/install.sh</install_script>
+        <help>share/info/ops_ras/script/help.info</help>
+        <version>package/ops_ras/version.xml</version>
+        <cleanup>share/info/ops_ras/script/cleanup.sh</cleanup>
+        <check_features>true</check_features>
+    </package_info>
+    <generate_info value="ops_ras_version.h" dst_path="share/info/ops_ras" install_path="$(TARGET_ENV)/include/version" install_mod="440" install_type="devel" generator="version_header">
+       <OPS_RAS_VERSION>$(ASCEND_VER)</OPS_RAS_VERSION>
+       <OPS_RAS_TIMESTAMP>$(TIMESTAMP_NO)</OPS_RAS_TIMESTAMP>
+    </generate_info>
+    <generate_info value="scene.info" dst_path="share/info/ops_ras" install_path="share/info/ops_ras" install_mod="440">
+        <os>$(OS_NAME)</os>
+        <os_version>$(OS_VER)</os_version>
+        <arch>$(ARCH)</arch>
+    </generate_info>
+    <version_info install="true" install_path="ops_ras" install_own="$username:$usergroup" install_mod="440"/>
+    <file_info value="ops_ras_script" copy_type="source" src_path="" dst_path="share/info/ops_ras" install_path="share/info/ops_ras">
+        <file value="script" entity="true"/>
+        <file value="version.info"/>
+    </file_info>
+    <!--block_info-->
+    <block_info dependtree="false" dst_path="ops_ras" block_conf_path="ascend">
+        <block name="EngineeringCommon"/>
+        <block name="EngineeringFiles"/>
+    </block_info>
+    <block_info dependtree="false" dst_path="opp" block_conf_path="ascend">
+        <block name="OpsRasInfo"/>
+    </block_info>
+    <!--dir_info-->
+    <dir_info value="ops_ras" install_path="ops_ras" install_mod="550" install_type="all">
+        <path value="share" install_mod="550"/>
+        <path value="share/info" install_mod="750"/>
+        <path value="share/info/ops_ras" install_mod="550"/>
+        <path value="share/info/ops_ras/script" install_mod="550"/>
+    </dir_info>
+</config>
