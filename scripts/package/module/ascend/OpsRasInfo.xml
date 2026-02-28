@@ -13,20 +13,12 @@
         <file value="ops_proto_ras.h" install_mod="555"/>
     </file_info>
 
-    <file_info value="ops_info" src_path="op_host" dst_path="built-in/op_impl/ai_core/tbe" install_path="opp/built-in/op_impl/ai_core/tbe">
-        <file value="config" install_mod="555"/>
-    </file_info>
-
     <file_info value="rtkb" copy_type="source" src_path="" dst_path="built-in/data" install_path="opp/built-in/data">
         <file value="op" optional="true" install_mod="555"/>
     </file_info>
 
     <file_info value="op_graph" src_path="op_host" dst_path="built-in/op_graph/lib/linux/$(ARCH)" install_path="opp/built-in/op_graph/lib/linux/$(ARCH)">
         <file value="libopgraph_ras.so" file_type="shared" install_mod="555"/>
-    </file_info>
-
-    <file_info value="op_host" src_path="op_host" dst_path="built-in/op_impl/ai_core/tbe/op_host/lib/linux/$(ARCH)" install_path="opp/built-in/op_impl/ai_core/tbe/op_host/lib/linux/$(ARCH)">
-        <file value="libophost_ras.so" file_type="shared" install_mod="555"/>
     </file_info>
 
     <file_info value="kernel_src" src_path="op_host" dst_path="built-in/op_impl/ai_core/tbe/impl" install_path="opp/built-in/op_impl/ai_core/tbe/impl">

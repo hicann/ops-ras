@@ -386,7 +386,7 @@ endfunction()
 # useage: add_modules_sources(DIR OPTYPE ACLNNTYPE ACLNN_EXTRA_VERSION DEPENDENCIES COMPUTE_UNIT TILING_DIR DISABLE_IN_OPP) ACLNNTYPE 支持类型aclnn/aclnn_inner/aclnn_exclude OPTYPE 和 ACLNNTYPE
 # DEPENDENCIES 算子依赖
 # ACLNNEXTRAVERSION 算子版本(ex., v2, v3, 5, etc.)
-# COMPUTE_UNIT 设置支持芯片版本号，必须与TILING_DIR一一对应，示例：ascend910b ascend910_95
+# COMPUTE_UNIT 设置支持芯片版本号，必须与TILING_DIR一一对应，示例：ascend910b ascend950
 # TILING_DIR 设置所支持芯片类型对应的tiling文件目录，必须与COMPUTE_UNIT一一对应，示例：arch32 arch35
 # DISABLE_IN_OPP 设置是否在opp包中编译tiling文件，布尔类型：TRUE，FALSE
 # 需一一对应
@@ -580,8 +580,8 @@ endfunction()
 # convert short socVersion to long socVersion
 ###################################################################################################
 function(map_compute_unit compute_unit compute_unit_long)
-    set(compute_unit_keys "ascend910b" "ascend310p" "ascend910_93" "ascend910_95")
-    set(compute_unit_values "ascend910b1" "ascend310p1" "ascend910_9391" "ascend910_9599")
+    set(compute_unit_keys "ascend910b" "ascend310p" "ascend910_93" "ascend950" "mc62cm12a")
+    set(compute_unit_values "ascend910b1" "ascend310p1" "ascend910_9391" "ascend950pr_9599" "mc62cm12aa")
     list(FIND compute_unit_keys ${compute_unit} index)
     if(NOT index EQUAL -1)
         list(GET compute_unit_values ${index} mapped_value)
@@ -595,8 +595,8 @@ endfunction()
 # get target dir of different socVersions
 ###################################################################################################
 function(get_target_dir compute_unit_long target_dir)
-  set(compute_unit_long_values "ascend910b1" "ascend310p1" "ascend910_9391" "ascend910_9599")
-  set(target_dir_values "arch22" "" "" "arch35")
+  set(compute_unit_long_values "ascend910b1" "ascend310p1" "ascend910_9391" "ascend950pr_9599" "mc62cm12aa")
+  set(target_dir_values "arch22" "" "" "arch35" "arch35")
   list(FIND compute_unit_long_values ${compute_unit_long} index)
   if(NOT index EQUAL -1)
         list(GET target_dir_values ${index} mapped_value)

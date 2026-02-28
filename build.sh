@@ -9,8 +9,11 @@
 # ============================================================================
 
 set -e
-RELEASE_TARGETS=("ophost" "opapi" "onnxplugin")
-SUPPORT_COMPUTE_UNIT_SHORT=("ascend031" "ascend035" "ascend310b" "ascend310p" "ascend910_55" "ascend910_93" "ascend910_95" "ascend910b" "ascend910" "mc62cm12a" "kirinx90")
+RELEASE_TARGETS=("ophost" "opapi" "onnxplugin" "opgraph")
+
+SUPPORT_COMPUTE_UNIT_SHORT=("ascend031" "ascend035" "ascend310b" "ascend310p" "ascend910_93" "ascend950" "ascend910b" "ascend910" "kirinx90" "kirin9030" "mc62cm12a")
+# 对SUPPORT_COMPUTE_UNIT_SHORT按字符串长度从长到短排序，避免前缀匹配时出错
+SUPPORT_COMPUTE_UNIT_SHORT=($(printf '%s\n' "${SUPPORT_COMPUTE_UNIT_SHORT[@]}" | awk '{print length($0) " " $0}' | sort -rn | cut -d ' ' -f2-))
 TRIGER_UTS=()
 
 # 所有支持的短选项
@@ -20,7 +23,7 @@ SUPPORTED_SHORT_OPTS="hj:vO:uf:-:"
 SUPPORTED_LONG_OPTS=(
   "help" "ops=" "soc=" "vendor_name=" "build-type=" "cov" "noexec" "opkernel" "opkernel_aicpu" "opkernel_aicpu_test" "static"
    "jit" "pkg" "asan" "make_clean_all" "make_clean" "no_force"
-  "ophost" "opapi" "run_example" "example_name=" "genop=" "genop_aicpu=" "experimental" "cann_3rd_lib_path=" "oom" "onnxplugin"
+  "ophost" "opgraph" "opapi" "run_example" "example_name=" "genop=" "genop_aicpu=" "experimental" "cann_3rd_lib_path=" "oom" "onnxplugin" "dump_cce"
 )
 
 in_array() {
@@ -147,6 +150,7 @@ usage() {
         echo "    --cann_3rd_lib_path=<PATH>"
         echo "                           Set ascend third_party package install path, default ./third_party"
         echo "    --oom                  Build with oom mode on the kernel side, with options: '-g --cce-enable-oom'"
+        echo "    --dump_cce             Dump kernel precompiled files (.i) for debugging"
         echo $dotted_line
         echo "Examples:"
         echo "    bash build.sh --pkg --soc=ascend910b --vendor_name=customize -j16 -O3"
@@ -163,6 +167,7 @@ usage() {
         echo "    --ops=op1,op2,...      Compile specified operators (comma-separated for multiple)"
         echo "    --build-type=<Type>    Specify build-type (Type options: Release/Debug), Default:Release"
         echo "    --oom                  Build with oom mode on the kernel side, with options: '-g --cce-enable-oom'"
+        echo "    --dump_cce             Dump kernel precompiled files (.i) for debugging"
         echo "    --no_force             Don't force dependency installation"
         echo $dotted_line
         echo "Examples:"
@@ -193,6 +198,7 @@ usage() {
         echo "    --noexec               Only compile ut, do not execute"
         echo "    --asan                 Enable ASAN (Address Sanitizer) on the host side"
         echo "    --ophost -u            Same as ophost test"
+        echo "    --opgraph -u           Same as opgraph test"
         echo "    --opapi -u             Same as opapi test"
         echo "    --opkernel -u          Same as opkernel test"
         echo $dotted_line
@@ -235,6 +241,19 @@ usage() {
         echo "    bash build.sh --onnxplugin --debug"
         return
         ;;
+      opgraph)
+        echo "Opgraph Build Options:"
+        echo $dotted_line
+        echo "    --opgraph              Build opgraph library"
+        echo "    -j[n]                  Compile thread nums, default is 8"
+        echo "    -O[n]                  Compile optimization options, support [O0 O1 O2 O3]"
+        echo "    --debug                Build with debug mode"
+        echo $dotted_line
+        echo "Examples:"
+        echo "    bash build.sh --opgraph -j16 -O3"
+        echo "    bash build.sh --opgraph --debug"
+        return
+        ;;
       opapi)
         echo "Opapi Build Options:"
         echo $dotted_line
@@ -255,7 +274,7 @@ usage() {
         echo $dotted_line
         echo "Examples:"
         echo "    bash build.sh --run_example mat_mul_v3 eager"
-        echo "    bash build.sh --run_example mat_mul_v3 eager --soc=ascend910_95"
+        echo "    bash build.sh --run_example mat_mul_v3 eager --soc=ascend950"
         echo "    bash build.sh --run_example mat_mul_v3 graph"
         echo "    bash build.sh --run_example mat_mul_v3 eager --example_name=mm"
         echo "    bash build.sh --run_example mat_mul_v3 eager cust"
@@ -295,7 +314,7 @@ usage() {
   echo "    -j[n] Compile thread nums, default is 8"
   echo "    -v Cmake compile verbose"
   echo "    -O[n] Compile optimization options, support [O0 O1 O2 O3]"
-  echo "    -u Compile all ut, default run ophost opapi test"
+  echo "    -u Compile all ut, default run ophost opgraph opapi test"
   echo $dotted_line
   echo "    example, Build ophost test with O0 level compilation optimization and do not execute."
   echo "    ./build.sh -u --ophost --noexec -O0 -j8"
@@ -324,6 +343,7 @@ usage() {
   echo "    --genop Create the initial directory for op, like: --genop=op_class/op_name"
   echo "    --genop_aicpu Create the initial directory for AI CPU op, like: --genop_aicpu=op_class/op_name"
   echo "    --oom Build with oom mode on the kernel side, with options: '-g --cce-enable-oom'"
+  echo "    --dump_cce Dump kernel precompiled files (.i) for debugging"
   echo "to be continued ..."
 }
 
@@ -340,7 +360,7 @@ check_help_combinations() {
   for arg in "${args[@]}"; do
     case "$arg" in
       -u) has_u=true ;;
-      --ophost | --opapi | --onnxplugin)
+      --ophost | --opapi | --onnxplugin | --opgraph)
         has_test_command=true
         has_build_command=true
         ;;
@@ -353,17 +373,17 @@ check_help_combinations() {
 
   # 检查help中的无效命令组合
   if [[ "$has_pkg" == "true" && ("$has_test_command" == "true" || "$has_u" == "true") ]]; then
-    print_error "--pkg cannot be used with test(-u, etc.), --ophost, --opapi"
+    print_error "--pkg cannot be used with test(-u, etc.), --ophost, --opapi, --opgraph"
     return 1
   fi
 
   if [[ "$has_opkernel" == "true" && ("$has_test_command" == "true" || "$has_u" == "true") ]]; then
-    print_error "--opkernel cannot be used with test(-u, etc.), --ophost, --opapi"
+    print_error "--opkernel cannot be used with test(-u, etc.), --ophost, --opapi, --opgraph"
     return 1
   fi
 
   if [[ "$has_opkernel_aicpu" == "true" && ("$has_test_command" == "true" || "$has_u" == "true") ]]; then
-    echo "[ERROR] --opkernel_aicpu cannot be used with test(-u, --ophost_test, etc.), --ophost, --opapi, or --opgraph"
+    echo "[ERROR] --opkernel_aicpu cannot be used with test(-u, --ophost, etc.), --ophost, --opapi, or --opgraph"
     return 1
   fi
 
@@ -371,21 +391,21 @@ check_help_combinations() {
 }
 
 check_param() {
-  # --ops不能与--ophost，--opapi同时存在，如果带U则可以
-  if [[ -n "$COMPILED_OPS" && "$ENABLE_TEST" == "FALSE" ]] && [[ "$OP_HOST" == "TRUE" || "$OP_API" == "TRUE" ]]; then
+  # --ops不能与--ophost，--opapi, --opgraph同时存在，如果带U则可以
+  if [[ -n "$COMPILED_OPS" && "$ENABLE_TEST" == "FALSE" ]] && [[ "$OP_HOST" == "TRUE" || "$OP_GRAPH" == "TRUE" || "$OP_API" == "TRUE" ]]; then
     print_error "--ops cannot be used with --ophost, --opapi"
     exit 1
   fi
 
-  # --pkg不能与-u（UT模式，包含_test的参数）或者--ophost，--opapi同时存在
+  # --pkg不能与-u（UT模式，包含_test的参数）或者--ophost，--opapi, --opgraph同时存在
   if [[ "$ENABLE_PACKAGE" == "TRUE" ]]; then
     if [[ "$ENABLE_TEST" == "TRUE" ]]; then
-      print_error "--pkg cannot be used with test(-u, --ophost_test, etc.)"
+      print_error "--pkg cannot be used with test(-u, --ophost, etc.)"
       exit 1
     fi
 
-    if [[ "$OP_HOST" == "TRUE" || "$OP_API" == "TRUE" ]]; then
-      print_error "--pkg cannot be used with --ophost, --opapi"
+    if [[ "$OP_HOST" == "TRUE" || "$OP_GRAPH" == "TRUE" || "$OP_API" == "TRUE" ]]; then
+      print_error "--pkg cannot be used with --ophost, --opapi, --opgraph"
       exit 1
     fi
   fi
@@ -398,8 +418,8 @@ check_param() {
   fi
 
   if [[ "${BUILD_TYPE}" == "Debug" ]]; then
-    if [[ "$ENABLE_MSSANITIZER" == "TRUE" || "$ENABLE_OOM" == "TRUE" ]]; then
-      echo "[ERROR] --build-type=Debug cannot be used with --mssanitizer or --oom"
+    if [[ "$ENABLE_MSSANITIZER" == "TRUE" || "$ENABLE_OOM" == "TRUE" || "$ENABLE_DUMP_CCE" == "TRUE" ]]; then
+      echo "[ERROR] --build-type=Debug cannot be used with --mssanitizer, --oom, --dump_cce"
       exit 1
     fi
   fi
@@ -446,7 +466,7 @@ set_create_libs() {
     return
   fi
   if [[ "$ENABLE_PACKAGE" == "TRUE" && "$ENABLE_CUSTOM" != "TRUE" ]]; then
-    BUILD_LIBS=("ophost_${REPOSITORY_NAME}" "opapi_${REPOSITORY_NAME}" "op_${REPOSITORY_NAME}_onnx_plugin")
+    BUILD_LIBS=("ophost_${REPOSITORY_NAME}" "opapi_${REPOSITORY_NAME}" "op_${REPOSITORY_NAME}_onnx_plugin" "opgraph_${REPOSITORY_NAME}")
     ENABLE_CREATE_LIB=TRUE
   else
     if [[ "$OP_HOST" == "TRUE" ]]; then
@@ -461,6 +481,10 @@ set_create_libs() {
       BUILD_LIBS+=("op_${REPOSITORY_NAME}_onnx_plugin")
       ENABLE_CREATE_LIB=TRUE
     fi
+    if [[ "$OP_GRAPH" == "TRUE" ]]; then
+ 	       BUILD_LIBS+=("opgraph_${REPOSITORY_NAME}")
+ 	       ENABLE_CREATE_LIB=TRUE
+ 	  fi
   fi
 }
 
@@ -474,6 +498,10 @@ set_ut_mode() {
     OP_HOST_UT=TRUE
     UT_TEST_ALL=FALSE
   fi
+  if [[ "$OP_GRAPH" == "TRUE" ]]; then
+ 	     OP_GRAPH_UT=TRUE
+ 	     UT_TEST_ALL=FALSE
+ 	fi
   if [[ "$OP_API" == "TRUE" ]]; then
     OP_API_UT=TRUE
     UT_TEST_ALL=FALSE
@@ -492,7 +520,7 @@ set_ut_mode() {
   fi
 
   # 检查测试项，至少有一个
-  if [[ "$UT_TEST_ALL" == "FALSE" && "$OP_HOST_UT" == "FALSE" && "$OP_API_UT" == "FALSE" && "$OP_KERNEL_UT" == "FALSE" && "$OP_KERNEL_AICPU_UT" == "FALSE" ]]; then
+  if [[ "$UT_TEST_ALL" == "FALSE" && "$OP_HOST_UT" == "FALSE" && "$OP_GRAPH_UT" == "FALSE" && "$OP_API_UT" == "FALSE" && "$OP_KERNEL_UT" == "FALSE" && "$OP_KERNEL_AICPU_UT" == "FALSE" ]]; then
     print_error "At least one test target must be specified (ophost test, opapi test, opgraph test, opkernel test, opkernel_aicpu_test)"
     usage
     exit 1
@@ -501,6 +529,9 @@ set_ut_mode() {
   if [[ "$UT_TEST_ALL" == "TRUE" ]] || [[ "$OP_HOST_UT" == "TRUE" ]]; then
     UT_TARGES+=("${REPOSITORY_NAME}_op_host_ut")
   fi
+  if [[ "$UT_TEST_ALL" == "TRUE" ]] || [[ "$OP_GRAPH_UT" == "TRUE" ]]; then
+ 	     UT_TARGES+=("${REPOSITORY_NAME}_op_graph_ut")
+ 	fi
   if [[ "$UT_TEST_ALL" == "TRUE" ]] || [[ "$OP_API_UT" == "TRUE" ]]; then
     UT_TARGES+=("${REPOSITORY_NAME}_op_api_ut")
   fi
@@ -526,17 +557,11 @@ make_clean_all() {
     rm -rf ./*
   fi
   [ -d "$BUILD_OUT_PATH" ] && rm -rf $BUILD_OUT_PATH
-  THIRD_PARTY_PATH=${BASE_PATH}/third_party
-  if [ -d "${THIRD_PARTY_PATH}" ]; then
-    rm -rf ${THIRD_PARTY_PATH}/abseil-cpp
-    rm -rf ${THIRD_PARTY_PATH}/ascend_protobuf
-  fi
   print_success "make clean all success!"
 }
 
 checkopts() {
   THREAD_NUM=$(awk '/^processor/ {count++} END {print (count > 32) ? 32 : count}' /proc/cpuinfo)
-  THREAD_NUM=8
   VERBOSE=""
   BUILD_MODE=""
   COMPILED_OPS=""
@@ -554,6 +579,7 @@ checkopts() {
   BUILD_TYPE="Release"
   ENABLE_MSSANITIZER=FALSE
   ENABLE_OOM=FALSE
+  ENABLE_DUMP_CCE=FALSE
   ENABLE_COVERAGE=FALSE
   ENABLE_UT_EXEC=TRUE
   ENABLE_ASAN=FALSE
@@ -575,6 +601,7 @@ checkopts() {
   OP_KERNEL_AICPU_UT=FALSE
   OP_API=FALSE
   OP_HOST=FALSE
+  OP_GRAPH=FALSE
   OP_KERNEL=FALSE
   OP_KERNEL_AICPU=FALSE
   ENABLE_CREATE_LIB=FALSE
@@ -623,6 +650,7 @@ checkopts() {
           -u) SHOW_HELP="test" ;;
           --make_clean_all | --make_clean) SHOW_HELP="clean" ;;
           --ophost) SHOW_HELP="ophost" ;;
+          --opgraph) SHOW_HELP="opgraph" ;;
           --opapi) SHOW_HELP="opapi" ;;
           --onnxplugin) SHOW_HELP="onnxplugin" ;;
           --run_example) SHOW_HELP="run_example" ;;
@@ -701,7 +729,7 @@ checkopts() {
           ;;
         soc=*)
           COMPUTE_UNIT=${OPTARG#*=}
-          COMPUTE_UNIT=$(echo "$COMPUTE_UNIT" | sed 's/ascend950/ascend910_95/g')
+          COMPUTE_UNIT=$(echo "$COMPUTE_UNIT" | sed 's/ascend950/ascend950/g')
           ;;
         vendor_name=*)
           VENDOR_NAME=${OPTARG#*=}
@@ -716,6 +744,7 @@ checkopts() {
           ;;
         mssanitizer) ENABLE_MSSANITIZER=FALSE ;;
         oom) ENABLE_OOM=TRUE ;;
+        dump_cce) ENABLE_DUMP_CCE=TRUE ;;
         noexec) ENABLE_UT_EXEC=FALSE ;;
         cov) ENABLE_COVERAGE=TRUE;;
         opkernel)
@@ -762,6 +791,8 @@ checkopts() {
 
           if [[ "$OPTARG" == "ophost" ]]; then
             OP_HOST=TRUE
+          elif [[ "$OPTARG" == "opgraph" ]]; then
+ 	          OP_GRAPH=TRUE
           elif [[ "$OPTARG" == "opapi" ]]; then
             OP_API=TRUE
           elif [[ "$OPTARG" == "opkernel" ]]; then
@@ -784,8 +815,9 @@ checkopts() {
     esac
   done
 
-  if [[ "$OP_KERNEL_AICPU_UT" != "TRUE" && "$ENABLE_TEST" == "TRUE" && "$OP_HOST" == "FALSE" && "$OP_API" == "FALSE" && "$OP_KERNEL" == "FALSE" ]]; then
+  if [[ "$OP_KERNEL_AICPU_UT" != "TRUE" && "$ENABLE_TEST" == "TRUE" && "$OP_HOST" == "FALSE" && "$OP_GRAPH" == "FALSE" && "$OP_API" == "FALSE" && "$OP_KERNEL" == "FALSE" ]]; then
     OP_HOST=TRUE
+    OP_GRAPH=TRUE
     OP_API=TRUE
     OP_KERNEL=TRUE
   fi
@@ -833,6 +865,7 @@ assemble_cmake_args() {
   CMAKE_ARGS="$CMAKE_ARGS -DCMAKE_BUILD_TYPE=${BUILD_TYPE}"
   CMAKE_ARGS="$CMAKE_ARGS -DENABLE_MSSANITIZER=${ENABLE_MSSANITIZER}"
   CMAKE_ARGS="$CMAKE_ARGS -DENABLE_OOM=${ENABLE_OOM}"
+  CMAKE_ARGS="$CMAKE_ARGS -DENABLE_DUMP_CCE=${ENABLE_DUMP_CCE}"
   CMAKE_ARGS="$CMAKE_ARGS -DENABLE_COVERAGE=${ENABLE_COVERAGE}"
   CMAKE_ARGS="$CMAKE_ARGS -DENABLE_TEST=${ENABLE_TEST}"
   CMAKE_ARGS="$CMAKE_ARGS -DENABLE_UT_EXEC=${ENABLE_UT_EXEC}"
@@ -860,6 +893,7 @@ assemble_cmake_args() {
   CMAKE_ARGS="$CMAKE_ARGS -DNO_FORCE=${NO_FORCE}"
   CMAKE_ARGS="$CMAKE_ARGS -DBUILD_MODE=${BUILD_MODE}"
   CMAKE_ARGS="$CMAKE_ARGS -DOP_HOST_UT=${OP_HOST_UT}"
+  CMAKE_ARGS="$CMAKE_ARGS -DOP_GRAPH_UT=${OP_GRAPH_UT}"
   CMAKE_ARGS="$CMAKE_ARGS -DOP_API_UT=${OP_API_UT}"
   CMAKE_ARGS="$CMAKE_ARGS -DOP_KERNEL_UT=${OP_KERNEL_UT}"
   CMAKE_ARGS="$CMAKE_ARGS -DOP_KERNEL_AICPU_UT=${OP_KERNEL_AICPU_UT}"
@@ -1021,8 +1055,8 @@ build_binary() {
 
 build_pkg() {
   echo "--------------- build pkg start ---------------"
+  local all_targets=$(cmake --build . --target help)
   if [[ "$ENABLE_BINARY" == "FALSE" ]]; then # for jit need dynamic py
-    local all_targets=$(cmake --build . --target help)
     if grep -wq "ascendc_impl_gen" <<< "${all_targets}"; then
       cmake --build . --target ascendc_impl_gen -- ${VERBOSE} -j $THREAD_NUM
       if [ $? -ne 0 ]; then exit 1; fi
@@ -1048,18 +1082,18 @@ set_ci_mode() {
   cd ${BASE_PATH}
   if [[ "$ENABLE_TEST" == "TRUE" ]]; then
     {
-      result=$(python3 ${BASE_PATH}/scripts/util/parse_changed_files.py ${CHANGED_FILES})
+      result=$(python3 ${BASE_PATH}/scripts/util/parse_changed_files.py ${CHANGED_FILES} ${ENABLE_EXPERIMENTAL})
     } || {
       echo $result && exit 1
     }
     for line in $result; do
       if [[ $line == op_* ]]; then
-        TRIGER_UTS+=($line)
+        TRIGGER_UTS+=($line)
       fi
     done
   else
     {
-      result=$(python3 ${BASE_PATH}/scripts/util/parse_compile_changed_files.py ${CHANGED_FILES})
+      result=$(python3 ${BASE_PATH}/scripts/util/parse_compile_changed_files.py ${CHANGED_FILES} ${ENABLE_EXPERIMENTAL})
     } || {
       echo $result && exit 1
     }
@@ -1076,27 +1110,35 @@ build_ut() {
   if [ ! -d "${BUILD_PATH}" ]; then
     mkdir -p "${BUILD_PATH}"
   fi
-  cd "${BUILD_PATH}" && cmake ${CMAKE_ARGS} ..
+  # 删除ai_core下的json文件，强制UT执行时重新生成json文件，避免多次执行之间的干扰
+  cd "${BUILD_PATH}"  && rm -rf ${BUILD_PATH}/tbe/op_info_cfg/ai_core/* && cmake ${CMAKE_ARGS} ..
   local enable_cov=FALSE
   if [[ "$CI_MODE" == "TRUE" ]]; then
     # ci 模式
-    for triger_option in "${TRIGER_UTS[@]}"; do
-      ut_args=(${triger_option//:/ })
+    for trigger_option in "${TRIGGER_UTS[@]}"; do
+ 	    ut_args=(${trigger_option//:/ })
       if [[ "${UT_TARGES[@]}" =~ "${ut_args[0]}" ]]; then
         enable_cov=TRUE
-        echo "Triger Ut: ${ut_args[0]} for ops: ${ut_args[1]}"
-        cmake ${CMAKE_ARGS} -DASCEND_OP_NAME=${ut_args[1]} -DASCEND_COMPILE_OPS=${ut_args[2]} ..
+        echo "Trigger Ut: ${ut_args[0]} for ops: ${ut_args[1]}"
+ 	        if [[ ${ut_args[3]} == "default" ]]; then
+ 	          cmake ${CMAKE_ARGS} -DASCEND_OP_NAME=${ut_args[1]} -DASCEND_COMPILE_OPS=${ut_args[2]} ..
+ 	        else
+ 	          cmake ${CMAKE_ARGS} -DASCEND_OP_NAME=${ut_args[1]} -DASCEND_COMPILE_OPS=${ut_args[2]} -DASCEND_COMPUTE_UNIT=${ut_args[3]} ..
+ 	        fi
         cmake --build . --target ${REPOSITORY_NAME}_${ut_args[0]} -- ${VERBOSE} -j $THREAD_NUM
       else
-        echo "Not need triger Ut: ${ut_args[0]}"
+        echo "Not need trigger Ut: ${ut_args[0]}"
       fi
     done
   else
     enable_cov=TRUE
     if echo "${UT_TARGES[@]}" | grep -v "aicpu_op_kernel" | grep -q "op_kernel"; then
-      echo "exec pre_op_kernel_ut..."
-      cmake --build . --target pre_op_kernel_ut -- ${VERBOSE} -j $THREAD_NUM
-      cmake ${CMAKE_ARGS} ..
+      local all_targets=$(cmake --build . --target help)
+      if grep -wq "pre_op_kernel_ut" <<< "${all_targets}"; then
+        echo "exec pre_op_kernel_ut..."
+        cmake --build . --target pre_op_kernel_ut -- ${VERBOSE} -j $THREAD_NUM
+        cmake ${CMAKE_ARGS} ..
+      fi
     fi
     cmake --build . --target ${UT_TARGES[@]} -- ${VERBOSE} -j $THREAD_NUM
   fi
@@ -1116,6 +1158,7 @@ build_single_example() {
       fi
       export CUST_LIBRARY_PATH="${ASCEND_HOME_PATH}/opp/vendors/${VENDOR_NAME}_ras/op_api/lib"     # 仅自定义算子需要
       export CUST_INCLUDE_PATH="${ASCEND_HOME_PATH}/opp/vendors/${VENDOR_NAME}_ras/op_api/include" # 仅自定义算子需要
+      export LD_LIBRARY_PATH=${CUST_LIBRARY_PATH}:${LD_LIBRARY_PATH}
       if [ -f ${EAGER_LIBRARY_PATH}/libascendcl.so ]; then
         g++ ${file} -I ${CUST_INCLUDE_PATH} -I ${INCLUDE_PATH} -I ${INCLUDE_PATH}/aclnnop -L ${CUST_LIBRARY_PATH} -L ${EAGER_LIBRARY_PATH} -lcust_opapi -lopapi_math -lascendcl -lnnopbase -o test_aclnn_${example} -Wl,-rpath=${CUST_LIBRARY_PATH}
       else
@@ -1123,9 +1166,9 @@ build_single_example() {
       fi
     elif [[ "${PKG_MODE}" == "" ]]; then
       if [ -f ${EAGER_LIBRARY_PATH}/libascendcl.so ] || [ -f ${EAGER_LIBRARY_OPP_PATH}/libascendcl.so]; then
-        g++ ${file} -I ${INCLUDE_PATH} -I ${INCLUDE_PATH}/aclnnop -I ${ACLNN_INCLUDE_PATH} -L ${EAGER_LIBRARY_OPP_PATH} -L ${EAGER_LIBRARY_PATH} -lopapi_ras -lopapi_math -lascendcl -lnnopbase -o test_aclnn_${example}
+        g++ ${file} -I ${INCLUDE_PATH} -I ${INCLUDE_PATH}/aclnnop -I ${ACLNN_INCLUDE_PATH} -L ${EAGER_LIBRARY_OPP_PATH} -L ${EAGER_LIBRARY_PATH} -lopapi_nn -lopapi_math -lascendcl -lnnopbase -o test_aclnn_${example}
       else
-        g++ ${file} -I ${INCLUDE_PATH} -I ${INCLUDE_PATH}/aclnnop -I ${ACLNN_INCLUDE_PATH} -L ${EAGER_LIBRARY_OPP_PATH} -L ${EAGER_LIBRARY_PATH} -lopapi_ras -lopapi_math -lacl_rt -lnnopbase -o test_aclnn_${example}
+        g++ ${file} -I ${INCLUDE_PATH} -I ${INCLUDE_PATH}/aclnnop -I ${ACLNN_INCLUDE_PATH} -L ${EAGER_LIBRARY_OPP_PATH} -L ${EAGER_LIBRARY_PATH} -lopapi_nn -lopapi_math -lacl_rt -lnnopbase -o test_aclnn_${example}
       fi
     else
       usage "run_example"
@@ -1155,11 +1198,25 @@ build_example() {
     exit 1
   fi
 
+  local grep_word="-v"
+
+  if [[ "${ENABLE_EXPERIMENTAL}" == "TRUE" ]]; then
+    grep_word=""
+  fi
+
   OLDIFS=$IFS
   IFS=$'\n'
-  files=($(find ../ -path "*/${OP_NAME}/examples/${pattern}*.cpp"))
-  if [[ "$COMPUTE_UNIT" == "ascend910_95" ]]; then
-    files=($(find ../ -path "*/${OP_NAME}/examples/arch35/${pattern}*.cpp"))
+  {  
+    files=($(find ../ -path "*/${OP_NAME}/examples/${pattern}*.cpp" -not -path "*/opgen/template/*" | grep ${grep_word} "experimental"))
+  } || {
+    files=()
+    echo "INFO: not find ${OP_NAME} A2/A3 examples."
+  }
+  if [[ "$COMPUTE_UNIT" == "ascend950" ]]; then
+    files=($(find ../ -path "*/${OP_NAME}/examples/arch35/${pattern}*.cpp" | grep ${grep_word} "experimental"))
+  fi
+  if [[ "$COMPUTE_UNIT" == "ascend310p" ]]; then
+    files=($(find ../ -path "*/${OP_NAME}/examples/arch20/${pattern}*.cpp" | grep ${grep_word} "experimental"))
   fi
   IFS=$OLDIFS
 
@@ -1170,12 +1227,14 @@ build_example() {
     example=${file#*"${pattern}"}
     example=${example%.*}
     examples+=($example)
+    local old_ld_path=${LD_LIBRARY_PATH}
     if [[ $EXAMPLE_NAME == "" || $EXAMPLE_NAME == $example ]]; then
       build_single_example || {
         echo -e "\n$dotted_line\nRun ${pattern}${example} failed. \n$dotted_line\n"
         failed_example+=(${example})
       }
     fi
+    export LD_LIBRARY_PATH=${old_ld_path}
   done
 
   examples=$(IFS=,; echo "${examples[*]}")
@@ -1344,7 +1403,7 @@ main() {
   if [ "$ENABLE_CREATE_LIB" == "TRUE" ]; then
     build_lib
   fi
-  if [[ ("$ENABLE_BINARY" == "TRUE" || "$ENABLE_CUSTOM" == "TRUE") && "$ENABLE_JIT" == "FALSE" ]]; then
+  if [[ "$ENABLE_BINARY" == "TRUE" || "$ENABLE_CUSTOM" == "TRUE" ]] && [[ "$ENABLE_JIT" == "FALSE" ]]; then
     build_binary
   fi
   if [[ "$ENABLE_STATIC" == "TRUE" ]]; then

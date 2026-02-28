@@ -15,13 +15,15 @@ SOC_MAP=([Ascend310P]="Ascend310P3"
           [Ascend910]="Ascend910A"
           [Ascend910B]="Ascend910B1"
           [Ascend910_93]="Ascend910_9391"
-          [Ascend910_95]="Ascend910_9599"
+          [Ascend950]="Ascend950PR_9599"
           [KirinX90]="KirinX90"
+          [Kirin9030]="Kirin9030"
+          [MC62CM12A]="MC62CM12AA"
 )
 
 OPC_TASK_NAME="opc_cmd.sh"
 OUT_TASK_NAME="out_cmd.sh"
-OP_CATEGORY_LIST="ops"
+OP_CATEGORY_LIST="matmul conv activation foreach vfusion index loss norm optim pooling quant rnn control"
 
 function trans_soc() {
   local _soc_input=$1
