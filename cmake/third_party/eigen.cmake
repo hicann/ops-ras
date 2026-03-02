@@ -30,12 +30,12 @@ ExternalProject_Add(external_eigen_ras
 
 ExternalProject_Get_Property(external_eigen_ras SOURCE_DIR)
 
-add_library(EigenNn INTERFACE)
-target_compile_options(EigenNn INTERFACE -w)
+add_library(EigenRas INTERFACE)
+target_compile_options(EigenRas INTERFACE -w)
 
-set_target_properties(EigenNn PROPERTIES
+set_target_properties(EigenRas PROPERTIES
   INTERFACE_INCLUDE_DIRECTORIES "${SOURCE_DIR}"
 )
-add_dependencies(EigenNn external_eigen_ras)
+add_dependencies(EigenRas external_eigen_ras)
 
-add_library(Eigen3::EigenNn ALIAS EigenNn)
+add_library(Eigen3::EigenRas ALIAS EigenRas)

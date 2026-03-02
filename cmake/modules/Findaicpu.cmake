@@ -36,7 +36,9 @@ else()
     ${TOP_DIR}/asl/ops/cann/ops/built-in/aicpu/impl/utils
     ${TOP_DIR}/asl/ops/cann/ops/built-in/aicpu/impl
     ${TOP_DIR}/ops-base/pkg_inc/aicpu_common/context/common
+    ${TOP_DIR}/ops-base/include/aicpu_common/context/common
     ${TOP_DIR}/open_source/eigen
+    ${TOP_DIR}/runtime/pkg_inc/aicpu_sched/common
   )
 endif()
 
