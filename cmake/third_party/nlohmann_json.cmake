@@ -9,21 +9,20 @@
 
 include_guard(GLOBAL)
 
-unset(json_FOUND CACHE)
-unset(JSON_FOUND CACHE)
-
-if(NOT CANN_3RD_LIB_PATH)
-    set(CANN_3RD_LIB_PATH ${PROJECT_SOURCE_DIR}/third_party)
+if(json_FOUND)
+    return()
 endif()
 
-if (NOT CANN_3RD_PKG_PATH)
-    set(CANN_3RD_PKG_PATH ${PROJECT_SOURCE_DIR}/third_party/pkg)
-endif ()
+unset(json_FOUND CACHE)
+unset(JSON_INCLUDE CACHE)
 
-set(JSON_DOWNLOAD_PATH ${CANN_3RD_PKG_PATH}/json)
+if(NOT CANN_3RD_PKG_PATH)
+  set(CANN_3RD_PKG_PATH ${PROJECT_SOURCE_DIR}/third_party/pkg)
+endif()
+
+set(JSON_DOWNLOAD_PATH ${CANN_3RD_LIB_PATH}/pkg)
 set(JSON_INSTALL_PATH ${CANN_3RD_LIB_PATH}/json)
-
-find_path(JSON_FOUND
+find_path(JSON_INCLUDE
         NAMES nlohmann/json.hpp
         NO_CMAKE_SYSTEM_PATH
         NO_CMAKE_FIND_ROOT_PATH
@@ -34,28 +33,21 @@ find_package_handle_standard_args(json
         FOUND_VAR
         json_FOUND
         REQUIRED_VARS
-        JSON_FOUND
+        JSON_INCLUDE
         )
 
 if(json_FOUND AND NOT FORCE_REBUILD_CANN_3RD)
     message("json found in ${JSON_INSTALL_PATH}, and not force rebuild cann third_party")
     set(JSON_INCLUDE ${JSON_INSTALL_PATH}/include)
-    add_library(json INTERFACE IMPORTED)
+    add_custom_target(nlohmann_json)
 else()
-    if(EXISTS "${CANN_3RD_LIB_PATH}/include.zip")
-        set(REQ_URL "file://${CANN_3RD_LIB_PATH}/include.zip")
-        message(STATUS "[ThirdPartyLib][json] found in ${REQ_URL}.")
-    else()
-        set(REQ_URL "https://gitcode.com/cann-src-third-party/json/releases/download/v3.11.3/include.zip")
-        message(STATUS "Downloading json from ${REQ_URL}")
-    endif()
-
+    message("not use cache, download the json code")
     include(ExternalProject)
     ExternalProject_Add(nlohmann_json
-      URL                         ${REQ_URL}
+      URL                         https://gitcode.com/cann-src-third-party/json/releases/download/v3.11.3/include.zip
       URL_MD5                     e2f46211f4cf5285412a63e8164d4ba6
-      DOWNLOAD_DIR                ${JSON_DOWNLOAD_PATH}
-      SOURCE_DIR                  ${JSON_INSTALL_PATH}
+      DOWNLOAD_DIR                download/nlohmann_json
+      PREFIX                      third_party
       TLS_VERIFY                  OFF
       DOWNLOAD_EXTRACT_TIMESTAMP  OFF
       CONFIGURE_COMMAND           ""
@@ -65,9 +57,9 @@ else()
 
     ExternalProject_Get_Property(nlohmann_json SOURCE_DIR)
     set(JSON_INCLUDE ${SOURCE_DIR}/include)
-    add_library(json INTERFACE)
 endif()
 
+add_library(json INTERFACE IMPORTED)
 set_target_properties(json PROPERTIES
   INTERFACE_INCLUDE_DIRECTORIES "${JSON_INCLUDE}")
 target_compile_definitions(json INTERFACE nlohmann=ascend_nlohmann)
