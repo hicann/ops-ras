@@ -76,7 +76,7 @@ FILE_REMOVE_FAILED_DES="Failed to remove file."
 UNAME_NOT_EXIST="0x0091"
 UNAME_NOT_EXIST_DES="Username not exists."
 OPP_COMPATIBILITY_CEHCK_ERR="0x0092"
-OPP_COMPATIBILITY_CEHCK_ERR_DES="OpsNN compatibility check error."
+OPP_COMPATIBILITY_CEHCK_ERR_DES="OpsRas compatibility check error."
 PERM_DENIED="0x0093"
 PERM_DENIED_DES="Permission denied."
 
@@ -162,7 +162,7 @@ logoperationretstatus() {
 
     _curr_user="${_CURR_OPERATE_USER}"
     _curr_ip="127.0.0.1"
-    _pkg_name="OpsNN"
+    _pkg_name="OpsRas"
     _cur_date_res=$(getdate)
     echo "Install ${_event_level} ${_curr_user} ${_cur_date_res} ${_curr_ip} \
 ${_pkg_name} ${_ret_status_des} install_type=${_install_type}; \
@@ -1093,7 +1093,7 @@ do
         fi
         contain_feature "ret" "$feature_choice" "${_FILELIST_FILE}"
         if [ "$ret" = "false" ]; then
-            log "WARNING" "OpsNN package doesn't contain features $feature_choice, skip installation."
+            log "WARNING" "OpsRas package doesn't contain features $feature_choice, skip installation."
             exit 0
         fi
         is_feature=y

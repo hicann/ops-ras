@@ -567,6 +567,6 @@ logandprint "[INFO]: upgradePercentage:100%"
 logandprint "[INFO]: Installation information listed below:"
 logandprint "[INFO]: Install log file path: (${_INSTALL_LOG_FILE})"
 logandprint "[INFO]: Operation log file path: (${_OPERATE_LOG_FILE})"
-logandprint "[INFO]: OpsNN package upgraded successfully! The new version takes effect immediately."
+logandprint "[INFO]: OpsRas package upgraded successfully! The new version takes effect immediately."
 exit 0
 

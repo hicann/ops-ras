@@ -54,7 +54,7 @@ install_shell="${_CURR_PATH}/install.sh"
 
 # shell exist check
 if [ ! -f "${install_shell}" ]; then
-    logandprint "[ERROR]: ERR_NO:${FILE_NOT_EXIST};OpsNN module is not installed or some ops_ras source files are lost.\
+    logandprint "[ERROR]: ERR_NO:${FILE_NOT_EXIST};OpsRas module is not installed or some ops_ras source files are lost.\
 If there are any residual files, please manually remove those files."
     exit 1
 fi
