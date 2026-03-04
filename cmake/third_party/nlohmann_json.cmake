@@ -39,14 +39,14 @@ find_package_handle_standard_args(json
 if(json_FOUND AND NOT FORCE_REBUILD_CANN_3RD)
     message("json found in ${JSON_INSTALL_PATH}, and not force rebuild cann third_party")
     set(JSON_INCLUDE ${JSON_INSTALL_PATH}/include)
-    add_custom_target(nlohmann_json)
+    add_custom_target(nlohmann_json_ras)
 else()
     message("not use cache, download the json code")
     include(ExternalProject)
-    ExternalProject_Add(nlohmann_json
+    ExternalProject_Add(nlohmann_json_ras
       URL                         https://gitcode.com/cann-src-third-party/json/releases/download/v3.11.3/include.zip
       URL_MD5                     e2f46211f4cf5285412a63e8164d4ba6
-      DOWNLOAD_DIR                download/nlohmann_json
+      DOWNLOAD_DIR                download/nlohmann_json_ras
       PREFIX                      third_party
       TLS_VERIFY                  OFF
       DOWNLOAD_EXTRACT_TIMESTAMP  OFF
@@ -55,7 +55,7 @@ else()
       INSTALL_COMMAND             ""
     )
 
-    ExternalProject_Get_Property(nlohmann_json SOURCE_DIR)
+    ExternalProject_Get_Property(nlohmann_json_ras SOURCE_DIR)
     set(JSON_INCLUDE ${SOURCE_DIR}/include)
 endif()
 
@@ -63,4 +63,4 @@ add_library(json INTERFACE IMPORTED)
 set_target_properties(json PROPERTIES
   INTERFACE_INCLUDE_DIRECTORIES "${JSON_INCLUDE}")
 target_compile_definitions(json INTERFACE nlohmann=ascend_nlohmann)
-add_dependencies(json nlohmann_json)
+add_dependencies(json nlohmann_json_ras)
