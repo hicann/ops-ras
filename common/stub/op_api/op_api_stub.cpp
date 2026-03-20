@@ -328,85 +328,85 @@ std::tuple<aclTensor*, aclTensor*> Topk(
         const_cast<aclTensor*>(self));
 }
 
-const aclTensor* Abs(const aclTensor* self, aclOpExecutor* executor)
+const aclTensor* Abs(const aclTensor* self, aclOpExecutor* /*executor*/)
 {
     return self;
 }
-aclTensor *AdjacentDifference(const aclTensor *x, op::DataType yDtype, aclOpExecutor *executor)
+aclTensor *AdjacentDifference(const aclTensor* /*x*/, op::DataType /*yDtype*/, aclOpExecutor* /*executor*/)
 {
     return nullptr;
 }
-const aclTensor* Arange(const aclScalar* start, const aclScalar* end, const aclScalar* step, const aclTensor* out,
-                        const bool isClosed, aclOpExecutor* executor)
+const aclTensor* Arange(const aclScalar* /*start*/, const aclScalar* /*end*/, const aclScalar* /*step*/, const aclTensor* out,
+                        const bool /*isClosed*/, aclOpExecutor* /*executor*/)
 {
     return out;
 }
-const aclTensor *Cumsum(const aclTensor *self, const aclTensor* dim, aclOpExecutor *executor)
+const aclTensor *Cumsum(const aclTensor *self, const aclTensor* /*dim*/, aclOpExecutor* /*executor*/)
 {
     return self;
 }
-const aclTensor *Cumsum(const aclTensor *self, const aclTensor* dim, bool exclusive, bool reverse, aclOpExecutor *executor)
+const aclTensor *Cumsum(const aclTensor *self, const aclTensor* /*dim*/, bool /*exclusive*/, bool /*reverse*/, aclOpExecutor* /*executor*/)
 {
     return self;
 }
 const aclTensor *Equal(const aclTensor *self,
-                     const aclTensor *other,
-                     aclOpExecutor *executor)
+                     const aclTensor* /*other*/,
+                     aclOpExecutor* /*executor*/)
 {
     return self;
 }
-const aclTensor *Expand(const aclTensor *self, const aclIntArray *shape, aclOpExecutor *executor)
+const aclTensor *Expand(const aclTensor *self, const aclIntArray* /*shape*/, aclOpExecutor* /*executor*/)
 {
     return self;
 }
-const aclTensor* FaultInjection(const aclTensor *injectObj, const aclTensor *injectPara, aclTensor *out, aclOpExecutor *executor)
+const aclTensor* FaultInjection(const aclTensor *injectObj, const aclTensor* /*injectPara*/, aclTensor* /*out*/, aclOpExecutor* /*executor*/)
 {
     return injectObj;
 }
 const aclTensor *Greater(const aclTensor *self,
-                     const aclTensor *other,
-                     aclOpExecutor *executor)
+                     const aclTensor* /*other*/,
+                     aclOpExecutor* /*executor*/)
 {
     return self;
 }
-const aclTensor *MaskedFill(const aclTensor *self, const aclTensor *mask,
-                            const aclTensor *value, aclOpExecutor *executor)
+const aclTensor *MaskedFill(const aclTensor *self, const aclTensor* /*mask*/,
+                            const aclTensor* /*value*/, aclOpExecutor* /*executor*/)
 {
     return self;
 }
-const aclTensor* Mod(const aclTensor* self, const aclTensor* other, aclOpExecutor* executor)
+const aclTensor* Mod(const aclTensor* self, const aclTensor* /*other*/, aclOpExecutor* /*executor*/)
 {
     return self;
 }
-const aclTensor *NotEqual(const aclTensor *self, const aclTensor *other, aclOpExecutor *executor)
+const aclTensor *NotEqual(const aclTensor *self, const aclTensor* /*other*/, aclOpExecutor* /*executor*/)
 {
     return self;
 }
-const aclTensor *Pow(const aclTensor *self, const aclTensor *exponent, aclOpExecutor *executor)
+const aclTensor *Pow(const aclTensor *self, const aclTensor* /*exponent*/, aclOpExecutor* /*executor*/)
 {
     return self;
 }
-const aclTensor *ReduceMin(const aclTensor *self, const aclIntArray *dims, bool keepDim, aclOpExecutor *executor)
+const aclTensor *ReduceMin(const aclTensor *self, const aclIntArray* /*dims*/, bool /*keepDim*/, aclOpExecutor* /*executor*/)
 {
     return self;
 }
-const std::tuple<const aclTensor *, const aclTensor *> ReduceVar(const aclTensor* self, const aclIntArray* dim,
-    int64_t correction, bool keepdim, bool isMeanOut, aclOpExecutor* executor)
+const std::tuple<const aclTensor *, const aclTensor *> ReduceVar(const aclTensor* /*self*/, const aclIntArray* /*dim*/,
+    int64_t /*correction*/, bool /*keepdim*/, bool /*isMeanOut*/, aclOpExecutor* /*executor*/)
 {
     return std::tuple<const aclTensor *, const aclTensor *>(nullptr, nullptr);
 }
- const aclTensor* RightShift(const aclTensor* x, const aclTensor* y, aclOpExecutor* executor)
+ const aclTensor* RightShift(const aclTensor* x, const aclTensor* /*y*/, aclOpExecutor* /*executor*/)
 {
     return x;
 }
-const aclTensor *SelectV2(const aclTensor *condition,
+const aclTensor *SelectV2(const aclTensor* /*condition*/,
                           const aclTensor *x1,
-                          const aclTensor *x2,
-                          aclOpExecutor *executor)
+                          const aclTensor* /*x2*/,
+                          aclOpExecutor* /*executor*/)
 {
     return x1;
 }
-const aclTensor *Sub(const aclTensor *self, const aclTensor *other, aclOpExecutor *executor)
+const aclTensor *Sub(const aclTensor *self, const aclTensor* /*other*/, aclOpExecutor* /*executor*/)
 {
     return self;
 }
