@@ -8,6 +8,7 @@
 # THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
 # See LICENSE in the root of the software repository for the full text of the License.
 # ----------------------------------------------------------------------------
+set -euo pipefail
 
 curpath=$(dirname $(readlink -f "$0"))
 SCENE_FILE="${curpath}""/../scene.info"
@@ -17,7 +18,7 @@ common_func_path="${curpath}/common_func.inc"
 . "${common_func_path}"
 # init arch
 architecture=$(uname -m)
-architectureDir="${architecture}-linux"
+architecturedir="${architecture}-linux"
 
 while true; do
     case "$1" in
