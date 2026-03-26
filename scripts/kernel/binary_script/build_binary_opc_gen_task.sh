@@ -136,7 +136,7 @@ call_write_scripts() {
     return 1
   fi
 
-  local util_dir="${workdir}/../../util/"
+  local UTIL_DIR="${workdir}/../../util/"
 
   TMP_DIR=$(mktemp -d)
   trap 'rm -rf "$TMP_DIR"' EXIT
@@ -152,7 +152,7 @@ call_write_scripts() {
 
 python3 -c "
 import sys,json,os
-sys.path.insert(0, '''$util_dir''')
+sys.path.insert(0, '''$UTIL_DIR''')
 from ascendc_impl_build import write_scripts
 
 tmp_dir = '$TMP_DIR'
