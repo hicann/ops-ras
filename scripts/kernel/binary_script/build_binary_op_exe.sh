@@ -8,7 +8,6 @@
 # INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE. 
 # See LICENSE in the root of the software repository for the full text of the License.
 # ----------------------------------------------------------------------------
-set -euo pipefail
 
 main() {
   echo "[INFO]excute file: $0"
@@ -25,9 +24,9 @@ main() {
   if [ $gen_res -ne 0 ]; then
     echo -e "[ERROR] build binary single op failed with ErrorCode[$gen_res]."
     echo -e "Error output: \n $result"
-    exit 1
+    return
   fi
   echo "$result"
 }
-
+set -o pipefail
 main "$@" | gawk '{print strftime("[%Y-%m-%d %H:%M:%S]"), $0}'
