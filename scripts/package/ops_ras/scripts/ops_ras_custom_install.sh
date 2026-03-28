@@ -17,7 +17,7 @@ common_func_path="${curpath}/common_func.inc"
 . "${common_func_path}"
 # init arch
 architecture=$(uname -m)
-architectureDir="${architecture}-linux"
+architecture_dir="${architecture}-linux"
 
 while true; do
     case "$1" in
