@@ -1,68 +1,228 @@
 # aclnnObfuscationCalculate
 
-
 ## 产品支持情况
 
 | 产品                                                         | 是否支持 |
 | :----------------------------------------------------------- | :------: |
-| <term>昇腾910_95 AI处理器</term>                             |    ×     |
+| <term>Ascend 950PR/Ascend 950DT</term>                             |    ×     |
 | <term>Atlas A3 训练系列产品/Atlas A3 推理系列产品</term>     |    ×     |
-| <term>Atlas A2 训练系列产品/Atlas 800I A2 推理产品/A200I A2 Box 异构组件</term> |    √     |
+| <term>Atlas A2 训练系列产品/Atlas A2 推理系列产品</term>     |    √     |
 | <term>Atlas 200I/500 A2 推理产品</term>                      |    ×     |
-| <term>Atlas 推理系列产品 </term>                             |    √     |
+| <term>Atlas 推理系列产品</term>                             |    √     |
 | <term>Atlas 训练系列产品</term>                              |    ×     |
-| <term>Atlas 200/300/500 推理产品</term>                      |    ×     |
 
 ## 功能说明
 
- - 算子功能：将张量x和配置参数（如param、cmd）发送至PMCC混淆引擎。引擎的CA模块调用TA模块，进行张量混淆处理，最终返回shape与x一致的混淆后的张量y。
+- 接口功能：将张量x和配置参数（如param、cmd）发送至PMCC混淆引擎。引擎的CA模块调用TA模块，进行张量混淆处理，最终返回shape与x一致的混淆后的张量y。
  
- - 背景：PMCC（Privacy&Model Confidential Computing）模型混淆特性利用CPU核中的TrustZone可信执行环境隔离存储混淆因子、派生混淆掩码、执行动态掩码添加。PMCC基于NPU TrustZone构建了模型混淆引擎CA（普通OS中的Client Application）与模型混淆引擎TA（TEE OS中的Trusted Application）。为了使模型在推理执行过程中能够访问模型混淆引擎TA，通过AICPU算子机制及NPU卡内localhost socket进行中转。
+- 背景：PMCC（Privacy&Model Confidential Computing）模型混淆特性利用CPU核中的TrustZone可信执行环境隔离存储混淆因子、派生混淆掩码、执行动态掩码添加。PMCC基于NPU TrustZone构建了模型混淆引擎CA（普通OS中的Client Application）与模型混淆引擎TA（TEE OS中的Trusted Application）。为了使模型在推理执行过程中能够访问模型混淆引擎TA，通过AICPU算子机制及NPU卡内localhost socket进行中转。
 
 ## 函数原型
 
 每个算子分为[两段式接口](../../../docs/zh/context/两段式接口.md)，必须先调用 “aclnnObfuscationCalculateGetWorkspaceSize”接口获取计算所需workspace大小以及包含了算子计算流程的执行器，再调用“aclnnObfuscationCalculate”接口执行计算。
 
-- `aclnnStatus aclnnObfuscationCalculateGetWorkspaceSize(int32_t fd, const aclTensor* x, int32_t param, int32_t cmd, aclTensor* y, uint64_t* workspaceSize, aclOpExecutor** executor)`
-- `aclnnStatus aclnnObfuscationCalculate(void* workspace, uint64_t workspaceSize, aclOpExecutor* executor, aclrtStream stream)`
+```c++
+aclnnStatus aclnnObfuscationCalculateGetWorkspaceSize(
+  int32_t          fd,
+  const aclTensor *x,
+  int32_t          param,
+  int32_t          cmd,
+  aclTensor       *y,
+  uint64_t        *workspaceSize,
+  aclOpExecutor  **executor)
+```
+
+```c++
+aclnnStatus aclnnObfuscationCalculate(
+  void          *workspace,
+  uint64_t       workspaceSize,
+  aclOpExecutor *executor,
+  aclrtStream    stream)
+```
 
 ## aclnnObfuscationCalculateGetWorkspaceSize
 
-* **参数说明**：
+- **参数说明**
 
-  * fd（int32_t ，计算输入）：socket连接符，数据类型为INT32，填写aclnnObfuscationSetup在资源初始化时输出中的fd[0]。
-  * x（aclTensor* ，计算输入）：待混淆处理的张量，Shape为(*,*,...,hiddenSize)，Shape最后一维的size是aclnnObfuscationSetup在资源初始化时配置的hiddenSize，[数据格式](../../../docs/zh/context/数据格式.md)要求为ND。不支持[非连续的Tensor](../../../docs/zh/context/非连续的Tensor.md)，不支持空Tensor。
-      * <term>Atlas 推理系列产品</term>：Tensor数据类型支持FLOAT、FLOAT16、INT8。
-      * <term>Atlas A2 训练系列产品/Atlas 800I A2 推理产品/A200I A2 Box 异构组件</term>：Tensor数据类型支持FLOAT、FLOAT16、INT8、BFLOAT16。
-  * param（int32_t，计算输入）：预留的参数字段，数据类型为INT32，当前版本仅支持0。
-  * cmd（int32_t，计算输入）：混淆算子指令编号，当前版本仅支持1。
-  * y（aclTensor*，计算输出）：混淆处理后的张量，数据类型及Shape与x相同，[数据格式](../../../docs/zh/context/数据格式.md)要求为ND。不支持[非连续的Tensor](../../../docs/zh/context/非连续的Tensor.md)，不支持空Tensor。
-  * workspaceSize（uint64_t*，出参）：返回用户需要在Device侧申请的workspace大小。
-  * executor（aclOpExecutor**，出参）：返回op执行器，包含了算子计算流程。
+  <table style="undefined;table-layout: fixed; width: 1452px"><colgroup>
+    <col style="width: 174px">
+    <col style="width: 121px">
+    <col style="width: 253px">
+    <col style="width: 262px">
+    <col style="width: 213px">
+    <col style="width: 115px">
+    <col style="width: 169px">
+    <col style="width: 145px">
+    </colgroup>
+    <thead>
+      <tr>
+        <th>参数名</th>
+        <th>输入/输出</th>
+        <th>描述</th>
+        <th>使用说明</th>
+        <th>数据类型</th>
+        <th>数据格式</th>
+        <th>维度(shape)</th>
+        <th>非连续Tensor</th>
+      </tr></thead>
+    <tbody>
+      <tr>
+        <td>fd（int32_t）</td>
+        <td>输入</td>
+        <td>socket连接符。</td>
+        <td>数据类型为INT32。</td>
+        <td>INT32</td>
+        <td>ND</td>
+        <td>-</td>
+        <td>-</td>
+      </tr>
+      <tr>
+        <td>x（const aclTensor*）</td>
+        <td>输入</td>
+        <td>待混淆处理的张量。</td>
+        <td>不支持空Tensor。</td>
+        <td>FLOAT、FLOAT16、INT8、BFLOAT16</td>
+        <td>ND</td>
+        <td>[...,H]</td>
+        <td>×</td>
+      </tr>
+      <tr>
+        <td>param（int32_t）</td>
+        <td>输入</td>
+        <td>预留的参数字段。</td>
+        <td>当前版本仅支持0。</td>
+        <td>INT32</td>
+        <td>-</td>
+        <td>-</td>
+        <td>-</td>
+      </tr>
+      <tr>
+        <td>cmd（int32_t）</td>
+        <td>输入</td>
+        <td>混淆算子指令编号。</td>
+        <td>当前版本仅支持1。</td>
+        <td>INT32</td>
+        <td>-</td>
+        <td>-</td>
+        <td>-</td>
+      </tr>
+      <tr>
+        <td>y（aclTensor*）</td>
+        <td>输出</td>
+        <td>混淆处理后的张量。</td>
+        <td>数据类型及Shape与x相同。</td>
+        <td>FLOAT、FLOAT16、INT8、BFLOAT16</td>
+        <td>ND</td>
+        <td>[...,H]</td>
+        <td>×</td>
+      </tr>
+      <tr>
+        <td>workspaceSize（uint64_t*）</td>
+        <td>输出</td>
+        <td>返回用户需要在Device侧申请的workspace大小。</td>
+        <td>-</td>
+        <td>-</td>
+        <td>-</td>
+        <td>-</td>
+        <td>-</td>
+      </tr>
+      <tr>
+        <td>executor（aclOpExecutor**）</td>
+        <td>输出</td>
+        <td>返回op执行器，包含了算子计算流程。</td>
+        <td>-</td>
+        <td>-</td>
+        <td>-</td>
+        <td>-</td>
+        <td>-</td>
+      </tr>
+    </tbody>
+  </table>
 
-* **返回值：**
+- <term>Atlas 推理系列产品</term>：不支持BFLOAT16
 
-  返回aclnnStatus状态码，具体参见[aclnn返回码](../../../docs/zh/context/aclnn返回码.md)。
+- **返回值**
 
-  ```
-  第一段接口会完成入参校验，出现以下场景时报错：
-  返回161001（ACLNN_ERR_PARAM_NULLPTR）：1. 传入的x或y是空指针。
-  返回161002（ACLNN_ERR_PARAM_INVALID）：1. x的数据类型和数据格式不在支持的范围之内。
-                                       2. x和y的数据类型不一致。
-                                       3. x和y的形状不一致。
-  ```
+  aclnnStatus：返回状态码，具体参见[aclnn返回码](../../../docs/zh/context/aclnn返回码.md)。
+
+  第一段接口完成入参校验，出现以下场景时报错：
+  
+  <table style="undefined;table-layout: fixed;width: 1202px"><colgroup>
+  <col style="width: 262px">
+  <col style="width: 121px">
+  <col style="width: 819px">
+  </colgroup>
+  <thead>
+    <tr>
+      <th>返回值</th>
+      <th>错误码</th>
+      <th>描述</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>ACLNN_ERR_PARAM_NULLPTR</td>
+      <td>161001</td>
+      <td>传入的x或y是空指针。</td>
+    </tr>
+    <tr>
+      <td rowspan="3">ACLNN_ERR_PARAM_INVALID</td>
+      <td rowspan="3">161002</td>
+      <td>x的数据类型和数据格式不在支持的范围之内。</td>
+    </tr>
+    <tr>
+      <td>x和y的数据类型不一致。</td>
+    </tr>
+    <tr>
+      <td>x和y的形状不一致。</td>
+    </tr>
+  </tbody>
+  </table>
 
 ## aclnnObfuscationCalculate
-* **参数说明：**
+  
+- **参数说明**
+  <table style="undefined;table-layout: fixed; width: 1154px"><colgroup>
+  <col style="width: 153px">
+  <col style="width: 121px">
+  <col style="width: 880px">
+  </colgroup>
+  <thead>
+    <tr>
+      <th>参数名</th>
+      <th>输入/输出</th>
+      <th>描述</th>
+    </tr></thead>
+  <tbody>
+    <tr>
+      <td>workspace</td>
+      <td>输入</td>
+      <td>在Device侧申请的workspace内存地址。</td>
+    </tr>
+    <tr>
+      <td>workspaceSize</td>
+      <td>输入</td>
+      <td>在Device侧申请的workspace大小，由第一段接口aclnnObfuscationCalculateGetWorkspaceSize获取。</td>
+    </tr>
+    <tr>
+      <td>executor</td>
+      <td>输入</td>
+      <td>op执行器，包含了算子计算流程。</td>
+    </tr>
+    <tr>
+      <td>stream</td>
+      <td>输入</td>
+      <td>指定执行任务的Stream。</td>
+    </tr>
+  </tbody>
+  </table>
 
-  * workspace（void*，入参）：在Device侧申请的workspace内存地址。
-  * workspaceSize（uint64_t，入参）：在Device侧申请的workspace大小，由第一段接口aclnnObfuscationCalculateGetWorkspaceSize获取。
-  * executor（aclOpExecutor*，入参）：op执行器，包含了算子计算流程。
-  * stream（aclrtStream，入参）：指定执行任务的Stream。
-* **返回值：**
-  返回aclnnStatus状态码，具体参见[aclnn返回码](../../../docs/zh/context/aclnn返回码.md)。
+- **返回值**
+
+    返回aclnnStatus状态码，具体参见[aclnn返回码](../../../docs/zh/context/aclnn返回码.md)。
 
 ## 约束说明
+
 - 确定性计算：
   - aclnnObfuscationCalculate默认确定性实现。
 
@@ -307,4 +467,5 @@ int main() {
 
   return 0;
 }
+
 ```

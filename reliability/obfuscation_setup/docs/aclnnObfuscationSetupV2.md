@@ -4,72 +4,283 @@
 
 | 产品                                                         | 是否支持 |
 | :----------------------------------------------------------- | :------: |
-| <term>昇腾910_95 AI处理器</term>                             |     ×    |
+| <term>Ascend 950PR/Ascend 950DT</term>                             |     ×    |
 | <term>Atlas A3 训练系列产品/Atlas A3 推理系列产品</term>     |    ×     |
-| <term>Atlas A2 训练系列产品/Atlas 800I A2 推理产品/A200I A2 Box 异构组件</term> |    √     |
+| <term>Atlas A2 训练系列产品/Atlas A2 推理系列产品</term>     |    √     |
 | <term>Atlas 200I/500 A2 推理产品</term>                      |    ×     |
-| <term>Atlas 推理系列产品 </term>                             |    √     |
+| <term>Atlas 推理系列产品</term>                             |    √     |
 | <term>Atlas 训练系列产品</term>                              |     ×      |
-| <term>Atlas 200/300/500 推理产品</term>                      |    ×     |
-
 
 ## 功能说明
 
- - 算子功能：完成PMCC模型混淆引擎的资源初始化和释放。
+- 接口功能：完成PMCC模型混淆引擎的资源初始化和释放。
 
    - 资源初始化：与PMCC混淆引擎CA建立socket连接、对CA、TA进行初始化，并返回socket连接符。
    - 资源释放：与PMCC混淆引擎CA断开socket连接。
 
- - 背景：PMCC（Privacy&Model Confidential Computing）模型混淆特性利用CPU核中的TrustZone可信执行环境隔离存储混淆因子、派生混淆掩码、执行动态掩码添加。PMCC基于NPU TrustZone构建了模型混淆引擎CA（普通OS中的Client Application）与模型混淆引擎TA（TEE OS中的Trusted Application）。为了使模型在推理执行过程中能够访问模型混淆引擎TA，通过AICPU算子机制及NPU卡内localhost socket进行中转。本次接口新增obfCoefficient，本参数为DeepSeek满血版本中，为了保证模型混淆性能满足要求，增加混淆系数，对输入数据按照混淆系数比例进行处理。
+- 背景：PMCC（Privacy&Model Confidential Computing）模型混淆特性利用CPU核中的TrustZone可信执行环境隔离存储混淆因子、派生混淆掩码、执行动态掩码添加。PMCC基于NPU TrustZone构建了模型混淆引擎CA（普通OS中的Client Application）与模型混淆引擎TA（TEE OS中的Trusted Application）。为了使模型在推理执行过程中能够访问模型混淆引擎TA，通过AICPU算子机制及NPU卡内localhost socket进行中转。本次接口新增obfCoefficient，本参数为DeepSeek满血版本中，为了保证模型混淆性能满足要求，增加混淆系数，对输入数据按照混淆系数比例进行处理。
 
 ## 函数原型
 
 每个算子分为[两段式接口](../../../docs/zh/context/两段式接口.md)，必须先调用 “aclnnObfuscationSetupV2GetWorkspaceSize”接口获取计算所需workspace大小以及包含了算子计算流程的执行器，再调用“aclnnObfuscationSetupV2”接口执行计算。
 
-- `aclnnStatus aclnnObfuscationSetupV2GetWorkspaceSize(int32_t fdToClose, int32_t dataType, int32_t hiddenSize, int32_t tpRank, int32_t modelObfSeedId, int32_t dataObfSeedId, int32_t cmd, int32_t threadNum, float obfCoefficient, aclTensor* fd, uint64_t* workspaceSize, aclOpExecutor** executor)`
-- `aclnnStatus aclnnObfuscationSetupV2(void* workspace, uint64_t workspaceSize, aclOpExecutor* executor, aclrtStream stream)`
+```c++
+aclnnStatus aclnnObfuscationSetupV2GetWorkspaceSize(
+  int32_t         fdToClose,
+  int32_t         dataType,
+  int32_t         hiddenSize,
+  int32_t         tpRank,
+  int32_t         modelObfSeedId,
+  int32_t         dataObfSeedId,
+  int32_t         cmd,
+  int32_t         threadNum,
+  float           obfCoefficient,
+  aclTensor      *fd,
+  uint64_t       *workspaceSize,
+  aclOpExecutor **executor)
+```
+
+```c++
+aclnnStatus aclnnObfuscationSetupV2(
+  void          *workspace,
+  uint64_t       workspaceSize,
+  aclOpExecutor *executor,
+  aclrtStream    stream)
+```
 
 ## aclnnObfuscationSetupV2GetWorkspaceSize
 
-* **参数说明**：
+- **参数说明**
+  <table style="undefined;table-layout: fixed; width: 1452px"><colgroup>
+    <col style="width: 174px">
+    <col style="width: 121px">
+    <col style="width: 253px">
+    <col style="width: 361px">
+    <col style="width: 213px">
+    <col style="width: 110px">
+    <col style="width: 110px">
+    <col style="width: 110px">
+    </colgroup>
+    <thead>
+      <tr>
+        <th>参数名</th>
+        <th>输入/输出</th>
+        <th>描述</th>
+        <th>使用说明</th>
+        <th>数据类型</th>
+        <th>数据格式</th>
+        <th>维度(shape)</th>
+        <th>非连续Tensor</th>
+      </tr></thead>
+    <tbody>
+      <tr>
+        <td>fdToClose（int32_t）</td>
+        <td>输入</td>
+        <td>待关闭的socket连接符。</td>
+        <td>cmd为3时填写本算子在cmd为1时返回的fd，否则填0。</td>
+        <td>INT32</td>
+        <td>-</td>
+        <td>-</td>
+        <td>-</td>
+      </tr>
+      <tr>
+        <td>dataType（int32_t）</td>
+        <td>输入</td>
+        <td>代表Tensor数据类型的编号。</td>
+        <td>
+          <ul>
+            <li>仅在cmd设置为1或2时需要填写有效值，否则填0。</li>
+            <li><term>Atlas 推理系列产品</term>：在{0, 1}中选择，0表示FLOAT、1表示FLOAT16。</li>
+            <li><term>Atlas A2 训练系列产品</term>：在{0, 1, 2, 27}中选择，0表示FLOAT、1表示FLOAT16、2表示INT8、27表示BF16。</li>
+            <li><term>Atlas 800I A2 推理产品</term>：在{0, 1, 2, 27}中选择，0表示FLOAT、1表示FLOAT16、2表示INT8、27表示BF16。</li>
+            <li><term>A200I A2 Box 异构组件</term>：在{0, 1, 2, 27}中选择，0表示FLOAT、1表示FLOAT16、2表示INT8、27表示BF16。</li>
+          </ul>
+        </td>
+        <td>INT32</td>
+        <td>-</td>
+        <td>-</td>
+        <td>-</td>
+      </tr>
+      <tr>
+        <td>hiddenSize（int32_t）</td>
+        <td>输入</td>
+        <td>隐藏层维度。</td>
+        <td>仅在cmd设置为1或2时需要填写有效值，否则填0，支持1-10000。</td>
+        <td>INT32</td>
+        <td>-</td>
+        <td>-</td>
+        <td>-</td>
+      </tr>
+      <tr>
+        <td>tpRank（int32_t）</td>
+        <td>输入</td>
+        <td>TP Rank。</td>
+        <td>支持0-1024，仅在cmd设置为1或2时需要填写有效值，否则填0。</td>
+        <td>INT32</td>
+        <td>-</td>
+        <td>-</td>
+        <td>-</td>
+      </tr>
+      <tr>
+        <td>modelObfSeedId（int32_t）</td>
+        <td>输入</td>
+        <td>模型混淆因子id。</td>
+        <td>用于TA从TEE KMC查询模型混淆因子，仅在cmd设置为1或2时需要填写有效值，否则填0。</td>
+        <td>INT32</td>
+        <td>-</td>
+        <td>-</td>
+        <td>-</td>
+      </tr>
+      <tr>
+        <td>dataObfSeedId（int32_t）</td>
+        <td>输入</td>
+        <td>数据混淆因子id。</td>
+        <td>用于TA从TEE KMC查询数据混淆因子，仅在cmd设置为1或2时需要填写有效值，否则填0。</td>
+        <td>INT32</td>
+        <td>-</td>
+        <td>-</td>
+        <td>-</td>
+      </tr>
+      <tr>
+        <td>cmd（int32_t）</td>
+        <td>输入</td>
+        <td>setup指令编号。</td>
+        <td>在{1, 2, 16}中选择，设置为1时进行普通模式资源初始化、为2时进行高精度模式资源初始化，设置为16时进行资源释放。</td>
+        <td>INT32</td>
+        <td>-</td>
+        <td>-</td>
+        <td>-</td>
+      </tr>
+      <tr>
+        <td>threadNum（int32_t）</td>
+        <td>输入</td>
+        <td>CA/TA进行混淆处理使用的线程数</td>
+        <td>在{1, 2, 3, 4, 5, 6}中选择，仅在cmd设置为1或2时需要填写有效值，否则填0。</td>
+        <td>INT32</td>
+        <td>-</td>
+        <td>-</td>
+        <td>-</td>
+      </tr>
+      <tr>
+        <td>obfCoefficient（int32_t）</td>
+        <td>输入</td>
+        <td>进行混淆处理使用的混淆系数</td>
+        <td>取值范围(0.0， 1.0]，仅在cmd设置为1或2时需要填写有效值，否则填0.0。</td>
+        <td>FLOAT</td>
+        <td>-</td>
+        <td>-</td>
+        <td>-</td>
+      </tr>
+      <tr>
+        <td>fd（aclTensor*）</td>
+        <td>输出</td>
+        <td>socket连接符。</td>
+        <td>不支持空Tensor。</td>
+        <td>INT32</td>
+        <td>ND</td>
+        <td>1</td>
+        <td>×</td>
+      </tr>
+      <tr>
+        <td>workspaceSize（uint64_t*）</td>
+        <td>输出</td>
+        <td>返回用户需要在Device侧申请的workspace大小。</td>
+        <td>-</td>
+        <td>-</td>
+        <td>-</td>
+        <td>-</td>
+        <td>-</td>
+      </tr>
+      <tr>
+        <td>executor（aclOpExecutor**）</td>
+        <td>输出</td>
+        <td>返回op执行器，包含了算子计算流程。</td>
+        <td>-</td>
+        <td>-</td>
+        <td>-</td>
+        <td>-</td>
+        <td>-</td>
+      </tr>
+    </tbody>
+  </table>
 
-  * fdToClose（int32_t，计算输入）：待关闭的socket连接符，数据类型为INT32，cmd为3时填写本算子在cmd为1时返回的fd，否则填0。
-  * dataType（int32_t，计算输入）：代表Tensor数据类型的编号，数据类型为INT32，仅在cmd设置为1或2时需要填写有效值，否则填0。
-    * <term>Atlas 推理系列产品</term>：在{0, 1}中选择，0表示FLOAT、1表示FLOAT16
-    * <term>Atlas A2 训练系列产品/Atlas 800I A2 推理产品/A200I A2 Box 异构组件</term>：在{0, 1, 2, 27}中选择，0表示FLOAT、1表示FLOAT16、2表示INT8、27表示BF16
-  * hiddenSize（int32_t，计算输入）：隐藏层维度，数据类型为INT32，支持1-10000，仅在cmd设置为1或2时需要填写有效值，否则填0。
-  * tpRank（int32_t，计算输入）：TP Rank，数据类型为INT32，支持0-1024，仅在cmd设置为1或2时需要填写有效值，否则填0。
-  * modelObfSeedId（int32_t，计算输入）：模型混淆因子id，用于TA从TEE KMC查询模型混淆因子，数据类型为INT32，仅在cmd设置为1或2时需要填写有效值，否则填0。
-  * dataObfSeedId（int32_t，计算输入）：数据混淆因子id，用于TA从TEE KMC查询数据混淆因子，数据类型为INT32，仅在cmd设置为1或2时需要填写有效值，否则填0。
-  * cmd（int32_t，计算输入）：setup指令编号，在{1, 2, 16}中选择，设置为1时进行普通模式资源初始化、为2时进行高精度模式资源初始化，设置为16时进行资源释放。
-  * threadNum（int32_t，计算输入）：CA/TA进行混淆处理使用的线程数。在{1, 2, 3, 4, 5, 6}中选择，仅在cmd设置为1或2时需要填写有效值，否则填0。
-  * obfCoefficient（float，计算输入）：进行混淆处理使用的混淆系数。取值范围(0.0， 1.0]，仅在cmd设置为1或2时需要填写有效值，否则填0.0。
-  * fd（aclTensor*，计算输出）：socket连接符，数据类型为INT32，1D，shape为1维，[数据格式](../../../docs/zh/context/数据格式.md)要求为ND。不支持[非连续的Tensor](../../../docs/zh/context/非连续的Tensor.md)，不支持空Tensor。
-  * workspaceSize（uint64_t*，出参）：返回用户需要在Device侧申请的workspace大小。
-  * executor（aclOpExecutor**，出参）：返回op执行器，包含了算子计算流程。
+- **返回值**
 
-* **返回值：**
+  aclnnStatus：返回状态码，具体参见[aclnn返回码](../../../docs/zh/context/aclnn返回码.md)。
 
-  返回aclnnStatus状态码，具体参见[aclnn返回码](../../../docs/zh/context/aclnn返回码.md)。
+  第一段接口完成入参校验，出现以下场景时报错：
 
-  ```
-  第一段接口会完成入参校验，出现以下场景时报错：
-  返回161001（ACLNN_ERR_PARAM_NULLPTR）：1. 传入的fd是空指针。
-  返回161002（ACLNN_ERR_PARAM_INVALID）：1. fd的数据类型和数据格式不在支持的范围之内。
-  ```
+  <table style="undefined;table-layout: fixed;width: 1202px"><colgroup>
+  <col style="width: 262px">
+  <col style="width: 121px">
+  <col style="width: 819px">
+  </colgroup>
+  <thead>
+    <tr>
+      <th>返回值</th>
+      <th>错误码</th>
+      <th>描述</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>ACLNN_ERR_PARAM_NULLPTR</td>
+      <td>161001</td>
+      <td>传入的fd是空指针。</td>
+    </tr>
+    <tr>
+      <td>ACLNN_ERR_PARAM_INVALID</td>
+      <td>161002</td>
+      <td>fd的数据类型和数据格式不在支持的范围之内。</td>
+    </tr>
+  </tbody>
+  </table>
 
 ## aclnnObfuscationSetupV2
 
-* **参数说明：**
+- **参数说明**
 
-  * workspace（void*，入参）：在Device侧申请的workspace内存地址。
-  * workspaceSize（uint64_t，入参）：在Device侧申请的workspace大小，由第一段接口aclnnObfuscationSetupV2GetWorkspaceSize获取。
-  * executor（aclOpExecutor*，入参）：op执行器，包含了算子计算流程。
-  * stream（aclrtStream，入参）：指定执行任务的Stream。
-* **返回值：**
-  返回aclnnStatus状态码，具体参见[aclnn返回码](../../../docs/zh/context/aclnn返回码.md)。
+  <table style="undefined;table-layout: fixed; width: 1154px"><colgroup>
+  <col style="width: 153px">
+  <col style="width: 121px">
+  <col style="width: 880px">
+  </colgroup>
+  <thead>
+    <tr>
+      <th>参数名</th>
+      <th>输入/输出</th>
+      <th>描述</th>
+    </tr></thead>
+  <tbody>
+    <tr>
+      <td>workspace</td>
+      <td>输入</td>
+      <td>在Device侧申请的workspace内存地址。</td>
+    </tr>
+    <tr>
+      <td>workspaceSize</td>
+      <td>输入</td>
+      <td>在Device侧申请的workspace大小，由第一段接口aclnnObfuscationSetupV2GetWorkspaceSize获取。</td>
+    </tr>
+    <tr>
+      <td>executor</td>
+      <td>输入</td>
+      <td>op执行器，包含了算子计算流程。</td>
+    </tr>
+    <tr>
+      <td>stream</td>
+      <td>输入</td>
+      <td>指定执行任务的Stream。</td>
+    </tr>
+  </tbody>
+  </table>
+  
+- **返回值**
+
+    返回aclnnStatus状态码，具体参见[aclnn返回码](../../../docs/zh/context/aclnn返回码.md)。
 
 ## 约束说明
+
 - 确定性计算：
   - aclnnObfuscationSetupV2默认确定性实现。
 
@@ -315,4 +526,5 @@ int main() {
 
   return 0;
 }
+
 ```
