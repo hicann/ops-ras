@@ -1,0 +1,57 @@
+# ---------------------------------------------------------------------------------------------------------
+# Copyright (c) 2025-2026 Huawei Technologies Co., Ltd.
+# This program is free software, you can redistribute it and/or modify it under the terms and conditions of
+# CANN Open Software License Agreement Version 2.0 (the "License").
+# Please refer to the License for details. You may not use this file except in compliance with the License.
+# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
+# INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
+# See LICENSE in the root of the software repository for the full text of the License.
+# ---------------------------------------------------------------------------------------------------------
+ops-ras:
+  commiter:
+    ""
+  team: "ops-ras" ##组件名称
+  src:
+    release:
+      - reliability
+    unrelease:
+      - examples
+      - experimental
+      - tests
+      - "*/*/tests"
+      - "*/*/examples"
+      - "*/*/*/op_api"
+      - "*/*/op_api"
+      - "*/*/op_kernel/arch35"
+      - "**/*_def.cpp"
+      - "**/*_apt.cpp"
+      - "**/*tiling*data*.h"
+      - "**/*tiling*key*.h"
+      - "*/*/op_host/**/*.h"
+      - "*/*/op_api/**/*.h"
+      - "*/*/op_graph/**/*.h"
+      - "*/*/op_graph/**/*.cpp"
+      - "*/*/op_kernel_aicpu/**/*.h"
+  llt:
+    ut_check: true
+    st_check: false
+
+reliability@ops-ras:
+  src:
+    release:
+      style:
+        - ops/ops-ras/reliability/CMakeLists.txt
+        - ops/ops-ras/reliability/obfuscation_calculate/CMakeLists.txt
+        - ops/ops-ras/reliability/obfuscation_calculate/docs/
+        - ops/ops-ras/reliability/obfuscation_calculate/op_host/
+        - ops/ops-ras/reliability/obfuscation_setup/CMakeLists.txt
+        - ops/ops-ras/reliability/obfuscation_setup/docs/
+        - ops/ops-ras/reliability/obfuscation_setup/op_host/
+      opensource_style: null
+      kernel_style: null
+    unrelease:
+      test_code:
+        - ops/ops-ras/reliability/obfuscation_calculate/tests/
+        - ops/ops-ras/reliability/obfuscation_setup/tests/
+      non_delivery: null
+      open_source: null
