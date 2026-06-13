@@ -47,11 +47,15 @@ reliability@ops-ras:
         - ops/ops-ras/reliability/obfuscation_setup/CMakeLists.txt
         - ops/ops-ras/reliability/obfuscation_setup/docs/
         - ops/ops-ras/reliability/obfuscation_setup/op_host/
+        - ops/ops-ras/reliability/crypto/CMakeLists.txt
+        - ops/ops-ras/reliability/crypto/docs/
+        - ops/ops-ras/reliability/crypto/op_host/
       opensource_style: null
       kernel_style: null
     unrelease:
       test_code:
         - ops/ops-ras/reliability/obfuscation_calculate/tests/
         - ops/ops-ras/reliability/obfuscation_setup/tests/
+        - ops/ops-ras/reliability/crypto/tests/
       non_delivery: null
       open_source: null

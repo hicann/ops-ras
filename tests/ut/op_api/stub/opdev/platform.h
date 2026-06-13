@@ -28,6 +28,17 @@ enum class SocVersion {
     ASCEND310C,
     ASCEND610LITE,
     KIRINX90,
+    KIRIN9030,
+    RESERVED_VERSION = 99999
+};
+
+enum class NpuArch {
+    DAV_1001 = 0,
+    DAV_2002,
+    DAV_2201,
+    DAV_3002,
+    DAV_3102,
+    DAV_3510,
     RESERVED_VERSION = 99999
 };
 
@@ -64,6 +75,8 @@ public:
     PlatformInfo(int32_t deviceId) : deviceId_(deviceId){};
 
     SocVersion GetSocVersion() const;
+
+    NpuArch GetCurNpuArch() const;
 
     const std::string GetSocLongVersion() const;
 
@@ -124,6 +137,23 @@ private:
     SocVersionManager& operator=(const SocVersionManager&&) = delete;
 
     void SetPlatformSocVersion(SocVersion socVersion);
+};
+
+class NpuArchManager {
+public:
+    explicit NpuArchManager(NpuArch newArch);
+
+    ~NpuArchManager();
+
+private:
+    NpuArch originalArch_;
+
+    NpuArchManager(const NpuArchManager&) = delete;
+    NpuArchManager(const NpuArchManager&&) = delete;
+    NpuArchManager& operator=(const NpuArchManager&) = delete;
+    NpuArchManager& operator=(const NpuArchManager&&) = delete;
+
+    void SetPlatformNpuArch(NpuArch npuArch);
 };
 
 void SetCubeCoreNum(uint32_t coreNum);
