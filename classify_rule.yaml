@@ -14,6 +14,9 @@ ops-ras:
   src:
     release:
       - reliability
+      - ops/ops-ras/cmake/
+      - ops/ops-ras/classify_rule.yaml
+      - ops/ops-ras/docs/
     unrelease:
       - examples
       - experimental
