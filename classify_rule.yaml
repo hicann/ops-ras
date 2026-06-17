@@ -15,6 +15,9 @@ ops-ras:
     release:
       - reliability
     unrelease:
+      - examples
+      - experimental
+      - tests
       - "*/*/tests"
       - "*/*/examples"
       - "*/*/*/op_api"
@@ -27,34 +30,11 @@ ops-ras:
       - "*/*/op_host/**/*.h"
       - "*/*/op_api/**/*.h"
       - "*/*/op_graph/**/*.h"
+      - "*/*/op_graph/**/*.cpp"
+      - "*/*/op_kernel_aicpu/**/*.h"
   llt:
     ut_check: true
     st_check: false
-
-ras@ops-ras:
-  src:
-    release:
-      style:
-        - ops/ops-ras/common/
-        - ops/ops-ras/scripts/
-        - ops/ops-ras/cmake/
-        - ops/ops-ras/classify_rule.yaml
-      opensource_style: null
-      kernel_style: null
-    unrelease:
-      test_code:
-        - ops/ops-ras/example/
-        - ops/ops-ras/example/add_example_aicpu/examples
-        - ops/ops-ras/example/add_example_aicpu/tests
-        - ops/ops-ras/example/add_example/examples
-        - ops/ops-ras/example/add_example/tests
-        - ops/ops-ras/tests/
-        - ops/ops-ras/build.sh
-        - ops/ops-ras/CMakeLists.txt
-        - ops/ops-ras/common/inc/op_api/aclnn_check.h
-        - ops/ops-ras/common/inc/op_api/level2_base.h
-      non_delivery: null
-      open_source: null
 
 reliability@ops-ras:
   src:
