@@ -39,12 +39,9 @@ static const std::initializer_list<op::DataType> PARAM_UINT8_DTYPE_SUPPORT_LIST 
 
 static const std::initializer_list<op::DataType> PARAM_UINT32_DTYPE_SUPPORT_LIST = {op::DataType::DT_UINT32};
 
-static bool CheckNotNull(const aclTensor* key, const aclTensor* inputText, aclTensor* outputText,
-                         const aclTensor* opConfig, aclTensor* out)
+static bool CheckNotNull(const aclTensor* key, const aclTensor* opConfig, aclTensor* out)
 {
     OP_CHECK_NULL(key, return false);
-    OP_CHECK_NULL(inputText, return false);
-    OP_CHECK_NULL(outputText, return false);
     OP_CHECK_NULL(opConfig, return false);
     OP_CHECK_NULL(out, return false);
     return true;
@@ -92,15 +89,19 @@ static bool CheckShape(const aclTensor* inputText, const aclTensor* outputText)
     if (inputText == nullptr || outputText == nullptr) {
         return false;
     }
-    size_t inputTextDimNum = inputText->GetViewShape().GetDimNum();
-    size_t outputTextDimNum = outputText->GetViewShape().GetDimNum();
-    OP_CHECK(
-        inputTextDimNum == outputTextDimNum,
-        OP_LOGE(
-            ACLNN_ERR_PARAM_INVALID,
-            "Shape of inputText tensor should be same with outputText tensor, but (got inputText: %s, outputText: %s)",
-            op::ToString(inputText->GetViewShape()).GetString(), op::ToString(outputText->GetViewShape()).GetString()),
-        return false);
+    OP_CHECK_SHAPE_NOT_EQUAL(inputText, outputText, return false);
+    return true;
+}
+
+static bool MakeContiguous(const aclTensor* tensor, const char* tensorName, aclOpExecutor* executor)
+{
+    if (tensor == nullptr || tensor->IsEmpty()) {
+        return true;
+    }
+    auto contiguous = l0op::Contiguous(tensor, executor);
+    OP_CHECK(contiguous != nullptr,
+             OP_LOGE(ACLNN_ERR_INNER_NULLPTR, "AclnnCrypto %s contiguous is nullptr", tensorName),
+             return false);
     return true;
 }
 
@@ -108,7 +109,7 @@ static aclnnStatus CheckParams(const aclTensor* key, const aclTensor* inputText,
                                const aclTensor* iv, const aclTensor* opConfig, aclTensor* tag, aclTensor* aad,
                                aclTensor* out)
 {
-    CHECK_RET(CheckNotNull(key, inputText, outputText, opConfig, out), ACLNN_ERR_PARAM_NULLPTR);
+    CHECK_RET(CheckNotNull(key, opConfig, out), ACLNN_ERR_PARAM_NULLPTR);
     // aad 当前仅支持 NULL
     if (aad != NULL) {
         return ACLNN_ERR_PARAM_INVALID;
@@ -133,14 +134,13 @@ aclnnStatus aclnnCryptoGetWorkspaceSize(
     auto ret = CheckParams(key, inputText, outputText, iv, opConfig, tag, aad, out);
     CHECK_RET(ret == ACLNN_SUCCESS, ret);
 
-    if (inputText == nullptr || inputText->IsEmpty()) {
-        *workspaceSize = 0;
-        uniqueExecutor.ReleaseTo(executor);
-        return ACLNN_SUCCESS;
-    }
-
-    auto inputTextContiguous = l0op::Contiguous(inputText, uniqueExecutor.get());
-    CHECK_RET(inputTextContiguous != nullptr, ACLNN_ERR_INNER_NULLPTR);
+    CHECK_RET(MakeContiguous(inputText, "inputTextContiguous", uniqueExecutor.get()), ACLNN_ERR_INNER_NULLPTR);
+    CHECK_RET(MakeContiguous(outputText, "outputTextContiguous", uniqueExecutor.get()), ACLNN_ERR_INNER_NULLPTR);
+    CHECK_RET(MakeContiguous(key, "key", uniqueExecutor.get()), ACLNN_ERR_INNER_NULLPTR);
+    CHECK_RET(MakeContiguous(iv, "iv", uniqueExecutor.get()), ACLNN_ERR_INNER_NULLPTR);
+    CHECK_RET(MakeContiguous(tag, "tag", uniqueExecutor.get()), ACLNN_ERR_INNER_NULLPTR);
+    CHECK_RET(MakeContiguous(opConfig, "opConfig", uniqueExecutor.get()), ACLNN_ERR_INNER_NULLPTR);
+    CHECK_RET(MakeContiguous(aad, "aad", uniqueExecutor.get()), ACLNN_ERR_INNER_NULLPTR);
 
     auto outOut = l0op::Crypto(key, inputText, outputText, iv, opConfig, tag, aad, uniqueExecutor.get());
     auto castOut = l0op::Cast(outOut, out->GetDataType(), uniqueExecutor.get());
