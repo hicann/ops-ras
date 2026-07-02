@@ -32,6 +32,7 @@ function(gen_ophost_symbol)
             tiling_api
             -Wl,--no-whole-archive
             -Wl,-Bsymbolic
+            $<$<CONFIG:RELEASE>:-s>
     )
 
   target_link_directories(${OPHOST_NAME} PRIVATE ${ASCEND_DIR}/${SYSTEM_PREFIX}/lib64)
@@ -260,7 +261,7 @@ function(gen_onnx_plugin_symbol)
   if(NOT TARGET ${ONNX_PLUGIN_NAME}_obj)
     return()
   endif()
-  
+
   add_library(
     ${ONNX_PLUGIN_NAME} SHARED
     $<$<TARGET_EXISTS:${ONNX_PLUGIN_NAME}_obj>:$<TARGET_OBJECTS:${ONNX_PLUGIN_NAME}_obj>>
@@ -277,6 +278,7 @@ function(gen_onnx_plugin_symbol)
             -Wl,--whole-archive
             rt2_registry_static
             -Wl,--no-whole-archive
+            $<$<CONFIG:RELEASE>:-s>
     )
 
   install(
