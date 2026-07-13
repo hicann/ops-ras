@@ -15,16 +15,61 @@ CANN Simulator是一款面向算子开发场景的SoC级芯片仿真工具，用
 * 工具推荐环境配置：CPU 16核，内存32GB以上。
 * 本文中举例路径均需要确保运行用户具有读或读写权限。
 * 出于安全性和权限最小化考虑，建议使用普通用户权限执行本工具，避免使用root等高权限账户。
-* 本工具依赖CANN软件包，在使用前请先安装CANN软件包，无需安装赖驱动和固件，并通过source命令执行CANN的set_env.sh环境变量文件。为确保安全，执行source命令后请勿修改set_env.sh中涉及的环境变量。
+* 本工具依赖CANN软件包，在使用前请先安装CANN软件包，无需安装驱动和固件，并通过source命令执行CANN的set_env.sh环境变量文件。为确保安全，执行source命令后请勿修改set_env.sh中涉及的环境变量。
 * 用户应遵循最小权限原则，例如，给工具输入的文件要求other用户不可写，在一些对安全要求更严格的功能场景下还需确保输入的文件group用户不可写。
 * 本工具为开发工具，不建议在生产环境使用。
 * 工具的仿真功能仅支持单卡场景，无法仿真多卡环境，代码中只能设置为0卡。若修改可见卡号，将导致仿真失败。
 * 仿真环境仅支持AI Core计算类算子（不支持MC2和HCCL类型的算子）。
+CANN Simulator工具目前处于尝鲜版本阶段，仅支持Ascend950PR芯片，建议仿真器运行环境配置为16核CPU和32GB以上内存。
 * 目前不支持arm环境仿真。
 
 ## 环境准备
 
-CANN Simulator集成在CANN toolkit包里，参考[环境部署](../context/quick_install.md)中的软件包安装 -> 安装社区版CANN toolkit包章节
+CANN Simulator集成在CANN toolkit包里，参考[环境部署](../install/quick_install.md)中的软件包安装 -> 安装社区版CANN toolkit包章节
+
+# 快速开始
+
+下面以[add_examples](../../../examples/add_example/)为例，对算子仿真进行详细说明
+
+## 算子编译
+
+* 参考[算子调用](../invocation/quick_op_invocation.md)完成add_example的算子编译和安装
+
+```bash
+# 说明：进入项目根目录，执行如下编译命令，命令仅供参考，详细可以查看算子调用的说明。
+bash build.sh --pkg --soc=Ascend950 --vendor_name=custom --ops=add_example
+# 安装自定义算子包
+./build_out/cann-ops-ras-${vendor_name}_linux-${arch}.run
+```
+
+* 参考[aclnn调用](../invocation/quick_op_invocation.md#aclnn调用)完成test_aclnn_add_example.cpp的编译，编出可执行文件test_aclnn_add_example
+
+## 执行仿真命令
+
+```bash
+cannsim record ./test_aclnn_add_example -s Ascend950 --gen-report
+```
+
+仿真工具执行日志文件在examples/add_example/examples/build/bin/cannsim_*目录，执行日志文件为 cannsim.log。
+
+从仿真工具日志文件可以看到示例中的打印信息：
+
+```bash
+mean result[0] is: 2.000000
+mean result[1] is: 2.000000
+mean result[2] is: 2.000000
+...
+```
+
+## 查看性能流水
+
+仿真性能流水文件在本项目`examples/add_example/examples/build/bin/cannsim_*/report`目录，流水相关文件为：
+
+```bash
+trace_core0.json
+```
+
+在Chrome浏览器中输入“chrome://tracing”地址，并将生成的指令流水图文件（trace_core0.json）拖到空白处打开，具体参数介绍参考“仿真结果解析”章节。
 
 # 仿真执行
 
@@ -45,8 +90,9 @@ cannsim record [options] user_app --user_options
 |-s <value> 或 --soc_version <value> [options]参数 | 必选 | 指定模拟目标芯片版本（如：Ascend950）。|
 |-o <value> 或 --output <value> [options]参数 | 可选| 生成文件所在路径，可配置为绝对路径或者相对路径，并且执行工具的用户需要具有读写权限。如果未指定路径，则默认在当前目录下保存数据。|
 |-g 或 --gen-report[options]参数 | 可选 | 启用仿真完成后是否进行自动解析，并生成分析报告。默认不自动解析。|
-|user_app|必选|算子可执行文件。|
---user_options|可选|算子可执行文件的运行参数。|
+|-n 或 --core-id | 可选 | 仿真期间启用日志的AI Core，格式同 report -n：'all'、'0-2,12-14'、'5'。默认全开；配合 -g 且未指定时回退到 core 0。|
+|-u 或 --user-option | 可选 | 用户自定义算子参数，以命令行选项形式传递给算子程序。|
+|user_app|必选|待运行的算子程序或命令（如 ./app, python train.py, bash run.sh）。|
 
 ## 使用示例
 

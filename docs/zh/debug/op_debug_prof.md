@@ -6,7 +6,39 @@
 
 算子运行过程中，如果出现算子执行失败、精度异常等问题，可以打印各阶段信息，如Kernel中间结果，进行问题分析和定位。
 
-常见调试方法如下：
+### 1、Host侧日志获取方式
+
+* **plog获取**
+
+   程序执行结束后，默认可在"$HOME/ascendc/log"下查看，host日志文件存储路径如下：
+
+   ```bash
+   $HOME/ascend/log/debug/plog/plog-pid_*.log
+   ```
+
+   开启环境变量ASCEND_SLOG_PRINT_TO_STDOUT可以将log日志直接打屏显示(1:开启打屏，0：关闭打屏)，配置示例如下：
+
+   ```bash
+   export ASCEND_SLOG_PRINT_TO_STDOUT=1
+   ```
+
+   日志相关介绍参见[《日志参考》](https://hiascend.com/document/redirect/CannCommunitylogref)，环境变量介绍参见[《环境变量参考》](https://hiascend.com/document/redirect/CannCommunityEnvRef)。
+
+* **aclnn异常错误信息获取**
+   
+   通过aclGetRecentErrMsg接口（参见[《acl API（C）》](https://hiascend.com/document/redirect/CannCommunityCppApi)）获取aclnn接口调用过程中的异常信息，使用方法如下：
+
+   ```bash
+   printf(aclGetRecentErrMsg());
+   ```
+
+   打印错误信息样例如下：
+
+   ```bash
+   [PID:646612] 2026-01-24-11:53:44.671.727 AclNN_Parameter_Error(EZ1001): Expected a proper Tensor but got null for argument addmmTennsor.self.
+   ```
+
+### 2、Kernel调试
 
 * **printf**
 
@@ -36,7 +68,11 @@
 
 算子运行过程中，如果出现算子执行失败、精度异常等问题，可以打印各阶段信息，如Kernel中间结果，进行问题分析和定位。
 
-常见调试方法如下：
+### 1、Host侧日志获取方式
+
+   见AI Core算子[Host侧日志获取方式](#1host侧日志获取方式)。
+
+### 2、Kernel调试
 
 * **KERNEL\_LOG宏**
 
@@ -122,7 +158,7 @@
    
 ### 方式二（针对Ascend 950PR/Ascend 950DT系列产品）
 
-算子开发过程中，如果出现执行精度下降、内存占用异常等问题，可以通过[CANN Simulator](./cann_simulator.md)仿真工具分析算子的指令流水情况，从而确定问题根源，并针对性地优化。
+算子开发过程中，如果出现执行精度下降、内存占用异常等问题，可以通过[CANN Simulator](./cann_sim.md)仿真工具分析算子的指令流水情况，从而确定问题根源，并针对性地优化。
 
 本章以[AddExample自定义算子](../../../examples/add_example)为例，主要介绍仿真工具的使用。如何通过仿真工具进行精度和性能调优。
 
@@ -142,5 +178,5 @@
    trace_core0.json
    ``` 
 
-3. 在Chrome浏览器中输入“chrome://tracing”地址，并将生成的指令流水图文件（trace_core0.json）拖到空白处打开，具体参数介绍参考CANN Simulator中[“仿真结果解析”](./cann_simulator.md/#仿真结果解析)章节。
+3. 在Chrome浏览器中输入“chrome://tracing”地址，并将生成的指令流水图文件（trace_core0.json）拖到空白处打开，具体参数介绍参考CANN Simulator中[“仿真结果解析”](./cann_sim.md#仿真结果解析)章节。
 

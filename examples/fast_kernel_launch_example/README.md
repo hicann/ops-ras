@@ -2,7 +2,7 @@
 
 ## 环境部署 | Prerequisites
 
-- 请先参考[环境部署](../../docs/zh/context/quick_install.md)完成基础环境搭建
+- 请先参考[环境部署](../../docs/zh/install/quick_install.md)完成基础环境搭建
 - GCC 9.4.0+
 - Python 3.8+
 - PyTorch>=2.6.0

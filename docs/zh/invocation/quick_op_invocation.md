@@ -1,7 +1,7 @@
 # 算子调用
 ## 前提条件
 
-- 环境部署：调用算子之前，请先参考[环境部署](../context/quick_install.md)完成基础环境搭建。
+- 环境部署：调用算子之前，请先参考[环境部署](../install/quick_install.md)完成基础环境搭建。
 - 调用算子列表：项目可调用的算子参见[算子列表](../op_list.md)，算子对应的aclnn接口参见[aclnn列表](../op_api_list.md)。
 
 ## 编译执行
@@ -22,18 +22,18 @@
 
     进入项目根目录，执行如下编译命令：
 
-    > **说明**：编译过程依赖第三方开源软件，联网场景会自动下载，离线编译场景需要自行安装，具体参考[离线编译](../context/build_offline.md)。
+    > **说明**：编译过程依赖第三方开源软件，联网场景会自动下载，离线编译场景需要自行安装，具体参考[离线编译](../install/compile.md#未联网编译)。
     
     ```bash
     bash build.sh --pkg --soc=${soc_version} [--vendor_name=${vendor_name}] [--ops=${op_list}]
-    # 以TransposeBatchMatMul算子编译为例
-    # bash build.sh --pkg --soc=ascend910b --vendor_name=transpose_batch_mat_mul --ops=transpose_batch_mat_mul
+    # 以AddExample算子编译为例
+    # bash build.sh --pkg --soc=ascend910b --vendor_name=add_example --ops=add_example
     # 编译experimental贡献目录下的用户算子
     # bash build.sh --pkg --experimental --soc=ascend910b --ops=${experimental_op}
     ```
     - --soc：\$\{soc\_version\}表示NPU型号。Atlas A2系列产品使用"ascend910b"（默认），Atlas A3系列产品使用"ascend910_93"，Ascend 950PR/Ascend 950DT产品使用"ascend950"。
     - --vendor_name（可选）：\$\{vendor\_name\}表示构建的自定义算子包名，默认名为custom。
-    - --ops（可选）：\$\{op\_list\}表示待编译算子，不指定时默认编译所有算子。格式形如"transpose_batch_mat_mul,gemm,..."，多算子之间用英文逗号","分隔。
+    - --ops（可选）：\$\{op\_list\}表示待编译算子，不指定时默认编译所有算子。格式形如"add_example,..."，多算子之间用英文逗号","分隔。
     - --experimental（可选）：表示编译experimental贡献目录下的算子，${experimental_op}为新贡献算子目录名，贡献说明参见[贡献指南](../../../CONTRIBUTING.md)。
     
     若\$\{vendor\_name\}和\$\{op\_list\}都不传入编译的是ops-ras包；若编译所有算子的自定义算子包，需传入\$\{vendor\_name\}。当提示如下信息，说明编译成功。
@@ -63,7 +63,7 @@
 
     进入项目根目录，执行如下编译命令：
 
-    > **说明**：编译过程依赖第三方开源软件，联网场景会自动下载，离线编译场景需要自行安装，具体参考[离线编译](../context/build_offline.md)。
+    > **说明**：编译过程依赖第三方开源软件，联网场景会自动下载，离线编译场景需要自行安装，具体参考[离线编译](../install/compile.md#未联网编译)。
 
     ```bash
     # 编译除experimental贡献目录外的所有算子
@@ -155,7 +155,7 @@
 
 ## 本地验证 
 
-通过项目根目录build.sh执行算子和UT用例，验证项目功能是否正常，build参数参见[build参数说明](../context/build.md)。目前算子支持API方式（aclnn接口）和图模式调用，**推荐aclnn调用**。
+通过项目根目录build.sh执行算子和UT用例，验证项目功能是否正常，build参数参见[build参数说明](../install/build.md)。目前算子支持API方式（aclnn接口）和图模式调用，**推荐aclnn调用**。
 
 - **执行算子样例**
   
@@ -164,11 +164,11 @@
     - 完成自定义算子包安装后，执行如下命令：
         ```bash
         bash build.sh --run_example ${op} ${mode} ${pkg_mode} [--example_name=${example_name}] [--vendor_name=${vendor_name}] [--soc=${soc_version}]
-        # 以TransposeBatchMatMul算子执行test_aclnn_transpose_batch_mat_mul.cpp为例
-        # bash build.sh --run_example transpose_batch_mat_mul eager cust --example_name=transpose_batch_mat_mul --vendor_name=transpose_batch_mat_mul
+        # 以AddExample算子执行test_aclnn_add_example.cpp为例
+        # bash build.sh --run_example add_example eager cust --example_name=add_example --vendor_name=add_example
         ```
 
-        - \$\{op\}：表示待执行算子，算子名为小写下划线形式，如transpose_batch_mat_mul。
+        - \$\{op\}：表示待执行算子，算子名为小写下划线形式，如add_example。
         - \$\{mode\}：表示执行模式，目前支持eager（aclnn调用）、graph（图模式调用）。
         - \$\{pkg_mode\}：表示包模式，目前仅支持cust，即自定义算子包。
         - \$\{example_name\}（可选）：表示待执行样例名，名称为各个算子examples文件夹下的文件名称，去掉`test_aclnn_`前缀和`.cpp`后缀。
@@ -180,15 +180,15 @@
     - 完成ops-ras包安装后，执行命令如下：
         ```bash
         bash build.sh --run_example ${op} ${mode} [--soc=${soc_version}]
-        # 以TransposeBatchMatMul算子example执行为例
-        # bash build.sh --run_example transpose_batch_mat_mul eager
+        # 以AddExample算子example执行为例
+        # bash build.sh --run_example add_example eager
         ```
         
-        - \$\{op\}：表示待执行算子，算子名为小写下划线形式，如transpose_batch_mat_mul。
+        - \$\{op\}：表示待执行算子，算子名为小写下划线形式，如add_example。
         - \$\{mode\}：表示算子执行模式，目前支持eager（aclnn调用）、graph（图模式调用）。
         - \$\{soc_version\}（可选）：表示NPU型号。当设置为"ascend950"时会额外运行"arch35"目录下的示例文件。
     
-    执行算子样例后会打印结果，以TransposeBatchMatMul算子执行为例：
+    执行算子样例后会打印结果，以AddExample算子执行为例：
 
     ```
     result[0] is: 0.000000
@@ -205,7 +205,7 @@
   # 安装根目录下test相关requirements.txt依赖
   pip3 install -r tests/requirements.txt
   # 方式1: 编译并执行指定算子和对应功能的UT测试用例（选其一）
-  bash build.sh -u --[opapi|ophost|opkernel] --ops=transpose_batch_mat_mul
+  bash build.sh -u --[opapi|ophost|opkernel] --ops=add_example
   # 方式2: 编译并执行所有的UT测试用例
   # bash build.sh -u
   # 方式3: 编译所有的UT测试用例但不执行
@@ -228,6 +228,6 @@
   Global Environment TearDown
   [==========] ${n} tests from ${m} test suites ran. (${x} ms total)
   [  PASSED  ] ${n} tests.
-  [100%] Built target nn_op_host_ut
+  [100%] Built target ras_op_host_ut
     ```
     \$\{n\}表示执行了n个用例，\$\{m\}表示m项测试，\$\{x\}表示执行用例消耗的时间，单位为毫秒。

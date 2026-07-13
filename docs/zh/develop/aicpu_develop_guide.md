@@ -22,7 +22,7 @@
 ##  工程创建
 **1. 环境部署**
 
-开发算子前，请先参考[环境部署](../context/quick_install.md)完成基础环境搭建。
+开发算子前，请先参考[环境部署](../install/quick_install.md)完成基础环境搭建。
 
 **2. 目录创建**
 
@@ -32,7 +32,7 @@
 
 ```bash
 # 创建指定算子目录，如bash build.sh --genop_aicpu=examples/add_example
-# ${op_class}表示算子类型，如matmul类。
+# ${op_class}表示算子类型，如reliability类。
 # ${op_name}表示算子名的小写下划线形式，如`AddExample`算子对应为add_example。
 bash build.sh --genop_aicpu=${op_class}/${op_name}
 ```

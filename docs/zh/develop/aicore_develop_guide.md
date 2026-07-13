@@ -24,7 +24,7 @@
 ## 工程创建
 **1. 环境部署** 
 
-开发算子前，请先参考[环境部署](../context/quick_install.md)完成基础环境搭建。
+开发算子前，请先参考[环境部署](../install/quick_install.md)完成基础环境搭建。
 
 **2. 目录创建**
 
@@ -34,7 +34,7 @@
 
 ```bash
 # 创建指定算子目录，如bash build.sh --genop=examples/add_example
-# ${op_class}表示算子类型，如matmul类。
+# ${op_class}表示算子类型，如reliability类。
 # ${op_name}表示算子名的小写下划线形式，如`AddExample`算子对应为add_example。
 bash build.sh --genop=${op_class}/${op_name}
 ```
@@ -353,7 +353,7 @@ __aicore__ inline void AddExample<T>::Process()
 
     以`AddExample`算子为例，假设开发交付件在`examples`目录，完整代码参见[add_example](../../../examples/add_example)目录。
 
-    > 说明：编译过程依赖第三方开源软件，联网场景会自动下载，离线编译场景需要自行安装，具体参考[离线编译](../context/build_offline.md)。
+    > 说明：编译过程依赖第三方开源软件，联网场景会自动下载，离线编译场景需要自行安装，具体参考[离线编译](../install/compile.md#未联网编译)。
 
     ```bash
     # 编译指定算子，如--ops=add_example
