@@ -1,4 +1,5 @@
 # 环境部署
+
 ## 前提条件
 
 使用本项目前，请确保如下基础依赖、NPU驱动和固件已安装。
@@ -16,6 +17,7 @@
    - googletest（仅执行UT时依赖，建议版本 [release-1.11.0](https://github.com/google/googletest/releases/tag/release-1.11.0)）
 
    上述依赖包可通过项目根目录install\_deps.sh安装，命令如下，若遇到不支持系统，请参考该文件自行适配。
+
    ```bash
    bash install_deps.sh
    ```
@@ -23,7 +25,7 @@
 2. **安装驱动与固件（运行态依赖）**
 
    运行算子时必须安装驱动与固件，若仅编译算子，可跳过本操作。
-   
+
    单击[下载链接](https://www.hiascend.com/hardware/firmware-drivers/community)，根据实际产品型号和环境架构，获取对应的`Ascend-hdk-<chip_type>-npu-driver_<version>_linux-<arch>.run`、`Ascend-hdk-<chip_type>-npu-firmware_<version>.run`包。
 
    安装指导详见《[CANN 软件安装指南](https://www.hiascend.com/document/redirect/CannCommunityInstSoftware)》。
@@ -42,6 +44,7 @@
     # 安装命令
     ./Ascend-cann-toolkit_${cann_version}_linux-${arch}.run --install --force --install-path=${install_path}
     ```
+
     - \$\{cann\_version\}：表示CANN包版本号。
     - \$\{arch\}：表示CPU架构，如aarch64、x86_64。
     - \$\{install\_path\}：表示指定安装路径，默认安装在`/usr/local/Ascend`目录。
@@ -60,6 +63,7 @@
     # 安装命令
     ./Ascend-cann-${soc_name}-ops_${cann_version}_linux-${arch}.run --install --install-path=${install_path}
     ```
+
     - \$\{soc\_name\}：表示NPU型号名称，即\$\{soc\_version\}删除“ascend”后剩余的内容。
     - \$\{install\_path\}：表示指定安装路径，需要与toolkit包安装在相同路径，默认安装在`/usr/local/Ascend`目录。
 

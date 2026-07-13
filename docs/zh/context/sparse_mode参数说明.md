@@ -27,22 +27,23 @@ $QK^T$矩阵在attenMask为True的位置会被遮蔽，效果如下：
 ## sparseMode=0
 
 sparseMode为0时，代表defaultMask模式。
+
 - 不传mask：如果attenMask未传入则不做mask操作，attenMask取值为None，忽略preTokens和nextTokens取值。Masked $QK^T$矩阵示意如下：
 
   ![原理图](../figures/sparsemode为0遮挡矩阵.png)
 
 - nextTokens取值为0，preTokens大于等于Sq，表示causal场景sparse，attenMask应传入下三角矩阵，此时preTokens和nextTokens之间的部分需要计算，Masked $QK^T$矩阵示意如下：
 
-  ![原理图](../figures/sparsemode为0遮挡矩阵1.png) 
+  ![原理图](../figures/sparsemode为0遮挡矩阵1.png)
 
   attenMask应传入下三角矩阵，示意如下：
-  
+
   ![原理图](../figures/attenmask下三角.png)
 
 - preTokens小于Sq，nextTokens小于Skv，且都大于等于0，表示band场景，此时preTokens和nextTokens之间的部分需要计算。Masked $QK^T$矩阵示意如下：
 
-  ![原理图](../figures/sparsemode为0遮挡矩阵2.png)     
-  
+  ![原理图](../figures/sparsemode为0遮挡矩阵2.png)
+
   attenMask应传入band形状矩阵，示意如下：
 
   ![原理图](../figures/attenmask_band形状矩阵.png)
@@ -50,22 +51,22 @@ sparseMode为0时，代表defaultMask模式。
 - nextTokens为负数，以preTokens=9，nextTokens=-3为例，preTokens和nextTokens之间的部分需要计算。Masked $QK^T$示意如下：
 
   **说明：nextTokens为负数时，preTokens取值必须大于等于nextTokens的绝对值，且nextTokens的绝对值小于Skv。**
-  
-  ![原理图](../figures/sparsemode为0遮挡矩阵3.png) 
+
+  ![原理图](../figures/sparsemode为0遮挡矩阵3.png)
 
 - preTokens为负数，以nextTokens=7，preTokens=-3为例，preTokens和nextTokens之间的部分需要计算。Masked $QK^T$示意如下：
 
   **说明：preTokens为负数时，nextTokens取值必须大于等于preTokens的绝对值，且preTokens的绝对值小于Sq。**
 
-  ![原理图](../figures/sparsemode为0遮挡矩阵4.png) 
-  
+  ![原理图](../figures/sparsemode为0遮挡矩阵4.png)
+
 ## sparseMode=1
 
 sparseMode为1时，代表allMask，即传入完整的attenMask矩阵。
 
 该场景下忽略nextTokens、preTokens取值，Masked $QK^T$矩阵示意如下：
 
-![原理图](../figures/sparsemode为1遮挡矩阵.png) 
+![原理图](../figures/sparsemode为1遮挡矩阵.png)
 
 ## sparseMode=2
 
@@ -77,7 +78,7 @@ sparseMode为2时，代表leftUpCausal模式的mask，对应以左上顶点划�
 
 传入的attenMask为优化后的压缩下三角矩阵（2048\*2048），压缩下三角矩阵示意（下同）：
 
-![原理图](../figures/attenmask压缩下三角.png) 
+![原理图](../figures/attenmask压缩下三角.png)
 
 ## sparseMode=3
 
@@ -123,6 +124,7 @@ Masked $QK^T$矩阵示意如下，在第二个batch对query进行切分，key和
 ![原理图](../figures/sparsemode为7遮挡矩阵.png)
 
 **说明**：
+
 - sparseMode=7，band表示的是最后一个非空tensor的Batch的sparse类型；如果只有一个batch，用户需按照band模式的要求来配置参数；sparseMode=7时，用户需要输入2048x2048的下三角mask作为该融合算子的输入。
 - 基于sparseMode=3进行外切产生的band模式的sparse参数应符合以下条件：
   - preTokens >= last_Skv。
@@ -142,6 +144,7 @@ Masked $QK^T$矩阵示意如下，在第二个batch对query进行切分，key和
 ![原理图](../figures/sparsemode为8遮挡矩阵.png)
 
 **说明**：
+
 - sparseMode=8，band表示的是第一个非空tensor的Batch的sparse类型；如果只有一个batch，用户需按照band模式的要求来配置参数；sparseMode=8时，用户需要输入2048x2048的下三角mask作为该融合算子的输入。
 - 基于sparseMode=2进行外切产生的band模式的sparse的参数应符合以下条件：
   - preTokens >= first_Skv。

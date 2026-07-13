@@ -17,9 +17,10 @@
 
 5. [编译部署](#编译部署)：通过工程编译脚本完成自定义算子的编译和安装。
 
-6. [算子验证](#算子验证)：通过常见算子调用方式，验证自定义算子功能。  
+6. [算子验证](#算子验证)：通过常见算子调用方式，验证自定义算子功能。
 
-##  工程创建
+## 工程创建
+
 **1. 环境部署**
 
 开发算子前，请先参考[环境部署](../install/quick_install.md)完成基础环境搭建。
@@ -42,9 +43,10 @@ bash build.sh --genop_aicpu=${op_class}/${op_name}
 ```bash
 Create the AI CPU initial directory for ${op_name} under ${op_class} success
 ```
+
 创建完成后，目录结构如下所示：
 
-```
+```text
 ${op_name}                              # 替换为实际算子名的小写下划线形式
 ├── examples                            # 算子调用示例
 │   └── test_aclnn_${op_name}.cpp       # 算子aclnn调用示例
@@ -58,9 +60,11 @@ ${op_name}                              # 替换为实际算子名的小写下�
 │   └── ut                              # Kernel/aclnn UT实现
 └── CMakeLists.txt                      # 算子Cmakelist入口
 ```
+
 使用上述命令行创建算子工程后，若要手动删除新创建出的算子工程，需要同时删除与算子工程同目录CMakeLists.txt中新添加的add_subdirectory(${op_class})。
 
 ## 算子定义
+
 算子定义需要完成两个交付件：`README.md` `${op_name}.json`
 
 **交付件1：README.md**
@@ -75,17 +79,18 @@ ${op_name}                              # 替换为实际算子名的小写下�
 
 以自定义`AddExample`算子说明为例，请参考[AddExample算子信息库](../../../examples/add_example_aicpu/op_kernel_aicpu/add_example.json)。
 
-
 ## Kernel实现
 
 ### Kernel简介
+
 Kernel是算子在NPU执行的核心部分，Kernel实现包括如下步骤：
 
 ```mermaid
 graph LR
-	H([算子类声明]) -->A([Compute函数实现])
-	A -->B([注册算子])
+ H([算子类声明]) -->A([Compute函数实现])
+ A -->B([注册算子])
 ```
+
 ### 代码实现
 
 Kernel一共需要两个交付件：`${op_name}_aicpu.cpp` `${op_name}_aicpu.h`
@@ -96,7 +101,6 @@ Kernel一共需要两个交付件：`${op_name}_aicpu.cpp` `${op_name}_aicpu.h`
 
 Kernel实现的第一步，需在头文件`op_kernel_aicpu/${op_name}_aicpu.h`进行算子类的声明，算子类需继承CpuKernel基类。
 如需查看详细实现，请参考[add_example_aicpu.h](../../../examples/add_example_aicpu/op_kernel_aicpu/add_example_aicpu.h)。
-
 
 ```CPP
 // 1、算子类声明
@@ -173,6 +177,7 @@ uint32_t AddExampleCpuKernel::Compute(CpuKernelContext& ctx) {
 REGISTER_CPU_KERNEL(kAddExample, AddExampleCpuKernel);
 }  // namespace aicpu
 ```
+
 ## aclnn适配
 
 通常算子开发和编译完成后，会自动生成aclnn接口（一套基于C 的API），无需做其他配置，可直接在应用程序中调用aclnn接口实现调用算子。
@@ -193,25 +198,26 @@ REGISTER_CPU_KERNEL(kAddExample, AddExampleCpuKernel);
     # 编译指定算子，如--ops=add_example
     bash build.sh --pkg --soc=${soc_version} --vendor_name=${vendor_name} --ops=${op_list}
     ```
-   
+
     若提示如下信息，说明编译成功：
-    
+
     ```bash
     Self-extractable archive "cann-ops-ras-${vendor_name}_linux-${arch}.run" successfully created.
     ```
-    
+
 3. **安装自定义算子包。**
 
     ```bash
     # 安装run包
     ./build_out/cann-ops-ras-${vendor_name}_linux-${arch}.run
     ```
+
     自定义算子包安装在`${ASCEND_HOME_PATH}/opp/vendors`路径中，`${ASCEND_HOME_PATH}`表示CANN软件安装目录，可提前在环境变量中配置。
-    
+
 4. **（可选）卸载自定义算子包。**
 
     自定义算子包安装后在`${ASCEND_HOME_PATH}/opp/vendors/${vendor_name}_ras/scripts`目录会生成`uninstall.sh`，通过该脚本可卸载自定义算子包，命令如下：
-    
+
     ```bash
     bash ${ASCEND_HOME_PATH}/opp/vendors/${vendor_name}_ras/scripts/uninstall.sh
     ```
@@ -219,9 +225,11 @@ REGISTER_CPU_KERNEL(kAddExample, AddExampleCpuKernel);
 ## 算子验证
 
 验证算子前需确保已配置了环境变量，命令如下：
+
 ```bash
 export LD_LIBRARY_PATH=${ASCEND_HOME_PATH}/opp/vendors/${vendor_name}/op_api/lib:${LD_LIBRARY_PATH}
 ```
+
 - **UT验证**
 
   算子开发过程中，可通过UT验证（如Kernel）方式进行快速验证，如需查看详细实现，请参考[Kernel UT](../../../examples/add_example_aicpu/tests/ut/op_kernel_aicpu/test_add_example.cpp)。

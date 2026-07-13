@@ -1,4 +1,5 @@
 # 算子调用
+
 ## 前提条件
 
 - 环境部署：调用算子之前，请先参考[环境部署](../install/quick_install.md)完成基础环境搭建。
@@ -23,7 +24,7 @@
     进入项目根目录，执行如下编译命令：
 
     > **说明**：编译过程依赖第三方开源软件，联网场景会自动下载，离线编译场景需要自行安装，具体参考[离线编译](../install/compile.md#未联网编译)。
-    
+
     ```bash
     bash build.sh --pkg --soc=${soc_version} [--vendor_name=${vendor_name}] [--ops=${op_list}]
     # 以AddExample算子编译为例
@@ -31,28 +32,32 @@
     # 编译experimental贡献目录下的用户算子
     # bash build.sh --pkg --experimental --soc=ascend910b --ops=${experimental_op}
     ```
+
     - --soc：\$\{soc\_version\}表示NPU型号。Atlas A2系列产品使用"ascend910b"（默认），Atlas A3系列产品使用"ascend910_93"，Ascend 950PR/Ascend 950DT产品使用"ascend950"。
     - --vendor_name（可选）：\$\{vendor\_name\}表示构建的自定义算子包名，默认名为custom。
     - --ops（可选）：\$\{op\_list\}表示待编译算子，不指定时默认编译所有算子。格式形如"add_example,..."，多算子之间用英文逗号","分隔。
     - --experimental（可选）：表示编译experimental贡献目录下的算子，${experimental_op}为新贡献算子目录名，贡献说明参见[贡献指南](../../../CONTRIBUTING.md)。
-    
+
     若\$\{vendor\_name\}和\$\{op\_list\}都不传入编译的是ops-ras包；若编译所有算子的自定义算子包，需传入\$\{vendor\_name\}。当提示如下信息，说明编译成功。
+
     ```bash
     Self-extractable archive "cann-ops-ras-${vendor_name}_linux-${arch}.run" successfully created.
     ```
+
     编译成功后，run包存放于项目根目录的build_out目录下。
-    
+
 2. **安装自定义算子包**
-   
+
     ```bash
     ./cann-ops-ras-${vendor_name}_linux-${arch}.run
     ```
-    
+
     自定义算子包安装路径为`${ASCEND_HOME_PATH}/opp/vendors`，\$\{ASCEND\_HOME\_PATH\}已通过环境变量配置，表示CANN toolkit包安装路径，一般为\$\{install\_path\}/cann。
 
 3. **（可选）卸载自定义算子包**
 
     自定义算子包安装后在`${ASCEND_HOME_PATH}/opp/vendors/${vendor_name}_ras/scripts`目录会生成`uninstall.sh`脚本，通过执行该脚本可卸载自定义算子包，具体命令如下：
+
     ```bash
     bash ${ASCEND_HOME_PATH}/opp/vendors/${vendor_name}_ras/scripts/uninstall.sh
     ```
@@ -71,6 +76,7 @@
     # 编译experimental贡献目录下的所有算子
     # bash build.sh --pkg --experimental [--jit] --soc=${soc_version}
     ```
+
     - --jit（可选）：设置后表示不编译算子二进制文件，如需使用aclnn调用算子，该选项无需设置。
     - --soc：\$\{soc\_version\}表示NPU型号。Atlas A2系列产品使用"ascend910b"（默认），Atlas A3系列产品使用"ascend910_93"，Ascend 950PR/Ascend 950DT产品使用"ascend950"。
     - --experimental（可选）：表示编译experimental贡献目录下的算子。
@@ -110,6 +116,7 @@
     ```bash
    bash build.sh --pkg --static --soc=${soc_version}
     ```
+
    \$\{soc\_version\}表示NPU型号。Atlas A2系列产品使用"ascend910b"（默认），Atlas A3系列产品使用"ascend910_93"。
 
    若提示如下信息，说明编译并压缩成功。
@@ -121,7 +128,6 @@
 
    \$\{repo\_path\}表示项目根目录，\$\{soc\_name\}表示NPU型号名称，即\$\{soc\_version\}删除“ascend”后剩余的内容。编译成功后，压缩包存放于build_out目录下。
 
-
 2. **解压ops-ras静态库**
 
    进入build_out目录执行解压命令：
@@ -131,103 +137,126 @@
     ```
 
    \$\{static\_lib\_path\}表示静态库解压路径。解压后目录结构如下：
-    ```
+
+    ```text
     ├── cann-${soc_name}-ops-ras-static_${cann_version}_linux-${arch}
     │   ├── lib64
     │   │   ├── libcann_ras_static.a               # 静态库文件
     │   └── include
     |       ├── ...                                 # aclnn接口头文件
     ```
-   
+
 3. **静态库使用方法**
-   
+
     使用示例如下，仅供参考：
-    
+
     ```bash
     g++ ${file} -I ${TEST_PATH}/include -L ${TEST_PATH} -L ${ASCEND_HOME_PATH}/lib64 -Wl,--allow-multiple-definition \
     -Wl,--start-group -lcann_ras_static -lcann_math_static -lcann_legacy_static -Wl,--end-group -lgraph -lgraph_base \
    -lpthread -lmmpa -lmetadef -lascendalog -lregister -lopp_registry -lops_base -lascendcl -ltiling_api -lplatform \
    -ldl -lc_sec -lnnopbase -lruntime -lerror_manager -lunified_dlog -o ${exec_name}
    ```
+
    \$\{file\}表示aclnn测试代码源文件；\$\{TEST\_PATH\}表示静态库解压路径；\$\{ASCEND\_HOME\_PATH\}已通过环境变量配置，表示CANN toolkit包安装路径，一般为\$\{install\_path\}/cann；\$\{exec\_name\}表示最终可执行文件的名字。
-   
+
    其中lcann\_ras\_static、lmetadef等表示算子依赖的底层库文件，可在CANN toolkit包获取。
 
-## 本地验证 
+## 本地验证
 
 通过项目根目录build.sh执行算子和UT用例，验证项目功能是否正常，build参数参见[build参数说明](../install/build.md)。目前算子支持API方式（aclnn接口）和图模式调用，**推荐aclnn调用**。
 
 - **执行算子样例**
-  
+
     > **说明**：Ascend 950PR/Ascend 950DT产品使用仿真执行算子样例，请见[仿真指导](../debug/op_debug_prof.md#方式二针对ascend-950pr)。
-  
-    - 完成自定义算子包安装后，执行如下命令：
+
+  - 完成自定义算子包安装后，执行如下命令：
+
         ```bash
         bash build.sh --run_example ${op} ${mode} ${pkg_mode} [--example_name=${example_name}] [--vendor_name=${vendor_name}] [--soc=${soc_version}]
         # 以AddExample算子执行test_aclnn_add_example.cpp为例
         # bash build.sh --run_example add_example eager cust --example_name=add_example --vendor_name=add_example
         ```
 
-        - \$\{op\}：表示待执行算子，算子名为小写下划线形式，如add_example。
-        - \$\{mode\}：表示执行模式，目前支持eager（aclnn调用）、graph（图模式调用）。
-        - \$\{pkg_mode\}：表示包模式，目前仅支持cust，即自定义算子包。
-        - \$\{example_name\}（可选）：表示待执行样例名，名称为各个算子examples文件夹下的文件名称，去掉`test_aclnn_`前缀和`.cpp`后缀。
-        - \$\{vendor\_name\}（可选）：与构建的自定义算子包设置一致，默认名为custom。
-        - \$\{soc_version\}（可选）：表示NPU型号。当设置为"ascend950"时会额外运行"arch35"目录下的示例文件。
+    - \$\{op\}：表示待执行算子，算子名为小写下划线形式，如add_example。
+    - \$\{mode\}：表示执行模式，目前支持eager（aclnn调用）、graph（图模式调用）。
+    - \$\{pkg_mode\}：表示包模式，目前仅支持cust，即自定义算子包。
+    - \$\{example_name\}（可选）：表示待执行样例名，名称为各个算子examples文件夹下的文件名称，去掉`test_aclnn_`前缀和`.cpp`后缀。
+    - \$\{vendor\_name\}（可选）：与构建的自定义算子包设置一致，默认名为custom。
+    - \$\{soc_version\}（可选）：表示NPU型号。当设置为"ascend950"时会额外运行"arch35"目录下的示例文件。
 
         说明：\$\{mode\}为graph时，不指定\$\{pkg_mode\}和\$\{vendor\_name\}
 
-    - 完成ops-ras包安装后，执行命令如下：
+  - 完成ops-ras包安装后，执行命令如下：
+
         ```bash
         bash build.sh --run_example ${op} ${mode} [--soc=${soc_version}]
         # 以AddExample算子example执行为例
         # bash build.sh --run_example add_example eager
         ```
-        
-        - \$\{op\}：表示待执行算子，算子名为小写下划线形式，如add_example。
-        - \$\{mode\}：表示算子执行模式，目前支持eager（aclnn调用）、graph（图模式调用）。
-        - \$\{soc_version\}（可选）：表示NPU型号。当设置为"ascend950"时会额外运行"arch35"目录下的示例文件。
-    
+
+    - \$\{op\}：表示待执行算子，算子名为小写下划线形式，如add_example。
+    - \$\{mode\}：表示算子执行模式，目前支持eager（aclnn调用）、graph（图模式调用）。
+    - \$\{soc_version\}（可选）：表示NPU型号。当设置为"ascend950"时会额外运行"arch35"目录下的示例文件。
+
     执行算子样例后会打印结果，以AddExample算子执行为例：
 
-    ```
+    ```text
     result[0] is: 0.000000
     result[1] is: 0.000000
     result[2] is: 0.000000
     result[3] is: 0.000000
     ...
     ```
+
 - **执行算子UT**
 
-	> 说明：执行UT用例依赖googletest单元测试框架，详细介绍参见[googletest官网](https://google.github.io/googletest/advanced.html#running-a-subset-of-the-tests)。
+ > 说明：执行UT用例依赖googletest单元测试框架，详细介绍参见[googletest官网](https://google.github.io/googletest/advanced.html#running-a-subset-of-the-tests)。
 
     ```bash
-  # 安装根目录下test相关requirements.txt依赖
+
+# 安装根目录下test相关requirements.txt依赖
+
   pip3 install -r tests/requirements.txt
-  # 方式1: 编译并执行指定算子和对应功能的UT测试用例（选其一）
+
+# 方式1: 编译并执行指定算子和对应功能的UT测试用例（选其一）
+
   bash build.sh -u --[opapi|ophost|opkernel] --ops=add_example
-  # 方式2: 编译并执行所有的UT测试用例
-  # bash build.sh -u
-  # 方式3: 编译所有的UT测试用例但不执行
-  # bash build.sh -u --noexec
-  # 方式4: 编译并执行对应功能的UT测试用例（选其一）
-  # bash build.sh -u --[opapi|ophost|opkernel]
-  # 方式5: 编译对应功能的UT测试用例但不执行（选其一）
-  # bash build.sh -u --noexec --[opapi|ophost|opkernel]
-  # 方式6: 执行UT测试用例时可指定soc编译
-  # bash build.sh -u --[opapi|ophost|opkernel] [--soc=${soc_version}]
+
+# 方式2: 编译并执行所有的UT测试用例
+
+# bash build.sh -u
+
+# 方式3: 编译所有的UT测试用例但不执行
+
+# bash build.sh -u --noexec
+
+# 方式4: 编译并执行对应功能的UT测试用例（选其一）
+
+# bash build.sh -u --[opapi|ophost|opkernel]
+
+# 方式5: 编译对应功能的UT测试用例但不执行（选其一）
+
+# bash build.sh -u --noexec --[opapi|ophost|opkernel]
+
+# 方式6: 执行UT测试用例时可指定soc编译
+
+# bash build.sh -u --[opapi|ophost|opkernel] [--soc=${soc_version}]
+
     ```
 
     假设验证ophost功能是否正常，执行如下命令：
+
     ```bash
   bash build.sh -u --ophost
     ```
 
     执行完成后出现如下内容，表示执行成功。
+
     ```bash
   Global Environment TearDown
   [==========] ${n} tests from ${m} test suites ran. (${x} ms total)
   [  PASSED  ] ${n} tests.
   [100%] Built target ras_op_host_ut
     ```
+
     \$\{n\}表示执行了n个用例，\$\{m\}表示m项测试，\$\{x\}表示执行用例消耗的时间，单位为毫秒。
