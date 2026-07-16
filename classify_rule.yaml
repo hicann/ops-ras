@@ -1,5 +1,5 @@
 # ---------------------------------------------------------------------------------------------------------
-# Copyright (c) 2025-2026 Huawei Technologies Co., Ltd.
+# Copyright (c) 2026 Huawei Technologies Co., Ltd.
 # This program is free software, you can redistribute it and/or modify it under the terms and conditions of
 # CANN Open Software License Agreement Version 2.0 (the "License").
 # Please refer to the License for details. You may not use this file except in compliance with the License.
@@ -43,15 +43,11 @@ ras@ops-ras:
       kernel_style: null
     unrelease:
       test_code:
-        - ops/ops-ras/example/
-        - ops/ops-ras/example/add_example_aicpu/examples
-        - ops/ops-ras/example/add_example_aicpu/tests
-        - ops/ops-ras/example/add_example/examples
-        - ops/ops-ras/example/add_example/tests
+        - ops/ops-ras/examples/
+        - ops/ops-ras/experimental/
         - ops/ops-ras/tests/
         - ops/ops-ras/build.sh
         - ops/ops-ras/CMakeLists.txt
-        - ops/ops-ras/common/inc/op_api/aclnn_check.h
         - ops/ops-ras/common/inc/op_api/level2_base.h
       non_delivery: null
       open_source: null

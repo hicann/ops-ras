@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # ----------------------------------------------------------------------------
-# Copyright (c) 2025 Huawei Technologies Co., Ltd.
+# Copyright (c) 2026 Huawei Technologies Co., Ltd.
 # This program is free software, you can redistribute it and/or modify it under the terms and conditions of
 # CANN Open Software License Agreement Version 2.0 (the "License").
 # Please refer to the License for details. You may not use this file except in compliance with the License.
@@ -12,7 +12,6 @@
 
 """Ascend Ops"""
 __version__ = "1.0.0"
-import torch
 
 try:
     from . import _C
@@ -20,5 +19,3 @@ except ImportError as e:
     raise ImportError(
         "Cannot import _C. Please make sure the `ascend_ops` is properly installed. "
     ) from e
-
-from . import ops
