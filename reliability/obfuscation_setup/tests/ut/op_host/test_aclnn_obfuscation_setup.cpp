@@ -38,14 +38,13 @@ TEST_F(l2_obfuscation_setup_test, case_anullptr_y) {
   int32_t dataType = 1;
   int32_t hiddenSize = 4096;
   int32_t tpRank = 0;
-  int32_t tpRank = 0;
   int32_t modelObfSeedId = 123456789;
   int32_t dataObfSeedId = 987654321;
   int32_t cmd = 1;
   int32_t threadNum = 4;
 
   auto ut = OP_API_UT(aclnnObfuscationSetup, 
-                      INPUT(fdToClose, dataType, hiddenSize, modelObfSeedId,dataObfSeedId, cmd, threadNum), 
+                      INPUT(fdToClose, dataType, hiddenSize, tpRank, modelObfSeedId, dataObfSeedId, cmd, threadNum), 
                       OUTPUT((aclTensor*)nullptr));
 
   uint64_t workspace_size = 0;
@@ -66,11 +65,10 @@ TEST_F(l2_obfuscation_setup_test, case_shape_x_equal_y) {
   int32_t threadNum = 4;
 
   auto fd_tensor_desc = TensorDesc({2,3}, ACL_INT32, ACL_FORMAT_ND);
-  auto obf_status_tensor_desc = TensorDesc({1}, ACL_INT32, ACL_FORMAT_ND);
 
   auto ut = OP_API_UT(aclnnObfuscationSetup, 
-                      INPUT(fdToClose, dataType, hiddenSize, modelObfSeedId,dataObfSeedId, cmd, threadNum), 
-                      OUTPUT(fd_tensor_desc, obf_status_tensor_desc));
+                      INPUT(fdToClose, dataType, hiddenSize, tpRank, modelObfSeedId,dataObfSeedId, cmd, threadNum), 
+                      OUTPUT(fd_tensor_desc));
 
   uint64_t workspace_size = 0;
   aclnnStatus aclRet = ut.TestGetWorkspaceSize(&workspace_size);
