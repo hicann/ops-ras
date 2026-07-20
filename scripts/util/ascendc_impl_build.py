@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # ----------------------------------------------------------------------------
 # This program is free software, you can redistribute it and/or modify.
-# Copyright (c) 2025 Huawei Technologies Co., Ltd.
+# Copyright (c) 2026 Huawei Technologies Co., Ltd.
 # This file is a part of the CANN Open Software.
 # Licensed under CANN Open Software License Agreement Version 2.0 (the "License").
 # Please refer to the License for details. You may not use this file except in compliance with the License.
@@ -15,7 +15,6 @@ import glob
 import sys
 import os
 import re
-import datetime
 import json
 from typing import List
 
@@ -27,7 +26,7 @@ PYF_PATH = os.path.dirname(os.path.realpath(__file__))
 IMPL_HEAD = '''#!/usr/bin/env python
 # -*- coding: UTF-8 -*-
 """
-Copyright (c) Huawei Technologies Co., Ltd. {}-{}. All rights reserved.
+Copyright (c) Huawei Technologies Co., Ltd. 2026. All rights reserved.
 """
 
 import os, sys
@@ -513,10 +512,7 @@ class AdpBuilder(opdesc_parser.OpDesc):
                 self.argsdefv.append(None)
 
     def _write_head(self: any, fd: object):
-        now = datetime.datetime.now()
-        curr_year = now.year
-        former_year = curr_year - 1
-        fd.write(IMPL_HEAD.format(former_year, curr_year, self.input_ori_name, self.output_ori_name))
+        fd.write(IMPL_HEAD.format(self.input_ori_name, self.output_ori_name))
 
     def _write_argparse(self: any, fd: object):
         args = self._build_paralist(False)

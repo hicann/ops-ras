@@ -1,6 +1,6 @@
 /**
  * This program is free software, you can redistribute it and/or modify.
- * Copyright (c) 2025 Huawei Technologies Co., Ltd.
+ * Copyright (c) 2026 Huawei Technologies Co., Ltd.
  * This file is a part of the CANN Open Software.
  * Licensed under CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
@@ -8,7 +8,7 @@
  * See LICENSE in the root of the software repository for the full text of the License.
 
  * The code snippet comes from Huawei's open-source Ascend project.
- * Copyright (c) 2020. Huawei Technologies Co., Ltd. All rights reserved.
+ * Copyright (c) 2026. Huawei Technologies Co., Ltd. All rights reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at

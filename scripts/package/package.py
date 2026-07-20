@@ -2,7 +2,7 @@
 # -*- coding: UTF-8 -*-
 # ----------------------------------------------------------------------------
 # This program is free software, you can redistribute it and/or modify.
-# Copyright (c) 2025 Huawei Technologies Co., Ltd.
+# Copyright (c) 2026 Huawei Technologies Co., Ltd.
 # This file is a part of the CANN Open Software.
 # Licensed under CANN Open Software License Agreement Version 2.0 (the "License").
 # Please refer to the License for details. You may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@ import traceback
 import csv
 from argparse import Namespace
 from collections import namedtuple
-from datetime import datetime, timezone
 from functools import partial
 from itertools import chain
 from typing import Dict, Iterator, List, Set, Tuple, TextIO
@@ -544,12 +543,11 @@ def generate_config_inc(package_attr: Dict):
     """生成config.inc文件。"""
     if 'parallel' not in package_attr and 'parallel_limit' not in package_attr and 'use_move' not in package_attr:
         return
-    year = datetime.now(timezone.utc).year
     config_inc = os.path.join(TOP_DIR, "build", 'config.inc')
     header = [
         '#!/bin/sh\n',
         '#----------------------------------------------------------------------------\n',
-        f'# Copyright Huawei Technologies Co., Ltd. 2023-{year}. All rights reserved.\n',
+        '# Copyright Huawei Technologies Co., Ltd. 2026. All rights reserved.\n',
         '#----------------------------------------------------------------------------\n',
         '\n',
     ]
