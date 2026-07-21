@@ -38,9 +38,25 @@ protected:
         return TensorDesc({16}, ACL_UINT8, ACL_FORMAT_ND).ValueRange(0.0, 255.0);
     }
 
+    TensorDesc GetKeyTensorDesc(aclDataType dataType) const
+    {
+        return TensorDesc({16}, dataType, ACL_FORMAT_ND).ValueRange(0.0, 255.0);
+    }
+
     TensorDesc GetInputTensorDesc() const
     {
         return TensorDesc({32}, ACL_UINT8, ACL_FORMAT_ND).ValueRange(0.0, 255.0);
+    }
+
+    TensorDesc GetInputTensorDesc(aclDataType dataType) const
+    {
+        return TensorDesc({32}, dataType, ACL_FORMAT_ND).ValueRange(0.0, 255.0);
+    }
+
+    TensorDesc GetInputTensorDesc(aclDataType dataType, const std::vector<int64_t>& shape) const
+    {
+        return TensorDesc(shape, dataType, ACL_FORMAT_ND)
+            .ValueRange(0.0, 255.0);
     }
 
     TensorDesc GetOutputTensorDesc() const
@@ -48,14 +64,35 @@ protected:
         return TensorDesc({32}, ACL_UINT8, ACL_FORMAT_ND);
     }
 
+    TensorDesc GetOutputTensorDesc(aclDataType dataType) const
+    {
+        return TensorDesc({32}, dataType, ACL_FORMAT_ND);
+    }
+
+    TensorDesc GetOutputTensorDesc(aclDataType dataType, const std::vector<int64_t>& shape) const
+    {
+        return TensorDesc(shape, dataType, ACL_FORMAT_ND)
+            .ValueRange(0.0, 255.0);
+    }
+
     TensorDesc GetIvTensorDesc() const
     {
         return TensorDesc({12}, ACL_UINT8, ACL_FORMAT_ND).ValueRange(0.0, 255.0);
     }
 
-    ScalarDesc GetOpConfig() const
+    TensorDesc GetIvTensorDesc(aclDataType dataType) const
     {
-        return ScalarDesc(ACL_UINT32, 1);
+        return TensorDesc({12}, dataType, ACL_FORMAT_ND).ValueRange(0.0, 255.0);
+    }
+
+    TensorDesc GetOpConfig() const
+    {
+        return TensorDesc({16}, ACL_UINT32, ACL_FORMAT_ND);
+    }
+
+    TensorDesc GetOpConfig(aclDataType dataType) const
+    {
+        return TensorDesc({16}, dataType, ACL_FORMAT_ND);
     }
 
     TensorDesc GetTagTensorDesc() const
@@ -63,22 +100,37 @@ protected:
         return TensorDesc({16}, ACL_UINT8, ACL_FORMAT_ND);
     }
 
+    TensorDesc GetTagTensorDesc(aclDataType dataType) const
+    {
+        return TensorDesc({16}, dataType, ACL_FORMAT_ND);
+    }
+
     TensorDesc GetAadTensorDesc() const
     {
         return TensorDesc({16}, ACL_UINT8, ACL_FORMAT_ND).ValueRange(0.0, 255.0);
+    }
+
+    TensorDesc GetAadTensorDesc(aclDataType dataType) const
+    {
+        return TensorDesc({16}, dataType, ACL_FORMAT_ND).ValueRange(0.0, 255.0);
     }
 
     TensorDesc GetYTensorDesc() const
     {
         return TensorDesc({1}, ACL_UINT32, ACL_FORMAT_ND);
     }
+
+    TensorDesc GetYTensorDesc(aclDataType dataType) const
+    {
+        return TensorDesc({1}, dataType, ACL_FORMAT_ND);
+    }
 };
 
 TEST_F(l2_crypto_test, case_success)
 {
-    auto ut = OP_API_UT(aclnnCryptoGetWorkspaceSize,
+    auto ut = OP_API_UT(aclnnCrypto,
                         INPUT(GetKeyTensorDesc(), GetInputTensorDesc(), GetOutputTensorDesc(), GetIvTensorDesc(),
-                              GetOpConfig(), GetTagTensorDesc(), GetAadTensorDesc()),
+                              GetOpConfig(), GetTagTensorDesc(), nullptr),
                         OUTPUT(GetYTensorDesc()));
 
     uint64_t workspace_size = 0;
@@ -88,9 +140,9 @@ TEST_F(l2_crypto_test, case_success)
 
 TEST_F(l2_crypto_test, case_nullptr_key)
 {
-    auto ut = OP_API_UT(aclnnCryptoGetWorkspaceSize,
+    auto ut = OP_API_UT(aclnnCrypto,
                         INPUT((aclTensor *)nullptr, GetInputTensorDesc(), GetOutputTensorDesc(), GetIvTensorDesc(),
-                              GetOpConfig(), GetTagTensorDesc(), GetAadTensorDesc()),
+                              GetOpConfig(), GetTagTensorDesc(), nullptr),
                         OUTPUT(GetYTensorDesc()));
 
     uint64_t workspace_size = 0;
@@ -100,9 +152,9 @@ TEST_F(l2_crypto_test, case_nullptr_key)
 
 TEST_F(l2_crypto_test, case_nullptr_op_config)
 {
-    auto ut = OP_API_UT(aclnnCryptoGetWorkspaceSize,
+    auto ut = OP_API_UT(aclnnCrypto,
                         INPUT(GetKeyTensorDesc(), GetInputTensorDesc(), GetOutputTensorDesc(), GetIvTensorDesc(),
-                              (aclTensor *)nullptr, GetTagTensorDesc(), GetAadTensorDesc()),
+                              (aclTensor *)nullptr, GetTagTensorDesc(), nullptr),
                         OUTPUT(GetYTensorDesc()));
 
     uint64_t workspace_size = 0;
@@ -112,9 +164,9 @@ TEST_F(l2_crypto_test, case_nullptr_op_config)
 
 TEST_F(l2_crypto_test, case_nullptr_y)
 {
-    auto ut = OP_API_UT(aclnnCryptoGetWorkspaceSize,
+    auto ut = OP_API_UT(aclnnCrypto,
                         INPUT(GetKeyTensorDesc(), GetInputTensorDesc(), GetOutputTensorDesc(), GetIvTensorDesc(),
-                              GetOpConfig(), GetTagTensorDesc(), GetAadTensorDesc()),
+                              GetOpConfig(), GetTagTensorDesc(), nullptr),
                         OUTPUT((aclTensor *)nullptr));
 
     uint64_t workspace_size = 0;
@@ -124,10 +176,10 @@ TEST_F(l2_crypto_test, case_nullptr_y)
 
 TEST_F(l2_crypto_test, case_key_dtype_invalid)
 {
-    auto ut = OP_API_UT(aclnnCryptoGetWorkspaceSize,
+    auto ut = OP_API_UT(aclnnCrypto,
                         INPUT(GetKeyTensorDesc(ACL_INT8), GetInputTensorDesc(), GetOutputTensorDesc(),
                               GetIvTensorDesc(), GetOpConfig(), GetTagTensorDesc(),
-                              GetAadTensorDesc()),
+                              nullptr),
                         OUTPUT(GetYTensorDesc()));
 
     uint64_t workspace_size = 0;
@@ -137,10 +189,10 @@ TEST_F(l2_crypto_test, case_key_dtype_invalid)
 
 TEST_F(l2_crypto_test, case_input_dtype_invalid)
 {
-    auto ut = OP_API_UT(aclnnCryptoGetWorkspaceSize,
+    auto ut = OP_API_UT(aclnnCrypto,
                         INPUT(GetKeyTensorDesc(), GetInputTensorDesc(ACL_BOOL), GetOutputTensorDesc(),
                               GetIvTensorDesc(), GetOpConfig(), GetTagTensorDesc(),
-                              GetAadTensorDesc()),
+                              nullptr),
                         OUTPUT(GetYTensorDesc()));
 
     uint64_t workspace_size = 0;
@@ -150,10 +202,10 @@ TEST_F(l2_crypto_test, case_input_dtype_invalid)
 
 TEST_F(l2_crypto_test, case_output_dtype_invalid)
 {
-    auto ut = OP_API_UT(aclnnCryptoGetWorkspaceSize,
+    auto ut = OP_API_UT(aclnnCrypto,
                         INPUT(GetKeyTensorDesc(), GetInputTensorDesc(), GetOutputTensorDesc(ACL_BOOL),
                               GetIvTensorDesc(), GetOpConfig(), GetTagTensorDesc(),
-                              GetAadTensorDesc()),
+                              nullptr),
                         OUTPUT(GetYTensorDesc()));
 
     uint64_t workspace_size = 0;
@@ -163,10 +215,10 @@ TEST_F(l2_crypto_test, case_output_dtype_invalid)
 
 TEST_F(l2_crypto_test, case_iv_dtype_invalid)
 {
-    auto ut = OP_API_UT(aclnnCryptoGetWorkspaceSize,
+    auto ut = OP_API_UT(aclnnCrypto,
                         INPUT(GetKeyTensorDesc(), GetInputTensorDesc(), GetOutputTensorDesc(),
                               GetIvTensorDesc(ACL_INT8), GetOpConfig(), GetTagTensorDesc(),
-                              GetAadTensorDesc()),
+                              nullptr),
                         OUTPUT(GetYTensorDesc()));
 
     uint64_t workspace_size = 0;
@@ -176,9 +228,9 @@ TEST_F(l2_crypto_test, case_iv_dtype_invalid)
 
 TEST_F(l2_crypto_test, case_op_config_dtype_invalid)
 {
-    auto ut = OP_API_UT(aclnnCryptoGetWorkspaceSize,
+    auto ut = OP_API_UT(aclnnCrypto,
                         INPUT(GetKeyTensorDesc(), GetInputTensorDesc(), GetOutputTensorDesc(), GetIvTensorDesc(),
-                              GetOpConfig(ACL_INT32), GetTagTensorDesc(), GetAadTensorDesc()),
+                              GetOpConfig(ACL_INT32), GetTagTensorDesc(), nullptr),
                         OUTPUT(GetYTensorDesc()));
 
     uint64_t workspace_size = 0;
@@ -188,9 +240,9 @@ TEST_F(l2_crypto_test, case_op_config_dtype_invalid)
 
 TEST_F(l2_crypto_test, case_tag_dtype_invalid)
 {
-    auto ut = OP_API_UT(aclnnCryptoGetWorkspaceSize,
+    auto ut = OP_API_UT(aclnnCrypto,
                         INPUT(GetKeyTensorDesc(), GetInputTensorDesc(), GetOutputTensorDesc(), GetIvTensorDesc(),
-                              GetOpConfig(), GetTagTensorDesc(ACL_INT8), GetAadTensorDesc()),
+                              GetOpConfig(), GetTagTensorDesc(ACL_INT8), nullptr),
                         OUTPUT(GetYTensorDesc()));
 
     uint64_t workspace_size = 0;
@@ -200,7 +252,7 @@ TEST_F(l2_crypto_test, case_tag_dtype_invalid)
 
 TEST_F(l2_crypto_test, case_aad_dtype_invalid)
 {
-    auto ut = OP_API_UT(aclnnCryptoGetWorkspaceSize,
+    auto ut = OP_API_UT(aclnnCrypto,
                         INPUT(GetKeyTensorDesc(), GetInputTensorDesc(), GetOutputTensorDesc(), GetIvTensorDesc(),
                               GetOpConfig(), GetTagTensorDesc(), GetAadTensorDesc(ACL_INT8)),
                         OUTPUT(GetYTensorDesc()));
@@ -212,9 +264,9 @@ TEST_F(l2_crypto_test, case_aad_dtype_invalid)
 
 TEST_F(l2_crypto_test, case_y_dtype_invalid)
 {
-    auto ut = OP_API_UT(aclnnCryptoGetWorkspaceSize,
+    auto ut = OP_API_UT(aclnnCrypto,
                         INPUT(GetKeyTensorDesc(), GetInputTensorDesc(), GetOutputTensorDesc(), GetIvTensorDesc(),
-                              GetOpConfig(), GetTagTensorDesc(), GetAadTensorDesc()),
+                              GetOpConfig(), GetTagTensorDesc(), nullptr),
                         OUTPUT(GetYTensorDesc(ACL_INT32)));
 
     uint64_t workspace_size = 0;
@@ -227,7 +279,7 @@ TEST_F(l2_crypto_test, case_supported_data_dtypes)
     const std::vector<aclDataType> dataTypes = {
         ACL_UINT8, ACL_INT8, ACL_INT16, ACL_INT32, ACL_INT64, ACL_FLOAT, ACL_FLOAT16, ACL_BF16, ACL_DOUBLE};
     for (auto dtype : dataTypes) {
-        auto ut = OP_API_UT(aclnnCryptoGetWorkspaceSize,
+        auto ut = OP_API_UT(aclnnCrypto,
                             INPUT(GetKeyTensorDesc(), GetInputTensorDesc(dtype), GetOutputTensorDesc(dtype),
                                   GetIvTensorDesc(), GetOpConfig(), GetTagTensorDesc(), GetAadTensorDesc()),
                             OUTPUT(GetYTensorDesc()));
@@ -240,10 +292,10 @@ TEST_F(l2_crypto_test, case_supported_data_dtypes)
 
 TEST_F(l2_crypto_test, case_shape_dim_num_mismatch)
 {
-    auto ut = OP_API_UT(aclnnCryptoGetWorkspaceSize,
+    auto ut = OP_API_UT(aclnnCrypto,
                         INPUT(GetKeyTensorDesc(), GetInputTensorDesc(ACL_UINT8, {2, 16}),
                               GetOutputTensorDesc(ACL_UINT8, {32}), GetIvTensorDesc(),
-                              GetOpConfig(), GetTagTensorDesc(), GetAadTensorDesc()),
+                              GetOpConfig(), GetTagTensorDesc(), nullptr),
                         OUTPUT(GetYTensorDesc()));
 
     uint64_t workspace_size = 0;
