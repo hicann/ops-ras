@@ -22,7 +22,7 @@
 
 ## 函数原型
 
-每个算子分为[两段式接口](../../../docs/zh/context/两段式接口.md)，必须先调用 “aclnnObfuscationSetupGetWorkspaceSize”接口获取计算所需workspace大小以及包含了算子计算流程的执行器，再调用“aclnnObfuscationSetup”接口执行计算。
+每个算子分为[两段式接口](../../../docs/zh/context/two_phase_api.md)，必须先调用 “aclnnObfuscationSetupGetWorkspaceSize”接口获取计算所需workspace大小以及包含了算子计算流程的执行器，再调用“aclnnObfuscationSetup”接口执行计算。
 
 ```c++
 aclnnStatus aclnnObfuscationSetupGetWorkspaceSize(
@@ -196,10 +196,10 @@ aclnnStatus aclnnObfuscationSetup(
 
 - **返回值**
 
-  aclnnStatus：返回状态码，具体参见[aclnn返回码](../../../docs/zh/context/aclnn返回码.md)。
+  aclnnStatus：返回状态码，具体参见[aclnn返回码](../../../docs/zh/context/aclnn_return_code.md)。
 
   第一段接口完成入参校验，出现以下场景时报错：
-  
+
   <table style="undefined;table-layout: fixed;width: 1202px"><colgroup>
   <col style="width: 262px">
   <col style="width: 121px">
@@ -266,21 +266,21 @@ aclnnStatus aclnnObfuscationSetup(
 
 - **返回值**
 
-    返回aclnnStatus状态码，具体参见[aclnn返回码](../../../docs/zh/context/aclnn返回码.md)。
+    返回aclnnStatus状态码，具体参见[aclnn返回码](../../../docs/zh/context/aclnn_return_code.md)。
 
 ## 约束说明
 
 - 确定性计算：
   - aclnnObfuscationSetup默认确定性实现。
 
-- 该接口与[aclnnObfuscationCalculate](../context/aclnnObfuscationCalculate.md)配套使用，完成PMCC模型混淆功能，使用方式如下：
+- 该接口与aclnnObfuscationCalculate配套使用，完成PMCC模型混淆功能，使用方式如下：
   - 首先调用aclnnObfuscationSetup进行资源初始化，可重复调用，以最后一次初始化为准
   - 再多次调用aclnnObfuscationCalculate进行张量混淆处理
   - 最后调用aclnnObfuscationSetup进行资源释放，只能调用一次；也可不显式进行资源释放，而是通过终止程序进程的方式达到资源释放的目的
 
 ## 调用示例
 
-示例代码如下，仅供参考，具体编译和执行过程请参考[编译与运行样例](../../../docs/zh/context/编译与运行样例.md)。
+示例代码如下，仅供参考，具体编译和执行过程请参考[编译与运行样例](../../../docs/zh/context/compile_and_run_sample.md)。
 
 ```cpp
 #include <iostream>
@@ -366,7 +366,7 @@ int main() {
   aclTensor* fd = nullptr;
   std::vector<float> fdHostData = {-1};
 
-  //创建fd aclTensor 
+  //创建fd aclTensor
   ret = CreateAclTensor(fdHostData, fdShape, &fdDeviceAddr, aclDataType::ACL_INT32, &fd);
   CHECK_RET(ret == ACL_SUCCESS, return ret);
 
@@ -503,7 +503,7 @@ int main() {
   }
   if (workspaceSize2 > 0) {
       aclrtFree(workspaceAddr2);
-  }  
+  }
   if (workspaceSize3 > 0) {
       aclrtFree(workspaceAddr3);
   }

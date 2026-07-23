@@ -6,5 +6,5 @@
 - [aclnnObfuscationCalculateV2](../../reliability/obfuscation_calculate/docs/aclnnObfuscationCalculateV2.md)
 - [aclnnObfuscationSetup](../../reliability/obfuscation_setup/docs/aclnnObfuscationSetup.md)
 - [aclnnObfuscationSetupV2](../../reliability/obfuscation_setup/docs/aclnnObfuscationSetupV2.md)
-- [编译与运行样例](context/编译与运行样例.md)
-- [aclnn返回码](context/aclnn返回码.md)
+- [编译与运行样例](context/compile_and_run_sample.md)
+- [aclnn返回码](context/aclnn_return_code.md)

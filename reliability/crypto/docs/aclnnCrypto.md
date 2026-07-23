@@ -85,7 +85,7 @@ aclnnStatus aclnnCryptoAicpu(
         <td>inputText (aclTensor*) </td>
         <td>输入</td>
         <td>算子加解密输入的明文或密文。</td>
-        <td> 
+        <td>
             支持空Tensor，读密钥时可为空。
             形状和类型需要与outputText一致。</td>
         <td>FLOAT, FLOAT16, INT32, INT64, INT16, INT8, UINT8, DOUBLE, BFLOAT16</td>
@@ -178,7 +178,7 @@ aclnnStatus aclnnCryptoAicpu(
 
 - **返回值**
 
-  aclnnStatus:返回状态码，具体参见 [aclnn返回码](../../../docs/zh/context/aclnn.md)
+  aclnnStatus:返回状态码，具体参见 [aclnn返回码](../../../docs/zh/context/aclnn_return_code.md)
 
   第一段接口完成入参校验，出现以下场景时报错:
 
@@ -248,7 +248,7 @@ aclnnStatus aclnnCryptoAicpu(
 
 - **返回值**
 
-    返回aclnnStatus状态码，具体见[aclnn返回码](../../../docs/zh/context/aclnn返回码.md)
+    返回aclnnStatus状态码，具体见[aclnn返回码](../../../docs/zh/context/aclnn_return_code.md)
 
 ## 约束说明
 
@@ -262,11 +262,11 @@ aclnnStatus aclnnCryptoAicpu(
   5. opConfig.algType = 1 (AES-CTR-128算法) 时，tag 可以为空(不为空也不会使用该参数)
   6. opConfig.algType = 2 (AES-GCM-128算法) 时，tag 不能为空
   7. opConfig 的参数必须符合定义，version 取值 1,2，mode 取值 0,1,2, algType 取值 1,2, keyType 取值 1，keyId 取值 [0, UINT32_MAX], deviceId 取值 [0,63]
-  8. 读秘钥时必须传入正确的 keyId (一个 keyId 对应一个spdm 已派生的加解密秘钥)，否则会报错 
+  8. 读秘钥时必须传入正确的 keyId (一个 keyId 对应一个spdm 已派生的加解密秘钥)，否则会报错
 
 ## 调用示例
 
-示例代码如下，仅供参考，具体编译和执行过程请参考[编译与运行样例](../../../docs/zh/context/编译与运行样例.md)。
+示例代码如下，仅供参考，具体编译和执行过程请参考[编译与运行样例](../../../docs/zh/context/compile_and_run_sample.md)。
 
 ```cpp
 #include <iostream>
@@ -393,7 +393,7 @@ int aes_128_ctr_decrypt(const unsigned char *key, unsigned char *iv,
     plaintext_len += len;
     // 5. 释放上下文
     EVP_CIPHER_CTX_free(ctx);
-    
+
     if (ciphertext_len != plaintext_len) {
         return -1;
     }
@@ -413,13 +413,13 @@ int aes_128_gcm_encrypt(unsigned char *key, unsigned char *iv,
         return -1;
     }
     int len = 0, ciphertext_len = 0;
-    
+
     if (1 != EVP_EncryptUpdate(ctx, ciphertext, &len, plaintext, plaintext_len)) {
         EVP_CIPHER_CTX_free(ctx);
         return -1;
     }
     ciphertext_len += len;
-   
+
     if (1 != EVP_EncryptFinal_ex(ctx, nullptr, &len)) {
         EVP_CIPHER_CTX_free(ctx);
         return -1;
@@ -686,7 +686,7 @@ int main(int argc, char *argv[]) {
     for (int i = 0; i < 1; i++) {
         LOG_PRINT("y[%d] = %d\n", i, resultY[i]);
     }
-    if (mode == 0) {    
+    if (mode == 0) {
         std::vector<uint8_t> resKey(16, 0);
         ret = aclrtMemcpy(
             resKey.data(), resKey.size(),

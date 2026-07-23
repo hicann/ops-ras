@@ -14,12 +14,12 @@
 ## 功能说明
 
 - 接口功能：将张量x和配置参数（如param、cmd）发送至PMCC混淆引擎。引擎的CA模块调用TA模块，进行张量混淆处理，最终返回shape与x一致的混淆后的张量y。
- 
+
 - 背景：PMCC（Privacy&Model Confidential Computing）模型混淆特性利用CPU核中的TrustZone可信执行环境隔离存储混淆因子、派生混淆掩码、执行动态掩码添加。PMCC基于NPU TrustZone构建了模型混淆引擎CA（普通OS中的Client Application）与模型混淆引擎TA（TEE OS中的Trusted Application）。为了使模型在推理执行过程中能够访问模型混淆引擎TA，通过AICPU算子机制及NPU卡内localhost socket进行中转。
 
 ## 函数原型
 
-每个算子分为[两段式接口](../../../docs/zh/context/两段式接口.md)，必须先调用 “aclnnObfuscationCalculateGetWorkspaceSize”接口获取计算所需workspace大小以及包含了算子计算流程的执行器，再调用“aclnnObfuscationCalculate”接口执行计算。
+每个算子分为[两段式接口](../../../docs/zh/context/two_phase_api.md)，必须先调用 “aclnnObfuscationCalculateGetWorkspaceSize”接口获取计算所需workspace大小以及包含了算子计算流程的执行器，再调用“aclnnObfuscationCalculate”接口执行计算。
 
 ```c++
 aclnnStatus aclnnObfuscationCalculateGetWorkspaceSize(
@@ -143,10 +143,10 @@ aclnnStatus aclnnObfuscationCalculate(
 
 - **返回值**
 
-  aclnnStatus：返回状态码，具体参见[aclnn返回码](../../../docs/zh/context/aclnn返回码.md)。
+  aclnnStatus：返回状态码，具体参见[aclnn返回码](../../../docs/zh/context/aclnn_return_code.md)。
 
   第一段接口完成入参校验，出现以下场景时报错：
-  
+
   <table style="undefined;table-layout: fixed;width: 1202px"><colgroup>
   <col style="width: 262px">
   <col style="width: 121px">
@@ -180,7 +180,7 @@ aclnnStatus aclnnObfuscationCalculate(
   </table>
 
 ## aclnnObfuscationCalculate
-  
+
 - **参数说明**
   <table style="undefined;table-layout: fixed; width: 1154px"><colgroup>
   <col style="width: 153px">
@@ -219,21 +219,21 @@ aclnnStatus aclnnObfuscationCalculate(
 
 - **返回值**
 
-    返回aclnnStatus状态码，具体参见[aclnn返回码](../../../docs/zh/context/aclnn返回码.md)。
+    返回aclnnStatus状态码，具体参见[aclnn返回码](../../../docs/zh/context/aclnn_return_code.md)。
 
 ## 约束说明
 
 - 确定性计算：
   - aclnnObfuscationCalculate默认确定性实现。
 
-- 该接口与[aclnnObfuscationSetup](../context/aclnnObfuscationSetup.md)配套使用，完成PMCC模型混淆功能，使用方式如下：
+- 该接口与aclnnObfuscationSetup配套使用，完成PMCC模型混淆功能，使用方式如下：
   - 首先调用aclnnObfuscationSetup进行资源初始化，可重复调用，以最后一次初始化为准
   - 再多次调用aclnnObfuscationCalculate进行张量混淆处理
   - 最后调用aclnnObfuscationSetup进行资源释放，只能调用一次；也可不显式进行资源释放，而是通过终止程序进程的方式达到资源释放的目的
 
 ## 调用示例
 
-示例代码如下，仅供参考，具体编译和执行过程请参考[编译与运行样例](../../../docs/zh/context/编译与运行样例.md)。
+示例代码如下，仅供参考，具体编译和执行过程请参考[编译与运行样例](../../../docs/zh/context/compile_and_run_sample.md)。
 
 ```cpp
 #include <iostream>
@@ -319,7 +319,7 @@ int main() {
   aclTensor* fd = nullptr;
   std::vector<float> fdHostData = {-1};
 
-  //创建fd aclTensor 
+  //创建fd aclTensor
   ret = CreateAclTensor(fdHostData, fdShape, &fdDeviceAddr, aclDataType::ACL_INT32, &fd);
   CHECK_RET(ret == ACL_SUCCESS, return ret);
 
@@ -456,7 +456,7 @@ int main() {
   }
   if (workspaceSize2 > 0) {
       aclrtFree(workspaceAddr2);
-  }  
+  }
   if (workspaceSize3 > 0) {
       aclrtFree(workspaceAddr3);
   }
