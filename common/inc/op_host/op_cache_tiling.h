@@ -21,31 +21,6 @@
 #include "exe_graph/runtime/tiling_parse_context.h"
 #include "op_cache_def_tiling.h"
 
-// 兼容opp整包、静态库和子包场景，向算子业务侧代码屏蔽差异：
-// 子包场景：通过适配层dlopen方式找到libophost_comm_legacy.so里的C接口实现，向本仓算子侧提供Ops::Ras namepsace的接口调用
-// 整包和静态库场景：只做optiling namespace下的接口声明，向本仓算子侧提供Ops::Ras namepsace的接口调用
-#ifdef NN_ENABLE_DLOPEN_LEGACY
-namespace Ops {
-namespace Ras {
-const std::string WQBMM_MSD = "wqbmm_msd";
-const std::string WQBMM_CUSTOM = "wqbmm_custom";
-
-bool TilingPrepareForOpCache(gert::TilingContext* context);
-bool TilingPrepareForOpCache(gert::TilingParseContext* context);
-
-bool GenTiling(
-    const std::string& op_type, const optiling::BatchmatmulCompileParas& compile_params,
-    optiling::BatchmatmulRunParas& run_params, optiling::CacheTilingData& tiling, gert::TilingContext* context);
-
-bool CheckSupportConditionQbmm(
-    optiling::QbmmType type, optiling::QuantBatchMatmulRunParas& inputParams, uint64_t aicNum, bool supportL0c2Out);
-
-bool GenWqbmmTiling(
-    const std::string& op_type, const optiling::WeightQuantBatchMatmulCacheTilingParas& compile_params,
-    optiling::WeightQuantBatchMatmulCacheTilingData& cacheTiling);
-} // namespace Ras
-} // namespace Ops
-#else
 namespace optiling {
 const std::string WQBMM_MSD = "wqbmm_msd";
 const std::string WQBMM_CUSTOM = "wqbmm_custom";
@@ -74,5 +49,4 @@ using optiling::CheckSupportConditionQbmm;
 using optiling::GenWqbmmTiling;
 } // namespace Ras
 } // namespace Ops
-#endif
 #endif

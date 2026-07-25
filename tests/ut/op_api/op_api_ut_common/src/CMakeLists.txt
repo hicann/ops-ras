@@ -9,7 +9,7 @@
 
 cmake_minimum_required(VERSION 3.16)
 
-file(GLOB_RECURSE op_api_ut_common_src CONFIGURE_DEPENDS "*.cpp" ${OPS_RAS_DIR}/tests/ut/common/legacy_common_manager_stub.cpp)
+file(GLOB_RECURSE op_api_ut_common_src CONFIGURE_DEPENDS "*.cpp")
 add_library(op_api_ut_common SHARED ${op_api_ut_common_src})
 add_dependencies(op_api_ut_common json)
 

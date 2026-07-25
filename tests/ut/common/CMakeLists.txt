@@ -21,7 +21,6 @@ if(UT_TEST_ALL OR OP_HOST_UT)
         ${CMAKE_CURRENT_SOURCE_DIR}/tiling_context_faker.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/tiling_parse_context_faker.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/test_cube_util.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/legacy_common_manager_stub.cpp
     )
     target_sources(${OP_TILING_MODULE_NAME}_common_obj PRIVATE
         ${OP_TILING_UT_COMMON_SRC}

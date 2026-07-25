@@ -63,20 +63,14 @@ function(add_tiling_modules)
       add_dependencies(${OPHOST_NAME}_tiling_obj json)
     endif()
     target_include_directories(${OPHOST_NAME}_tiling_obj PRIVATE ${OP_TILING_INCLUDE})
-    set(ENABLE_DLOPEN_LEGACY OFF)
     if (BUILD_WITH_INSTALLED_DEPENDENCY_CANN_PKG AND NOT ENABLE_STATIC)
       file(GLOB COMMON_SRC ${OPS_RAS_DIR}/common/src/*.cpp ${OPS_RAS_DIR}/common/src/op_host/*.cpp)
-      if(UT_TEST_ALL OR OP_HOST_UT)  # ut场景下LegacyCommonMgr要打桩，通过环境变量查找legacy so
-        file(GLOB COMMON_SRC ${OPS_RAS_DIR}/common/src/op_host/*.cpp)
-      endif()
       target_sources(${OPHOST_NAME}_tiling_obj PRIVATE ${COMMON_SRC})
-      set(ENABLE_DLOPEN_LEGACY ON)
     endif()
 
     target_compile_definitions(
       ${OPHOST_NAME}_tiling_obj PRIVATE OPS_UTILS_LOG_SUB_MOD_NAME="OP_TILING" OP_SUBMOD_NAME="OPS_RAS"
                                         $<$<BOOL:${ENABLE_TEST}>:ASCEND_OPTILING_UT> LOG_CPP
-                                        $<$<BOOL:${ENABLE_DLOPEN_LEGACY}>:NN_ENABLE_DLOPEN_LEGACY>
       )
     target_compile_options(
       ${OPHOST_NAME}_tiling_obj PRIVATE $<$<NOT:$<BOOL:${ENABLE_TEST}>>:-DDISABLE_COMPILE_V1> -Dgoogle=ascend_private
@@ -103,14 +97,6 @@ function(add_opapi_modules)
       add_library(${OPHOST_NAME}_opapi_obj OBJECT)
     endif()
 
-    set(ENABLE_DLOPEN_LEGACY OFF)
-    if (BUILD_WITH_INSTALLED_DEPENDENCY_CANN_PKG AND NOT ENABLE_STATIC)
-      if(NOT UT_TEST_ALL AND NOT OP_API_UT)  # ut场景下LegacyCommonMgr要打桩，通过环境变量查找legacy so
-        target_sources(${OPHOST_NAME}_opapi_obj PRIVATE ${OPS_RAS_DIR}/common/src/legacy_common_manager.cpp)
-      endif()
-      set(ENABLE_DLOPEN_LEGACY ON)
-    endif()
-
     if(ENABLE_TEST)
       set(opapi_ut_depends_inc ${UT_PATH}/op_api/stub)
     endif()
@@ -119,10 +105,7 @@ function(add_opapi_modules)
             ${OPAPI_INCLUDE})
     target_include_directories(${OPHOST_NAME}_opapi_obj PRIVATE ${OPAPI_INCLUDE})
     target_compile_options(${OPHOST_NAME}_opapi_obj PRIVATE -Dgoogle=ascend_private -DACLNN_LOG_FMT_CHECK)
-    target_compile_definitions(${OPHOST_NAME}_opapi_obj PRIVATE
-                               LOG_CPP
-                               $<$<BOOL:${ENABLE_DLOPEN_LEGACY}>:NN_ENABLE_DLOPEN_LEGACY>
-    )
+    target_compile_definitions(${OPHOST_NAME}_opapi_obj PRIVATE LOG_CPP)
     target_link_libraries(
       ${OPHOST_NAME}_opapi_obj
       PUBLIC $<BUILD_INTERFACE:$<IF:$<BOOL:${ENABLE_TEST}>,intf_llt_pub_asan_cxx17,intf_pub_cxx17>>

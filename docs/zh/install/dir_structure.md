@@ -64,12 +64,10 @@
 │   │   ├── op_kernel                                   # op_kernel相关头文件
 │   │   ├── tiling_base                                 # Tiling基础头文件
 │   │   ├── error_util.h                                # 错误处理工具头文件
-│   │   ├── legacy_common_manager.h                     # 旧版公共管理器头文件
 │   │   └── op_util.h                                   # 算子工具头文件
 │   ├── src                                             # 公共代码目录
 │   │   ├── framework                                   # 框架适配实现
-│   │   ├── op_host                                     # op_host公共实现
-│   │   └── legacy_common_manager.cpp                   # 旧版公共管理器实现
+│   │   └── op_host                                     # op_host公共实现
 │   └── stub                                            # Stub实现目录
 │       ├── CMakeLists.txt
 │       ├── inc/framework                               # 框架Stub头文件
