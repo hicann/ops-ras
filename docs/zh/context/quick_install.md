@@ -30,7 +30,7 @@
 
 ## 软件包安装
 
-1. **安装社区版CANN toolkit包**
+1. **安装最新版CANN toolkit包**
 
     根据实际产品型号和环境架构，获取对应的`Ascend-cann-toolkit_${cann_version}_linux-${arch}.run`包。
     - Atlas A2/A3系列产品：单击[下载链接](https://mirrors.huaweicloud.com/artifactory/cann-run/software)获取软件包。
@@ -46,7 +46,7 @@
     - \$\{arch\}：表示CPU架构，如aarch64、x86_64。
     - \$\{install\_path\}：表示指定安装路径，默认安装在`/usr/local/Ascend`目录。
 
-2. **安装社区版CANN ops包（运行态依赖）**
+2. **安装最新版CANN ops包（运行态依赖）**
 
     运行算子时必须安装本包，若仅编译算子，可跳过本操作。
 

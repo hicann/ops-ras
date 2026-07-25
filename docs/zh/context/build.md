@@ -50,7 +50,7 @@ bash build.sh --help
 | --ophost        | 可选     | 编译libophost_ras.so库，不可与--pkg、--ops同时使用。                                  |
 | --opapi         | 可选     | 编译libopapi_ras.so库，不可与--pkg、--ops同时使用。                                   |
 | --opgraph       | 可选     | 编译libopgraph_ras.so库，不可与--pkg、--ops同时使用。                                 |
-| --run_example    | 可选     | 编译指定算子及模式的样例并执行编译后的可执行文件，使用--run_example --help 查看使用方法。     |
+| --run_example    | 可选     | 编译指定算子及模式的样例并执行编译后的可执行文件，使用--run_example --help查看使用方法。     |
 | --genop          | 可选     | 创建AI Core自定义算子初始目录。                                                           |
 | --genop_aicpu    | 可选     | 创建AI CPU自定义算子初始目录。                                                            |
 | --experimental   | 可选     | 编译experimental目录下的用户算子。                                                           |

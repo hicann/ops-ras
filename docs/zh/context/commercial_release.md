@@ -1,8 +1,8 @@
-# 商发版本说明
+# 最新版本说明
 
 > **说明**：本项目可调用的算子参见[算子列表](../op_list.md)，算子对应aclnn接口参见[aclnn列表](../op_api_list.md)。
 
-若您安装了**商发版**（**8.3.RC1**）CANN开发套件包`Ascend-cann-toolkit_${cann_version}_linux-${arch}.run`，需要对部分算子源码进行修改，可通过修改对应的开源项目源码，具体操作如下：
+若您安装了**最新版**（**8.3.RC1**）CANN开发套件包`Ascend-cann-toolkit_${cann_version}_linux-${arch}.run`，需要对部分算子源码进行修改，可通过修改对应的开源项目源码，具体操作如下：
 
 - \$\{cann\_version\}：表示CANN包版本号。
 - \$\{arch\}：表示CPU架构，如aarch64、x86_64。
@@ -70,7 +70,7 @@ source /usr/local/Ascend/cann/set_env.sh
 
 ## 编译执行
 
-基于商发版CANN开发套件包修改算子源码时，需使用**自定义算子包**方式编译和安装。
+基于最新版CANN开发套件包修改算子源码时，需使用**自定义算子包**方式编译和安装。
 
 1. **编译自定义算子包。**
 

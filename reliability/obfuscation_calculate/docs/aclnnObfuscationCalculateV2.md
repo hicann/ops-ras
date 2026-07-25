@@ -367,7 +367,7 @@ int main() {
       LOG_PRINT("fdData[%ld] is : %d\n", i, fdData[i]);
   }
 
-  // 6. 构造输入与输出, 需要根据API的接口定义构造
+  // 6. 构造输入与输出,需要根据API的接口定义构造
   std::vector<int64_t> xShape = {2, 4};
   std::vector<int64_t> yShape = {2, 4};
   void *xDeviceAddr = nullptr;
@@ -389,7 +389,7 @@ int main() {
   ret = CreateAclTensor(yHostData, yShape, &yDeviceAddr, aclDataType::ACL_FLOAT, &y);
   CHECK_RET(ret == ACL_SUCCESS, return ret);
 
-  // 7. 调用CANN算子库API, 需要修改为具体的API
+  // 7. 调用CANN算子库API,需要修改为具体的API
   uint64_t workspaceSize2 = 0;
   aclOpExecutor *executor2;
 
@@ -410,7 +410,7 @@ int main() {
   ret = aclrtSynchronizeStream(stream);
   CHECK_RET(ret == ACL_SUCCESS, LOG_PRINT("aclrtSynchronizeStream failed. ERROR : %d\n", ret); return ret);
 
-  // 9. 获取输出的值，y表示经过混淆处理的数据，将device侧的内存上的结果拷贝至host侧, 需要根据具体API的接口定义修改
+  // 9. 获取输出的值，y表示经过混淆处理的数据，将device侧的内存上的结果拷贝至host侧,需要根据具体API的接口定义修改
   // y
   auto ySize = GetShapeSize(yShape);
   std::vector<float> yData(ySize, 0);
@@ -453,12 +453,12 @@ int main() {
   ret = aclrtSynchronizeStream(stream);
   CHECK_RET(ret == ACL_SUCCESS, LOG_PRINT("aclrtSynchronizeStream failed. ERROR: %d\n", ret); return ret);
 
-  // 13. 释放ObfuscationCalculateV2接口涉及的aclTensor和aclScalar, 需要根据具体API的接口定义修改
+  // 13. 释放ObfuscationCalculateV2接口涉及的aclTensor和aclScalar,需要根据具体API的接口定义修改
   aclDestroyTensor(x);
   aclDestroyTensor(y);
   aclDestroyTensor(fd);
 
-  // 14. 释放ObfuscationCalculateV2接口涉及的device资源, 需要根据具体API的接口定义修改
+  // 14. 释放ObfuscationCalculateV2接口涉及的device资源,需要根据具体API的接口定义修改
   aclrtFree(xDeviceAddr);
   aclrtFree(yDeviceAddr);
   aclrtFree(fdDeviceAddr);
