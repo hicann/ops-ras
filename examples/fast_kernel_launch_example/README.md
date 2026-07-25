@@ -70,7 +70,7 @@ print("Verification successful!")
 3. 在soc目录下新建一个`add.cpp`(建议使用算子名为文件名)。这个文件包含了开发一个AICORE算子所需要的全部模块。
     - 算子Schema注册
     - 算子Meta Function实现 & 注册
-    - 算子Kernel实现 (AscendC)
+    - 算子Kernel实现(AscendC)
     - 算子NPU调用实现 & 注册
 
     ```cpp
@@ -130,7 +130,7 @@ print("Verification successful!")
 
     /**
      * 实现算子调用接口
-     * 在这个接口中, 需要完成NPU Kernel的调用
+     * 在这个接口中,需要完成NPU Kernel的调用
      * 1. 计算出输出的Tensor的个数/Shape/Dtype(可以调用Meta函数实现，也可以直接实现)
      * 2. 计算Tiling：根据Shape得到如何分块计算
      * 3. 调用NPU Kernel

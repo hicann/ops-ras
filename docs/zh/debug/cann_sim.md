@@ -4,7 +4,7 @@ CANN Simulator是一款面向算子开发场景的SoC级芯片仿真工具，用
 
 # 主要功能
 
-该工具与板上运行保持二进制兼容（同一 kernel可同时在仿真和AI处理器执行），主要用途如下：
+该工具与板上运行保持二进制兼容（同一kernel可同时在仿真和AI处理器执行），主要用途如下：
 
 * 精度仿真：输出bit级精度结果，协助用户完成算子的精度验证。
 * 性能仿真：输出指令流水图，协助用户定位算子性能瓶颈问题。
@@ -26,7 +26,7 @@ CANN Simulator工具目前处于尝鲜版本阶段，仅支持Ascend950PR芯片�
 
 ## 环境准备
 
-CANN Simulator集成在CANN toolkit包里，参考[环境部署](../install/quick_install.md)中的软件包安装 -> 安装社区版CANN toolkit包章节
+CANN Simulator集成在CANN toolkit包里，参考[环境部署](../install/quick_install.md)中的软件包安装 -> 安装最新版CANN toolkit包章节
 
 # 快速开始
 
@@ -51,7 +51,7 @@ bash build.sh --pkg --soc=Ascend950 --vendor_name=custom --ops=add_example
 cannsim record ./test_aclnn_add_example -s Ascend950 --gen-report
 ```
 
-仿真工具执行日志文件在examples/add_example/examples/build/bin/cannsim_*目录，执行日志文件为 cannsim.log。
+仿真工具执行日志文件在examples/add_example/examples/build/bin/cannsim_*目录，执行日志文件为cannsim.log。
 
 从仿真工具日志文件可以看到示例中的打印信息：
 
@@ -90,9 +90,9 @@ cannsim record [options] user_app --user_options
 | --- | --- | --- |
 |-s \<value\> 或 --soc_version \<value\> [options]参数 | 必选 | 指定模拟目标芯片版本（如：Ascend950）。|
 |-o \<value\> 或 --output \<value\> [options]参数 | 可选| 生成文件所在路径，可配置为绝对路径或者相对路径，并且执行工具的用户需要具有读写权限。如果未指定路径，则默认在当前目录下保存数据。|
-|-g 或 --gen-report[options]参数 | 可选 | 启用仿真完成后是否进行自动解析，并生成分析报告。默认不自动解析。|
-|-n 或 --core-id | 可选 | 仿真期间启用日志的AI Core，格式同 report -n：'all'、'0-2,12-14'、'5'。默认全开；配合 -g 且未指定时回退到 core 0。|
-|-u 或 --user-option | 可选 | 用户自定义算子参数，以命令行选项形式传递给算子程序。|
+|-g或 --gen-report[options]参数 | 可选 | 启用仿真完成后是否进行自动解析，并生成分析报告。默认不自动解析。|
+|-n或 --core-id | 可选 | 仿真期间启用日志的AI Core，格式同report -n：'all'、'0-2,12-14'、'5'。默认全开；配合 -g且未指定时回退到core 0。|
+|-u或 --user-option | 可选 | 用户自定义算子参数，以命令行选项形式传递给算子程序。|
 |user_app|必选|待运行的算子程序或命令（如 ./app, python train.py, bash run.sh）。|
 
 ## 使用示例
@@ -101,7 +101,7 @@ cannsim record [options] user_app --user_options
 2. 执行仿真命令，可参考以下使用示例
 
     ```bash
-    方式一： 启用仿真，并将输出保存至 ./output 目录，/path/to/app 为算子程序
+    方式一：启用仿真，并将输出保存至 ./output目录，/path/to/app为算子程序
     $ cannsim record /path/to/app -o ./output -s Ascend950
 
     方式二：启用仿真并生成报告，用于后续性能分析
@@ -166,8 +166,8 @@ cannsim report [options]
 |参数 | 可选/必选 | 说明|
 | --- | --- | --- |
 |-e \<value\> 或 --export \<value\> [options]参数 | 必选 | 原始结果文件目录，需指定为仿真执行后生成的结果目录，指定到cannsim_{timestamp}_${user_app}层，可配置为绝对路径或者相对路径，并且工具执行用户具有可读写权限。|
-|-o  或 --output  [options]参数 | 可选 | 解析结果输出目录，可配置为绝对路径或者相对路径，且执行用户需具有读写权限。若未指定路径，默认在当前目录下保存数据。如果生成的结果文件与现有文件同名，则会覆盖原有文件。|
-|-n 或 --core-id  [options]参数 | 可选 | 指定生成指令流水的核ID，不指定默认生成0核的指令流水。配置的格式如下：生成所有核的流水，配置为‘all’。指定核ID的范围，如：‘0-1’。指定单核ID，如‘5’。|
+|-o或 --output  [options]参数 | 可选 | 解析结果输出目录，可配置为绝对路径或者相对路径，且执行用户需具有读写权限。若未指定路径，默认在当前目录下保存数据。如果生成的结果文件与现有文件同名，则会覆盖原有文件。|
+|-n或 --core-id  [options]参数 | 可选 | 指定生成指令流水的核ID，不指定默认生成0核的指令流水。配置的格式如下：生成所有核的流水，配置为‘all’。指定核ID的范围，如：‘0-1’。指定单核ID，如‘5’。|
 
 ## 使用示例
 
@@ -204,7 +204,7 @@ cannsim report [options]
     |MTE1|数据搬运流水，数据搬运方向为：L1 ->{L0A/L0B, UBUF}。|
     |MTE2|数据搬运流水，数据搬运方向为：{DDR/GM, L2} ->{L1, L0A/B, UBUF}。|
     |MTE3|数据搬运流水，数据搬运方向为：UBUF -> {DDR/GM, L2, L1}、L1->{DDR/L2}。|
-    |FIXP|数据搬运流水，数据搬运方向为：FIXPIPE L0C -> OUT/L1。（仅 Atlas A2 训练系列产品 / Atlas A2 推理系列产品 支持展示）|
+    |FIXP|数据搬运流水，数据搬运方向为：FIXPIPE L0C -> OUT/L1。（仅Atlas A2 训练系列产品 / Atlas A2 推理系列产品支持展示）|
     |FLOWCTRL|控制流指令。|
     |ICACHELOAD|查看未命中的ICache。|
 
@@ -222,7 +222,7 @@ cannsim report [options]
 cannsim --help
 ```
 
-查询工具record 子命令的帮助信息：
+查询工具record子命令的帮助信息：
 
 ```bash
 cannsim record --help

@@ -6,7 +6,7 @@
 
 1. **[前提条件](../README.md)**：参考项目README完成环境准备和源码下载，此处不再赘述。快速入门场景**推荐CANNLab或Docker部署**，操作简单。
 
-   > **说明**：CANNLab或Docker环境默认提供最新商发版CANN包；如需体验master分支最新能力，可手动搭建环境。
+   > **说明**：CANNLab或Docker环境默认提供最新最新版CANN包；如需体验master分支最新能力，可手动搭建环境。
 
 2. **[编译运行](#一编译运行)**：编译自定义算子包并安装，实现快速调用算子。
 
@@ -24,7 +24,7 @@
     
 - CANNLab云开发环境：
    
-   默认提供最新商发版CANN包配套的项目源码，进入源码目录，\$\{gitCode\_id\}替换为开发者个人gitCode账号。
+   默认提供最新最新版CANN包配套的项目源码，进入源码目录，\$\{gitCode\_id\}替换为开发者个人gitCode账号。
    
    ```bash
    cd /mnt/workspace/gitCode/${gitCode_id}/ops-ras
@@ -47,7 +47,7 @@
 
 本指南默认采用**单算子编译**：仅构建目标算子，编译时间短，适合快速入门与日常开发。通用命令格式：`bash build.sh --pkg --soc=<芯片版本> --ops=<算子名>`。
 
-> 若需编译整个算子库（省略 `--ops`），请参阅 [build参数说明](zh/install/build.md)。
+> 若需编译整个算子库（省略`--ops`），请参阅 [build参数说明](zh/install/build.md)。
 
 以AddExample算子为例，编译命令如下：
 
@@ -144,7 +144,7 @@ __aicore__ inline void AddExample<T>::Compute(int32_t progress)
     bash build.sh --pkg --soc=${soc_version} --ops=add_example -j16
     ```
 
-    > **说明**：`${soc_version}` 请根据实际芯片型号填写，取值方式同[编译AddExample算子](#2-编译addexample算子)中的说明。
+    > **说明**：`${soc_version}`请根据实际芯片型号填写，取值方式同[编译AddExample算子](#2-编译addexample算子)中的说明。
 
 2. **重新安装**：
 
@@ -242,7 +242,7 @@ int main() {
     // ... 初始化代码 ...
 
     // === ① 修改selfX的输入 ===
-    // 修改前：shape = {32, 4, 4, 4}, 数值全为1
+    // 修改前：shape = {32, 4, 4, 4},数值全为1
     // 修改后：将输入shape改为 {8, 8, 8, 8}，并填充不同的测试数据
     std::vector<int64_t> selfXShape = {8, 8, 8, 8};
     std::vector<float> selfXHostData(4096); // 4096 = 8 * 8 * 8 *8
