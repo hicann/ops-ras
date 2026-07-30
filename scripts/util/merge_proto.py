@@ -40,7 +40,7 @@ def match_op_proto(file_path):
 def merge_op_proto(protos_path, output_file):
     op_defs = []
     for proto_path in protos_path:
-        if not proto_path.endswith("_proto.h"):
+        if not proto_path.endswith(("_proto.h", "_proto_extend.h")):
             continue
         print(f"proto_path: {proto_path}")
         op_def = match_op_proto(proto_path)

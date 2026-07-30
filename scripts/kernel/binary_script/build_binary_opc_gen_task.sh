@@ -1,11 +1,11 @@
 #!/bin/bash
 # ----------------------------------------------------------------------------
 # Copyright (c) 2026 Huawei Technologies Co., Ltd.
-# This program is free software, you can redistribute it and/or modify it under the terms and conditions of 
+# This program is free software, you can redistribute it and/or modify it under the terms and conditions of
 # CANN Open Software License Agreement Version 2.0 (the "License").
 # Please refer to the License for details. You may not use this file except in compliance with the License.
-# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, 
-# INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE. 
+# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
+# INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
 # See LICENSE in the root of the software repository for the full text of the License.
 # ----------------------------------------------------------------------------
 
@@ -53,9 +53,26 @@ function get_binary_config_file() {
   return 0
 }
 
+function get_kernel_option_config_file() {
+  if [ $# -ne 2 ]; then
+    echo "error invalid param number:$#, must be 2" >&2
+    return 1
+  fi
+  local workdir="$1"
+  local soc_version_lower="$2"
+  local topdir=$(readlink -f ${workdir}/../../..)
+  local binary_config_dir=${topdir}/build/tbe/config
+
+  local primary_pattern="${binary_config_dir}/kernel-options-${soc_version_lower}.ini"
+  if [ -f "${primary_pattern}" ]; then
+    echo "${primary_pattern}"
+    return 0
+  fi
+}
+
 function get_simplified_key_config_file() {
   if [ $# -ne 4 ]; then
-    echo "eroor invalid param number:$#, must be 4" >&2
+    echo "error invalid param number:$#, must be 4" >&2
     return 1
   fi
   local workdir="$1"
@@ -90,97 +107,11 @@ function get_simplified_key_config_file() {
   return 0
 }
 
-call_write_scripts() {
-  local op_type="$1"
-  local soc_version_lower="$2"
-  local auto_sync="$3"
-  local compute_units="$4"
-  local compile_options="$5"
-
-  local rep_cfg='{
-    "batch": "",
-    "iterate": ""
-  }'
-
-  local cfg_dir='{
-    "impl_dir": "'"${topdir}/build/tbe/ascendc"'",
-    "out_dir": "'"${topdir}/build/tbe/dynamic"'",
-    "auto_gen_dir": "'"${topdir}/build/autogen"'"
-  }'
-
-  local op_compile_option="{\"$op_type\": {"
-  local inner_properties=()
-  # auto_sync 默认true
-  if [ "$auto_sync" != "true" ]; then
-    inner_properties+=("\"auto_sync\": $auto_sync")
-  fi
-  if [ -n "$compile_options" ]; then
-    inner_properties+=("\"compile_options\": $compile_options")
-  fi
-
-  if [ ${#inner_properties[@]} -gt 0 ]; then
-    local inner_props_str=$(IFS=,; echo "${inner_properties[*]}")
-    op_compile_option+="$inner_props_str"
-  fi
-  op_compile_option+="}}"
-  if [ ${#inner_properties[@]} -eq 0 ]; then
-    op_compile_option="{\"$op_type\": {}}"
-  fi
-  
-  local op_cfg_path="${topdir}/build/tbe/config"
-  local op_cfg_name="aic-${soc_version_lower}-ops-info.ini"
-  local op_cfg_file="${op_cfg_path}/${op_cfg_name}"
-
-  if [ ! -f "$op_cfg_file" ]; then
-    echo "Warning: Op config file $op_cfg_file not found"
-    return 1
-  fi
-
-  local util_dir="${workdir}/../../util/"
-
-  TMP_DIR=$(mktemp -d)
-  trap 'rm -rf "$TMP_DIR"' EXIT
-  echo "$rep_cfg" > "$TMP_DIR/rep_cfg.json"
-  echo "$cfg_dir" > "$TMP_DIR/cfg_dir.json"
-  echo "$op_compile_option" > "$TMP_DIR/op_compile_option.txt"
-
-  if [ -n "$op_compile_option" ]; then
-    has_op_opt="1"
-  else
-    has_op_opt=""
-  fi
-
-python3 -c "
-import sys,json,os
-sys.path.insert(0, '''$util_dir''')
-from ascendc_impl_build import write_scripts
-
-tmp_dir = '$TMP_DIR'
-op_opt = '$has_op_opt'
-
-def read_file(path):
-    with open(path, 'r') as f:
-        return f.read()
-
-cfgs_dict = json.loads(read_file(os.path.join(tmp_dir, 'rep_cfg.json')))
-dirs_dict = json.loads(read_file(os.path.join(tmp_dir, 'cfg_dir.json')))
-op_compile_list = json.loads(read_file(os.path.join(tmp_dir, 'op_compile_option.txt'))) if op_opt else None
-
-write_scripts(
-  '''$op_cfg_file''',
-  cfgs_dict,
-  dirs_dict,
-  '''$op_type''',
-  op_compile_list
-)
-"
-}
-
 main() {
-  echo "[INFO]excute file: $0"
-  if [ $# -lt 4 ]; then
-    echo "[ERROR]input error"
-    echo "[ERROR]bash $0 {op_type} {soc_version} {output_path} {task_path}"
+  echo "[INFO] excute file: $0"
+  if [ $# -lt 8 ]; then
+    echo "[ERROR] input error"
+    echo "[ERROR] bash $0 {op_type} {soc_version} {output_path} {task_path} {cmake_build_type} {enable_oom} {enable_dump_cce} {enable_mssanitizer} bisheng_flags={bisheng_flags} kernel_template_input={kernel_template_input}"
     exit 1
   fi
   local workdir=$(
@@ -194,9 +125,12 @@ main() {
   local soc_version_lower=${soc_version,,}
   local output_path=$3
   local task_path=$4
-  local enable_debug=$5
+  local cmake_build_type=$5
   local enable_oom=$6
-  local is_need_gen_opc_info=TRUE
+  local enable_dump_cce=$7
+  local enable_mssanitizer=$8
+  local bisheng_flags="${9#*=}"
+  local kernel_template_input="${10#*=}"
   local python_arg=${HI_PYTHON}
   if [ "${python_arg}" = "" ]; then
     python_arg="python3"
@@ -239,7 +173,7 @@ main() {
     op_name="${op_name%_apt}"
   fi
 
-  # 检查并处理以 "_apt" 结尾的 op_file_name
+  # 检查并处理以 "_910b" 结尾的 op_file_name
   if [[ "$op_name" == *_910b ]]; then
     op_name="${op_name%_910b}"
   fi
@@ -275,36 +209,62 @@ main() {
   fi
   if [ -f "${binary_compile_json_file}" ]; then
     echo "[INFO] op:${op_type} will clean ${binary_compile_json_file}"
-    rm -f {binary_compile_json_file}
+    rm -f ${binary_compile_json_file}
   fi
 
   # step 4: get simplified_key_mode from binary_simplified_key_mode.ini
-  local simplified_key_file=$(get_simplified_key_config_file ${workdir} ${op_type} ${op_name} ${soc_version_lower})
-  local key_mode_default=0
-  if [ -z ${simplified_key_file} ] || [ ! -f ${simplified_key_file} ]; then
-    echo "[INFO] No simplified_key_file found. Using default key_mode_default=0"
-  else
-    if file "$simplified_key_file" | grep -q "CRLF"; then
-      if ! command -vv dos2unix &> /dev/null; then
-        echo "[ERROR] dos2unix is not installed. Cannot convert simplified_key_file to unix line endings !"
-        exit 5
-      fi
-      dos2unix $simplified_key_file
-    fi
-    # if no file binary_simplified_key_mode.ini use mode=0
-    key_mode_default=$(awk -F "=" '/\['${op_type}'\]/{flag=1;next}/\[/{flag=0} flag && /default/{print $2}' $simplified_key_file)
-  fi
-  local ascendc_config_file="${workdir}/../binary_config/ascendc_config.json"
-  local key_word_in_list="\"name\":\s*\"${op_type}\""
-  local ascendc_op_conf=$(grep ${key_word_in_list} ${ascendc_config_file} | grep -w $soc_version_lower)
+  local kernel_config_file=$(get_kernel_option_config_file ${workdir} ${soc_version_lower})
+  local kernel_config_file_all=$(get_kernel_option_config_file ${workdir} "ALL")
 
-  if [ "$key_mode_default" != "" ]; then
-    key_mode=${key_mode_default}
-  else
-    if [ "$ascendc_op_conf" != "" ]; then
-      key_mode=0
+  local impl_list=""
+  local key_mode=""
+  local is_optional=false
+
+  if [ -f "${kernel_config_file}" ]; then
+    impl_list=$(awk -F "=" '/\['${op_type}'\]/{flag=1; next}/\[/{flag=0} flag && /impl_mode/{print $2; exit}' "$kernel_config_file")
+    key_mode=$(awk -F "=" '/\['${op_type}'\]/{flag=1; next}/\[/{flag=0} flag && /simplified_key/{print $2; exit}' "$kernel_config_file")
+  fi
+  if [ -z "${impl_list}" ] && [ -z "${key_mode}" ]; then
+    if [ -f "${kernel_config_file_all}" ]; then
+      impl_list=$(awk -F "=" '/\['${op_type}'\]/{flag=1; next}/\[/{flag=0} flag && /impl_mode/{print $2; exit}' "$kernel_config_file_all")
+      key_mode=$(awk -F "=" '/\['${op_type}'\]/{flag=1; next}/\[/{flag=0} flag && /simplified_key/{print $2; exit}' "$kernel_config_file_all")
+    fi
+  fi
+  if [ -n "${impl_list}" ]; then
+    if [[ "${impl_list}" == *",optional"* ]]; then
+      is_optional=true
+      impl_list=$(echo "${impl_list}" | sed 's/,optional$//')
+    fi
+  fi
+
+  if [ -z "$key_mode" ]; then
+    local simplified_key_file=$(get_simplified_key_config_file ${workdir} ${op_type} ${op_name} ${soc_version_lower})
+    local key_mode_default=0
+    if [ -z "${simplified_key_file}" ] || [ ! -f "${simplified_key_file}" ]; then
+      echo "[INFO] No simplified_key_file found. Using default key_mode_default=0"
     else
-      key_mode="None"
+      if file "$simplified_key_file" | grep -q "CRLF"; then
+        if ! command -vv dos2unix &> /dev/null; then
+          echo "[ERROR] dos2unix is not installed. Cannot convert simplified_key_file to unix line endings !"
+          exit 5
+        fi
+        dos2unix $simplified_key_file
+      fi
+      # if no file binary_simplified_key_mode.ini use mode=0
+      key_mode_default=$(awk -F "=" '/\['${op_type}'\]/{flag=1;next}/\[/{flag=0} flag && /default/{print $2}' $simplified_key_file)
+    fi
+    local ascendc_config_file="${workdir}/../binary_config/ascendc_config.json"
+    local key_word_in_list="\"name\":\s*\"${op_type}\""
+    local ascendc_op_conf=$(grep ${key_word_in_list} ${ascendc_config_file} | grep -w $soc_version_lower)
+
+    if [ "$key_mode_default" != "" ]; then
+      key_mode=${key_mode_default}
+    else
+      if [ "$ascendc_op_conf" != "" ]; then
+        key_mode=0
+      else
+        key_mode="None"
+      fi
     fi
   fi
 
@@ -314,48 +274,16 @@ main() {
     simplified_key_param=""
   fi
 
-  json_line=$(echo "$ascendc_op_conf" | tr -d '\n\r')
-
-  auto_sync="false"
-  if [ -n "$json_line" ]; then
-    val_part=$(echo "$json_line" | sed -E 's/.*"auto_sync"[[:space:]]*:[[:space:]]*(\{[^}]*\}|true|false).*/\1/')
-    if [ "$val_part" = "true" ] || [ "$val_part" = "false" ]; then
-      auto_sync="$val_part"
-    elif [ "${val_part#*\{}" != "$val_part" ] && [ "${val_part%\}}" != "$val_part" ]; then
-      if [ -n "$soc_version_lower" ]; then
-        match=$(echo "$val_part" | sed -n "s/.*\"$soc_version_lower\"[[:space:]]*:[[:space:]]*\([a-zA-Z]*\)[,}]*.*/\1/p")
-        if [ "$match" = "true" ] || [ "$match" = "false" ]; then
-          auto_sync="$match"
-        fi
-      fi
-      auto_sync=${auto_sync:-"false"}
-    fi
-  fi
-
-  compute_units=$(echo "$json_line" | awk '
-  match($0, /"compute_units"[[:space:]]*:[[:space:]]*\[([^]]*)\]/, arr) {
-    str = arr[1]
-    gsub(/"/, "", str)
-    gsub(/^[[:space:]]+|[[:space:]]+$/, "", str)
-    gsub(/,[[:space:]]*/, " ", str)
-    print str
-  }')
-
-  compile_options=$(echo "$json_line" | awk '
-  match($0, /"compile_options"[[:space:]]*:[[:space:]]*(\{[^}]*\})/, arr) {
-    print arr[1]
-  }')
-
-  call_write_scripts "$op_type" "$soc_version_lower" "$auto_sync" "$compute_units" "$compile_options"
-
   # step 5: get impl_mode from all_ops_impl_mode.ini
   # ascendc_config.json 配置超过两种以上的implmode使用ascendc_config的配置，否则使用binary_implmode_default
   # 如果都没有配置，默认high_performance
-  local impl_mode_full_path="${workdir}/../binary_config/${IMPL_FILE_NAME}"
-  local impl_list=$(awk -F '=' '/^'${op_type}'=/{print $2;exit}' ${impl_mode_full_path})
-  if [ "${impl_list}" = "" ]; then
-    # 默认高性能模式
-    impl_list="high_performance"
+  if [ -z "$impl_list" ]; then
+    local impl_mode_full_path="${workdir}/../binary_config/${IMPL_FILE_NAME}"
+    local impl_list=$(awk -F '=' '/^'${op_type}'=/{print $2;exit}' ${impl_mode_full_path})
+    if [ "${impl_list}" = "" ]; then
+      # 默认高性能模式
+      impl_list="high_performance"
+    fi
   fi
 
   # 获取 impl_mode 默认值
@@ -369,7 +297,7 @@ main() {
   var_array=(${val//,/ })
   impl_list_array=(${impl_list//,/ })
   if [ ${#var_array[@]} -ge 2 ]; then
-    impl_list_array=$val
+    impl_list_array="${var_array[@]}"
   fi
 
   opc_soc_version=$(trans_soc ${soc_version})
@@ -393,19 +321,43 @@ main() {
     for ((i = 0; i < ${thread_num}; i = i + 1)); do
       {
         new_file="${binary_config_new_full_path}_${i}"
-        if [ "${val}" = "${impl_mode}" ]; then
+        if [[ "${val}" == "${impl_mode}" ]] || [[ "${is_optional}" == "true" ]]; then
           impl_mode_default="${impl_mode},optional"
           cmd="asc_opc ${op_python_path} --main_func=${op_func} --input_param=${new_file} --soc_version=${opc_soc_version} --output=${binary_bin_path} --impl_mode=${impl_mode_default} ${simplified_key_param} --op_mode=dynamic"
         else
           cmd="asc_opc ${op_python_path} --main_func=${op_func} --input_param=${new_file} --soc_version=${opc_soc_version} --output=${binary_bin_path} --impl_mode=${impl_mode} ${simplified_key_param} --op_mode=dynamic"
         fi
-        if [ "${enable_debug}" = "Debug" ]; then
-          cmd="${cmd} --op_debug_config=debug"
+        if [ "${cmake_build_type}" = "Debug" ]; then
+          cmd="${cmd} -g"
         fi
-        if [ "${enable_oom}" = "TRUE" ]; then
-          cmd="${cmd} --op_debug_config=oom"
+        if [[ -n "$bisheng_flags" ]]; then
+          echo "bisheng_flags is: ${bisheng_flags}"
+          cmd="${cmd} --op_debug_config=${bisheng_flags}"
+        else
+          op_debug_configs=()
+          if [ "${enable_mssanitizer}" = "TRUE" ]; then
+            op_debug_configs+=("sanitizer")
+          fi
+          if [ "${enable_oom}" = "TRUE" ]; then
+            op_debug_configs+=("oom")
+          fi
+          if [ "${enable_dump_cce}" = "TRUE" ]; then
+            op_debug_configs+=("dump_cce")
+          fi
+          if [ ${#op_debug_configs[@]} -gt 0 ]; then
+              OLD_IFS="${IFS}"
+              IFS=','
+              cmd="${cmd} --op_debug_config=${op_debug_configs[*]}"
+              IFS="$OLD_IFS"
+          fi
         fi
-
+        if [[ "$cmd" == *"dump_cce"* ]]; then
+          cmd="${cmd} --debug_dir=${output_path}/kernel_metas/${op_type}_${i}"
+        fi
+        if [[ -n "$kernel_template_input" ]]; then
+          echo "kernel_template_input is: ${kernel_template_input}"
+          cmd="${cmd} --kernel-template-input=${kernel_template_input}"
+        fi
         echo "[INFO] op:${op_type} do opc cmd is ${cmd}"
         echo ${cmd} >> ${opc_task_cmd_file}
         cmd="${python_arg} gen_output_json.py ${new_file} ${binary_bin_path} ${binary_compile_json_file}"
@@ -417,4 +369,4 @@ main() {
   exit 0
 }
 set -o pipefail
-main "$@" | gawk '{print strftime("[%Y-%m-%d %H:%M:%S]"), $0}'
+main "$@"

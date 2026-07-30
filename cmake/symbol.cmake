@@ -1,36 +1,35 @@
 # ----------------------------------------------------------------------------
-# This program is free software, you can redistribute it and/or modify.
 # Copyright (c) 2026 Huawei Technologies Co., Ltd.
-# This file is a part of the CANN Open Software.
-# Licensed under CANN Open Software License Agreement Version 2.0 (the "License").
+# This program is free software, you can redistribute it and/or modify it under the terms and conditions of
+# CANN Open Software License Agreement Version 2.0 (the "License").
 # Please refer to the License for details. You may not use this file except in compliance with the License.
-# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
+# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
+# INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
 # See LICENSE in the root of the software repository for the full text of the License.
 # ----------------------------------------------------------------------------
 # ophost shared
 function(gen_ophost_symbol)
   if (NOT TARGET ${OPHOST_NAME}_infer_obj AND NOT TARGET ${OPHOST_NAME}_tiling_obj AND NOT TARGET ${OPHOST_NAME}_aicpu_objs)
+    message(STATUS "No RAS infer/tiling/AICPU host sources found, skipping ${OPHOST_NAME}.")
     return()
   endif()
-  add_library(
-    ${OPHOST_NAME} SHARED
+  npu_op_library(${OPHOST_NAME}_obj TILING)
+  target_sources(${OPHOST_NAME}_obj PUBLIC
     $<$<TARGET_EXISTS:${OPHOST_NAME}_infer_obj>:$<TARGET_OBJECTS:${OPHOST_NAME}_infer_obj>>
     $<$<TARGET_EXISTS:${OPHOST_NAME}_tiling_obj>:$<TARGET_OBJECTS:${OPHOST_NAME}_tiling_obj>>
     $<$<TARGET_EXISTS:${OPHOST_NAME}_aicpu_objs>:$<TARGET_OBJECTS:${OPHOST_NAME}_aicpu_objs>>
+    $<$<TARGET_EXISTS:opbase_util_objs>:$<TARGET_OBJECTS:opbase_util_objs>>
+    $<$<TARGET_EXISTS:opbase_infer_objs>:$<TARGET_OBJECTS:opbase_infer_objs>>
+    $<$<TARGET_EXISTS:opbase_tiling_objs>:$<TARGET_OBJECTS:opbase_tiling_objs>>
     )
-
+  add_library(${OPHOST_NAME} SHARED $<TARGET_OBJECTS:${OPHOST_NAME}_obj>)
   target_link_libraries(
     ${OPHOST_NAME}
     PRIVATE $<BUILD_INTERFACE:intf_pub_cxx17>
-            c_sec
+            ${OPHOST_NAME}_obj
             -Wl,--no-as-needed
-            register
-            $<$<TARGET_EXISTS:opsbase>:opsbase>
+            acl_rt
             -Wl,--as-needed
-            -Wl,--whole-archive
-            rt2_registry_static
-            tiling_api
-            -Wl,--no-whole-archive
             -Wl,-Bsymbolic
             $<$<CONFIG:RELEASE>:-s>
     )
@@ -43,17 +42,114 @@ function(gen_ophost_symbol)
     )
 endfunction()
 
+# gen es_ras
+function(gen_es_ras_lib_ready)
+  add_library(
+    proto_${PKG_NAME} SHARED
+    ${ASCEND_GRAPH_CONF_DST}/ops_proto_ras.cpp
+  )
+  add_dependencies(proto_${PKG_NAME} merge_ops_proto_${PKG_NAME})
+  target_link_libraries(
+    proto_${PKG_NAME}
+    PRIVATE $<BUILD_INTERFACE:intf_pub_cxx17>
+      c_sec
+      -Wl,--no-as-needed
+      register
+      -Wl,--as-needed
+    )
+  target_link_directories(proto_${PKG_NAME} PRIVATE ${ASCEND_DIR}/${SYSTEM_PREFIX}/lib64)
+
+  # 生成 es_ras
+  add_es_library_and_whl(
+    ES_LINKABLE_AND_ALL_TARGET es_${PKG_NAME}
+    OPP_PROTO_TARGET proto_${PKG_NAME}
+    OUTPUT_PATH ${CMAKE_BINARY_DIR}/es_packages
+  )
+  install(
+    FILES ${CMAKE_BINARY_DIR}/es_packages/lib64/libes_ras.so
+    DESTINATION ${VERSION_INFO_INSTALL_DIR}/lib64
+    OPTIONAL
+  )
+  install(
+    DIRECTORY ${CMAKE_BINARY_DIR}/es_packages/include/es_ras
+    DESTINATION ${VERSION_INFO_INSTALL_DIR}/include/es
+    OPTIONAL
+  )
+  install(
+    DIRECTORY ${CMAKE_BINARY_DIR}/es_packages/whl/
+    DESTINATION ${WHL_INSTALL_DIR}/es_packages/whl
+    OPTIONAL
+  )
+
+endfunction()
+
+# gen es_ras for custom
+function(gen_es_ras_lib_ready_cust)
+  # 合并proto.h生成ops_proto_ras.h和ops_proto_ras.cpp
+  merge_graph_headers(TARGET merge_ops_proto_${PKG_NAME}_cust OUT_DIR ${ASCEND_GRAPH_CONF_DST})
+  add_library(
+    proto_${PKG_NAME}_cust SHARED
+    ${ASCEND_GRAPH_CONF_DST}/ops_proto_ras.cpp
+  )
+  add_dependencies(proto_${PKG_NAME}_cust merge_ops_proto_${PKG_NAME}_cust)
+  target_link_libraries(
+    proto_${PKG_NAME}_cust
+    PRIVATE $<BUILD_INTERFACE:intf_pub_cxx17>
+      c_sec
+      -Wl,--no-as-needed
+      register
+      -Wl,--as-needed
+    )
+  target_link_directories(proto_${PKG_NAME}_cust PRIVATE ${ASCEND_DIR}/${SYSTEM_PREFIX}/lib64)
+
+  # 生成 es_ras
+  add_es_library(
+    ES_LINKABLE_AND_ALL_TARGET es_${PKG_NAME}
+    OPP_PROTO_TARGET proto_${PKG_NAME}_cust
+    OUTPUT_PATH ${CMAKE_BINARY_DIR}/es_packages
+  )
+  install(
+    DIRECTORY ${CMAKE_BINARY_DIR}/es_packages/include/es_${PKG_NAME}/
+    DESTINATION ${ES_INC_INSTALL_DIR}
+    OPTIONAL
+  )
+  install(
+    FILES ${CMAKE_BINARY_DIR}/es_packages/lib64/libes_${PKG_NAME}.so
+    DESTINATION ${ES_LIB_INSTALL_DIR}
+    OPTIONAL
+  )
+endfunction()
+
 # graph_plugin shared
 function(gen_opgraph_symbol)
+  has_graph_proto_sources(HAS_GRAPH_PROTO_SOURCES)
+  if(NOT HAS_GRAPH_PROTO_SOURCES)
+    message(STATUS "No RAS op_graph proto sources found, skipping ${OPGRAPH_NAME} and es_${PKG_NAME}.")
+    if(NOT TARGET ${OPGRAPH_NAME})
+      add_custom_target(${OPGRAPH_NAME})
+    endif()
+    return()
+  endif()
+
+  merge_graph_headers(TARGET merge_ops_proto_${PKG_NAME} OUT_DIR ${ASCEND_GRAPH_CONF_DST})
+
+  gen_es_ras_lib_ready()
+
   add_library(
     ${OPGRAPH_NAME} SHARED
     $<$<TARGET_EXISTS:${GRAPH_PLUGIN_NAME}_obj>:$<TARGET_OBJECTS:${GRAPH_PLUGIN_NAME}_obj>>
+    $<$<TARGET_EXISTS:${CUBE_UTILS_PLUGIN_NAME}_obj>:$<TARGET_OBJECTS:${CUBE_UTILS_PLUGIN_NAME}_obj>>
+    $<$<TARGET_EXISTS:opbase_util_objs>:$<TARGET_OBJECTS:opbase_util_objs>>
+    $<$<TARGET_EXISTS:opbase_infer_objs>:$<TARGET_OBJECTS:opbase_infer_objs>>
   )
-  merge_graph_headers(TARGET merge_ops_proto ALL OUT_DIR ${ASCEND_GRAPH_CONF_DST})
-  add_dependencies(${OPGRAPH_NAME} merge_ops_proto)
-
+  add_dependencies(${OPGRAPH_NAME}
+    merge_ops_proto_${PKG_NAME}
+    build_es_ras
+  )
   target_sources(
-    ${OPGRAPH_NAME} PRIVATE ${ASCEND_GRAPH_CONF_DST}/ops_proto_ras.cpp
+    ${OPGRAPH_NAME}
+    PRIVATE
+    ${ASCEND_GRAPH_CONF_DST}/ops_proto_ras.cpp
   )
   target_link_libraries(
     ${OPGRAPH_NAME}
@@ -61,40 +157,70 @@ function(gen_opgraph_symbol)
             c_sec
             -Wl,--no-as-needed
             register
-            $<$<TARGET_EXISTS:opsbase>:opsbase>
             -Wl,--as-needed
             -Wl,--whole-archive
             rt2_registry_static
             -Wl,--no-whole-archive
             -Wl,-Bsymbolic
-            $<$<CONFIG:RELEASE>:-s>
-    )
+            ge_compiler
+            unified_dlog
+            ascendalog
+  )
+  target_link_directories(${OPGRAPH_NAME} PRIVATE
+    ${ASCEND_DIR}/${SYSTEM_PREFIX}/lib64
+    ${CMAKE_BINARY_DIR}/es_packages/lib64
+  )
 
-  target_link_directories(${OPGRAPH_NAME} PRIVATE ${ASCEND_DIR}/${SYSTEM_PREFIX}/lib64)
+  if(TARGET ${GRAPH_PLUGIN_NAME}_obj)
+    unset(GRAPH_SOURCE)
+    get_target_property(GRAPH_SOURCE ${GRAPH_PLUGIN_NAME}_obj SOURCES)
+    if(GRAPH_SOURCE)
+      add_dependencies(${GRAPH_PLUGIN_NAME}_obj
+        build_es_ras
+      )
+      target_link_libraries(${GRAPH_PLUGIN_NAME}_obj
+        PRIVATE
+        es_ras
+      )
+      target_link_libraries(
+        ${OPGRAPH_NAME}
+        PRIVATE
+                -Wl,--no-as-needed
+                es_ras
+                -Wl,--as-needed
+        )
+    endif()
+  endif()
+
   set_target_properties(${OPGRAPH_NAME} PROPERTIES
-    LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/opp/built-in/op_proto
+        LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/opp/built-in/op_proto
   )
   install(
     TARGETS ${OPGRAPH_NAME}
     LIBRARY DESTINATION ${OPGRAPH_LIB_INSTALL_DIR}
-    )
-
+  )
   install(
     FILES ${ASCEND_GRAPH_CONF_DST}/ops_proto_ras.h
     DESTINATION ${OPGRAPH_INC_INSTALL_DIR}
     OPTIONAL
     )
+
 endfunction()
 
 function(gen_opapi_symbol)
-  if(NOT TARGET ${OPHOST_NAME}_opapi_obj AND NOT TARGET opbuild_gen_aclnn_all)
+  if((NOT TARGET ${OPHOST_NAME}_opapi_obj AND NOT TARGET opbuild_gen_aclnn_all) OR NO_ACLNN)
     return()
   endif()
+  npu_op_library(${OPAPI_NAME}_obj ACLNN)
+  target_sources(${OPAPI_NAME}_obj PUBLIC
+    $<$<TARGET_EXISTS:${OPHOST_NAME}_opapi_obj>:$<TARGET_OBJECTS:${OPHOST_NAME}_opapi_obj>>
+    $<$<TARGET_EXISTS:opbuild_gen_aclnn_all>:$<TARGET_OBJECTS:opbuild_gen_aclnn_all>>
+    $<$<TARGET_EXISTS:opbase_util_objs>:$<TARGET_OBJECTS:opbase_util_objs>>
+  )
   # opapi shared
   add_library(
     ${OPAPI_NAME} SHARED
-    $<$<TARGET_EXISTS:${OPHOST_NAME}_opapi_obj>:$<TARGET_OBJECTS:${OPHOST_NAME}_opapi_obj>>
-    $<$<TARGET_EXISTS:opbuild_gen_aclnn_all>:$<TARGET_OBJECTS:opbuild_gen_aclnn_all>>
+    $<TARGET_OBJECTS:${OPAPI_NAME}_obj>
     )
 
   if(BUILD_WITH_INSTALLED_DEPENDENCY_CANN_PKG)
@@ -104,9 +230,10 @@ function(gen_opapi_symbol)
   target_link_libraries(
     ${OPAPI_NAME}
     PUBLIC $<BUILD_INTERFACE:intf_pub_cxx17>
-    PRIVATE c_sec nnopbase $<$<BOOL:${BUILD_WITH_INSTALLED_DEPENDENCY_CANN_PKG}>:$<BUILD_INTERFACE:opapi_math>>
-    $<$<CONFIG:RELEASE>:-s>
+    PRIVATE ${OPAPI_NAME}_obj $<$<BOOL:${BUILD_WITH_INSTALLED_DEPENDENCY_CANN_PKG}>:$<BUILD_INTERFACE:opapi_math>>
+    -Wl,-Bsymbolic
     )
+  target_link_directories(${OPAPI_NAME} PRIVATE ${ASCEND_DIR}/${SYSTEM_PREFIX}/lib64)
 
   install(
     TARGETS ${OPAPI_NAME}
@@ -115,7 +242,7 @@ function(gen_opapi_symbol)
 endfunction()
 
 function(gen_cust_opapi_symbol)
-  if(NOT TARGET ${OPHOST_NAME}_opapi_obj AND NOT TARGET opbuild_gen_aclnn_all)
+  if((NOT TARGET ${OPHOST_NAME}_opapi_obj AND NOT TARGET opbuild_gen_aclnn_all) OR NO_ACLNN)
     return()
   endif()
   # op_api
@@ -129,11 +256,13 @@ function(gen_cust_opapi_symbol)
     cust_opapi
     PUBLIC $<$<TARGET_EXISTS:${OPHOST_NAME}_opapi_obj>:$<TARGET_OBJECTS:${OPHOST_NAME}_opapi_obj>>
            $<$<TARGET_EXISTS:opbuild_gen_aclnn_all>:$<TARGET_OBJECTS:opbuild_gen_aclnn_all>>
+           $<$<TARGET_EXISTS:opbase_util_objs>:$<TARGET_OBJECTS:opbase_util_objs>>
     )
   target_link_libraries(
     cust_opapi
     PUBLIC $<BUILD_INTERFACE:intf_pub_cxx17>
     PRIVATE $<$<BOOL:${BUILD_WITH_INSTALLED_DEPENDENCY_CANN_PKG}>:$<BUILD_INTERFACE:opapi_math>>
+    -Wl,-Bsymbolic
     )
 endfunction()
 
@@ -147,38 +276,72 @@ function(gen_cust_optiling_symbol)
     cust_opmaster
     PUBLIC $<$<TARGET_EXISTS:${OPHOST_NAME}_tiling_obj>:$<TARGET_OBJECTS:${OPHOST_NAME}_tiling_obj>>
            $<$<TARGET_EXISTS:${COMMON_NAME}_obj>:$<TARGET_OBJECTS:${COMMON_NAME}_obj>>
+           $<$<TARGET_EXISTS:opbase_util_objs>:$<TARGET_OBJECTS:opbase_util_objs>>
+           $<$<TARGET_EXISTS:opbase_tiling_objs>:$<TARGET_OBJECTS:opbase_tiling_objs>>
     )
 
   target_link_libraries(
     cust_opmaster
     PUBLIC $<BUILD_INTERFACE:intf_pub_cxx17>
-    PRIVATE $<$<TARGET_EXISTS:opsbase>:opsbase>
     -Wl,-Bsymbolic
     )
 endfunction()
 
 function(gen_cust_proto_symbol)
   # op_proto
-  if(NOT TARGET ${OPHOST_NAME}_infer_obj)
+  has_graph_proto_sources(HAS_GRAPH_PROTO_SOURCES)
+  if(NOT HAS_GRAPH_PROTO_SOURCES)
+    message(STATUS "No RAS op_graph proto sources found, skipping cust_proto and es_${PKG_NAME}.")
     return()
   endif()
   npu_op_library(cust_proto GRAPH)
+
+  gen_es_ras_lib_ready_cust()
+  if(TARGET ${GRAPH_PLUGIN_NAME}_obj)
+    unset(GRAPH_SOURCE)
+    get_target_property(GRAPH_SOURCE ${GRAPH_PLUGIN_NAME}_obj SOURCES)
+    if(GRAPH_SOURCE)
+      # 添加obj依赖es
+      add_dependencies(${GRAPH_PLUGIN_NAME}_obj
+        build_es_ras
+      )
+      target_link_libraries(${GRAPH_PLUGIN_NAME}_obj
+        PRIVATE
+        es_ras
+      )
+    endif()
+  endif()
+  add_dependencies(cust_proto merge_ops_proto_${PKG_NAME}_cust)
+
   target_sources(
     cust_proto
     PUBLIC $<$<TARGET_EXISTS:${OPHOST_NAME}_infer_obj>:$<TARGET_OBJECTS:${OPHOST_NAME}_infer_obj>>
            $<$<TARGET_EXISTS:${GRAPH_PLUGIN_NAME}_obj>:$<TARGET_OBJECTS:${GRAPH_PLUGIN_NAME}_obj>>
+           $<$<TARGET_EXISTS:opbase_util_objs>:$<TARGET_OBJECTS:opbase_util_objs>>
+           $<$<TARGET_EXISTS:opbase_infer_objs>:$<TARGET_OBJECTS:opbase_infer_objs>>
+    PRIVATE
+          ${ASCEND_GRAPH_CONF_DST}/ops_proto_ras.cpp
     )
-  merge_graph_headers(TARGET merge_ops_proto ALL OUT_DIR ${ASCEND_GRAPH_CONF_DST})
-  add_dependencies(cust_proto merge_ops_proto)
 
-  target_sources(
-    cust_proto PRIVATE ${ASCEND_GRAPH_CONF_DST}/ops_proto_ras.cpp
-  )
   target_link_libraries(
     cust_proto
     PUBLIC $<BUILD_INTERFACE:intf_pub_cxx17>
-    PRIVATE $<$<TARGET_EXISTS:opsbase>:opsbase>
+    ge_compiler
     )
+
+  add_dependencies(cust_proto build_es_ras)
+
+  target_link_directories(cust_proto
+    PRIVATE
+      ${CMAKE_BINARY_DIR}/es_packages/lib64
+      ${ES_LIB_INSTALL_DIR}
+  )
+  target_link_libraries(cust_proto
+    PRIVATE
+      -Wl,--no-as-needed
+      es_ras
+      -Wl,--as-needed
+  )
   file(GLOB_RECURSE proto_headers ${ASCEND_AUTOGEN_PATH}/*_proto.h)
   install(
     FILES ${proto_headers}
@@ -187,10 +350,25 @@ function(gen_cust_proto_symbol)
     )
 endfunction()
 
+function(gen_aicpu_op_def_symbol)
+  get_property(ALL_AICPU_OPDEF_FILES GLOBAL PROPERTY AICPU_OP_DEF_FILES)
+  if(NOT ALL_AICPU_OPDEF_FILES)
+    message(STATUS "No AICPU OpDef files found, skip opdef ini generation.")
+    return()
+  endif()
+
+  gen_aicpu_ini_from_opdef(
+    OPS_SRC ${ALL_AICPU_OPDEF_FILES}
+    OUT_DIR ${ASCEND_AUTOGEN_PATH}
+  )
+  set(AICPU_OPDEF_INI ${OPBUILD_AICPU_INI} PARENT_SCOPE)
+endfunction()
+
 function(gen_aicpu_json_symbol enable_built_in)
   get_property(ALL_AICPU_JSON_FILES GLOBAL PROPERTY AICPU_JSON_FILES)
-  if(NOT ALL_AICPU_JSON_FILES)
-    message(STATUS "No aicpu json files to merge, skipping.")
+  get_property(ALL_AICPU_OP_DEF_FILES GLOBAL PROPERTY AICPU_OP_DEF_FILES)
+  if(NOT ALL_AICPU_OP_DEF_FILES AND NOT ALL_AICPU_JSON_FILES)
+    message(STATUS "No aicpu opdef/json files to merge, skipping.")
     return()
   endif()
 
@@ -198,14 +376,39 @@ function(gen_aicpu_json_symbol enable_built_in)
   if(enable_built_in)
     set(MERGED_JSON ${CMAKE_BINARY_DIR}/aicpu_ras.json)
   endif()
+  set(INPUT_JSONS "")
+
+  if(ALL_AICPU_OP_DEF_FILES)
+    gen_aicpu_op_def_symbol()
+    set(OPDEF_INI ${AICPU_OPDEF_INI})
+    set(OPDEF_JSON ${CMAKE_BINARY_DIR}/aicpu_opdef_kernel.json)
+    if(enable_built_in)
+      set(OPDEF_JSON ${CMAKE_BINARY_DIR}/aicpu_ras_opdef_kernel.json)
+    endif()
+    add_custom_command(
+      OUTPUT ${OPDEF_JSON}
+      COMMAND ${ASCEND_PYTHON_EXECUTABLE} ${CMAKE_SOURCE_DIR}/scripts/kernel/binary_script/aicpu_parser_ini_to_json.py
+              ${OPDEF_INI} ${OPDEF_JSON}
+      DEPENDS ${ALL_AICPU_OP_DEF_FILES} ${OPDEF_INI}
+      COMMENT "Generating ${OPDEF_JSON} from aicpu_kernel.ini"
+      VERBATIM
+    )
+    list(APPEND INPUT_JSONS ${OPDEF_JSON})
+  endif()
+
+  if(ALL_AICPU_JSON_FILES)
+    list(APPEND INPUT_JSONS ${ALL_AICPU_JSON_FILES})
+  endif()
 
   add_custom_command(
     OUTPUT ${MERGED_JSON}
-    COMMAND bash ${CMAKE_SOURCE_DIR}/scripts/util/merge_aicpu_info_json.sh ${CMAKE_SOURCE_DIR} ${MERGED_JSON} ${ALL_AICPU_JSON_FILES}
-    DEPENDS ${ALL_AICPU_JSON_FILES}
-    COMMENT "Merging Json files into ${MERGED_JSON}"
+    COMMAND bash ${CMAKE_SOURCE_DIR}/scripts/util/merge_aicpu_info_json.sh
+            ${CMAKE_SOURCE_DIR} ${MERGED_JSON} ${INPUT_JSONS}
+    DEPENDS ${INPUT_JSONS}
+    COMMENT "Merging aicpu json inputs into ${MERGED_JSON}"
     VERBATIM
   )
+  add_custom_target(gen_aicpu_json_from_opdef DEPENDS ${MERGED_JSON})
   add_custom_target(merge_aicpu_json ALL DEPENDS ${MERGED_JSON})
   install(
     FILES ${MERGED_JSON}
@@ -228,7 +431,7 @@ function(gen_aicpu_kernel_symbol enable_built_in)
     list(APPEND ALL_OBJECTS $<TARGET_OBJECTS:${tgt}>)
   endforeach()
 
-  message(STATUS "Linking aicpu_kernels with ARM toolchain: ${ARM_CXX_COMPILER}")
+  message(STATUS "Linking libras_aicpu_kernels.so with ARM toolchain: ${ARM_CXX_COMPILER}")
   message(STATUS "Objects: ${ALL_OBJECTS}")
   message(STATUS "Output: ${ARM_SO_OUTPUT}")
 
@@ -245,7 +448,7 @@ function(gen_aicpu_kernel_symbol enable_built_in)
       -s
       -o ${ARM_SO_OUTPUT}
     DEPENDS ${AICPU_CUST_OBJ_TARGETS}
-    COMMENT "Linking aicpu_kernels.so using ARM toolchain"
+    COMMENT "Linking libras_aicpu_kernels.so using ARM toolchain"
   )
 
   add_custom_target(aicpu_kernels ALL DEPENDS ${ARM_SO_OUTPUT})
@@ -259,6 +462,19 @@ endfunction()
 
 function(gen_onnx_plugin_symbol)
   if(NOT TARGET ${ONNX_PLUGIN_NAME}_obj)
+    message(STATUS "No onnx plugin object target found, skipping ${ONNX_PLUGIN_NAME}.")
+    return()
+  endif()
+  get_target_property(ONNX_PLUGIN_SOURCES ${ONNX_PLUGIN_NAME}_obj SOURCES)
+  set(HAS_ONNX_PLUGIN_SOURCE FALSE)
+  foreach(src IN LISTS ONNX_PLUGIN_SOURCES)
+    if(src MATCHES "\\.(c|cc|cpp|cxx)$")
+      set(HAS_ONNX_PLUGIN_SOURCE TRUE)
+      break()
+    endif()
+  endforeach()
+  if(NOT HAS_ONNX_PLUGIN_SOURCE)
+    message(STATUS "No onnx plugin sources found, skipping ${ONNX_PLUGIN_NAME}.")
     return()
   endif()
 
@@ -273,7 +489,6 @@ function(gen_onnx_plugin_symbol)
             c_sec
             -Wl,--no-as-needed
             register
-            $<$<TARGET_EXISTS:opsbase>:opsbase>
             -Wl,--as-needed
             -Wl,--whole-archive
             rt2_registry_static
@@ -288,6 +503,109 @@ function(gen_onnx_plugin_symbol)
 
 endfunction()
 
+function(gen_tf_plugin_symbol)
+  if(NOT TARGET ${TF_PLUGIN_NAME}_obj)
+    message(STATUS "No tf plugin object target found, skipping ${TF_PLUGIN_NAME}.")
+    return()
+  endif()
+  get_target_property(TF_PLUGIN_SOURCES ${TF_PLUGIN_NAME}_obj SOURCES)
+  set(HAS_TF_PLUGIN_SOURCE FALSE)
+  foreach(src IN LISTS TF_PLUGIN_SOURCES)
+    if(src MATCHES "\\.(c|cc|cpp|cxx)$")
+      set(HAS_TF_PLUGIN_SOURCE TRUE)
+      break()
+    endif()
+  endforeach()
+  if(NOT HAS_TF_PLUGIN_SOURCE)
+    message(STATUS "No tf plugin sources found, skipping ${TF_PLUGIN_NAME}.")
+    return()
+  endif()
+
+  add_library(
+    ${TF_PLUGIN_NAME} SHARED
+    $<$<TARGET_EXISTS:${TF_PLUGIN_NAME}_obj>:$<TARGET_OBJECTS:${TF_PLUGIN_NAME}_obj>>
+  )
+
+  target_link_libraries(
+    ${TF_PLUGIN_NAME}
+    PRIVATE $<BUILD_INTERFACE:intf_pub_cxx17>
+            c_sec
+            -Wl,--no-as-needed
+            register
+            -Wl,--as-needed
+            -Wl,--whole-archive
+            rt2_registry_static
+            -Wl,--no-whole-archive
+            $<$<CONFIG:Release>:-s>
+    )
+
+  install(
+    TARGETS ${TF_PLUGIN_NAME}
+    LIBRARY DESTINATION ${TF_PLUGIN_LIB_INSTALL_DIR}
+    )
+
+endfunction()
+
+# Collects AICPU_HOST_OBJ_TARGETS (registered by add_aicpu_host_kernel_modules in func.cmake)
+# and links all host OBJECT files into one SHARED library libopconstant_folding_ras.so.
+function(gen_aicpu_const_symbol)
+  get_property(AICPU_HOST_OBJ_TARGETS GLOBAL PROPERTY AICPU_HOST_OBJ_TARGETS)
+  message(STATUS "All host targets: ${AICPU_HOST_OBJ_TARGETS}")
+
+  if(NOT DEFINED AICPU_HOST_OBJ_TARGETS OR
+    "${AICPU_HOST_OBJ_TARGETS}" STREQUAL "")
+    message(STATUS "No builtin host aicpu targets found, skipping.")
+    return()
+  endif()
+
+  set(CONST_SO_OUTPUT ${CMAKE_BINARY_DIR}/libopconstant_folding_ras.so)
+
+  set(ALL_OBJECTS "")
+  foreach(tgt IN LISTS AICPU_HOST_OBJ_TARGETS)
+    list(APPEND ALL_OBJECTS $<TARGET_OBJECTS:${tgt}>)
+  endforeach()
+
+  message(STATUS "Linking libopconstant_folding_ras.so with host compiler")
+  message(STATUS "Objects: ${ALL_OBJECTS}")
+  message(STATUS "Output: ${CONST_SO_OUTPUT}")
+
+  set(AICPU_HOST_CONST_LIBS
+    -lc_sec
+    -lgraph
+    -lexe_graph
+    -lregister
+    -lpthread
+    -ldl
+  )
+
+  add_custom_command(
+    OUTPUT ${CONST_SO_OUTPUT}
+    COMMAND ${CMAKE_CXX_COMPILER} -shared ${ALL_OBJECTS}
+      -Wl,--whole-archive
+          ${ASCEND_DIR}/lib64/libaicpu_context_host.a
+          ${ASCEND_DIR}/lib64/libaicpu_nodedef_host.a
+          ${ASCEND_DIR}/lib64/libhost_ascend_protobuf.a
+      -Wl,--no-whole-archive
+      -Wl,-Bsymbolic
+      -Wl,--exclude-libs=libhost_ascend_protobuf.a
+      -Wl,-z,now
+      -s
+      -L${ASCEND_DIR}/lib64
+      ${AICPU_HOST_CONST_LIBS}
+      -o ${CONST_SO_OUTPUT}
+    DEPENDS ${AICPU_HOST_OBJ_TARGETS}
+    COMMENT "Linking libopconstant_folding_ras.so using host compiler"
+    COMMAND_EXPAND_LISTS
+  )
+
+  add_custom_target(opconstant_folding_ras_builtin ALL DEPENDS ${CONST_SO_OUTPUT})
+  install(
+    FILES ${CONST_SO_OUTPUT}
+    DESTINATION ${AICPU_HOST_KERNEL_IMPL}
+    OPTIONAL
+  )
+endfunction()
+
 function(gen_norm_symbol)
   gen_ophost_symbol()
 
@@ -296,6 +614,10 @@ function(gen_norm_symbol)
   gen_opapi_symbol()
 
   gen_onnx_plugin_symbol()
+
+  gen_tf_plugin_symbol()
+
+  gen_aicpu_const_symbol()
 endfunction()
 
 function(gen_cust_symbol)

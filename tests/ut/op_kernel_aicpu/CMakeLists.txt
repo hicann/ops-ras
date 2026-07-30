@@ -13,6 +13,16 @@ cmake_minimum_required(VERSION 3.16)
 if(UT_TEST_ALL OR OP_KERNEL_AICPU_UT)
     ## set variables
     set(AICPU_OP_KERNEL_UT_EXE ${PKG_NAME}_aicpu_op_kernel_ut)
+
+    file(GLOB_RECURSE RAS_AICPU_KERNEL_SOURCES
+        ${PROJECT_SOURCE_DIR}/reliability/*/op_kernel_aicpu/*.cpp
+        ${PROJECT_SOURCE_DIR}/experimental/reliability/*/op_kernel_aicpu/*.cpp
+    )
+    if(NOT RAS_AICPU_KERNEL_SOURCES)
+        message(STATUS "No RAS AICPU kernel sources found, skipping ${AICPU_OP_KERNEL_UT_EXE}.")
+        add_custom_target(${AICPU_OP_KERNEL_UT_EXE})
+        return()
+    endif()
  
     ## add opkernel ut cases dynamic lib: libcv_op_kernel_ut_cases.so
     add_aicpu_opkernel_ut_modules(${AICPU_OP_KERNEL_MODULE_NAME})
@@ -42,7 +52,7 @@ if(UT_TEST_ALL OR OP_KERNEL_AICPU_UT)
         -Wl,--as-needed
         gtest
         c_sec
-        Eigen3::EigenRas
+        Eigen3::Eigen
     )
  
     if(ENABLE_UT_EXEC)

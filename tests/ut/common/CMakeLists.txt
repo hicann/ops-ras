@@ -13,6 +13,10 @@ if(UT_TEST_ALL OR OP_HOST_UT)
     # add op tiling ut common obj
     add_library(${OP_TILING_MODULE_NAME}_common_obj OBJECT)
     add_dependencies(${OP_TILING_MODULE_NAME}_common_obj json)
+    target_compile_definitions(${OP_TILING_MODULE_NAME}_common_obj PRIVATE
+        BUILD_SOC_VERSION=${ASCEND_COMPUTE_UNIT}
+        _GLIBCXX_USE_CXX11_ABI=0
+    )
 
     # add op tiling ut common obj
     add_library(${OP_INFERSHAPE_MODULE_NAME}_common_obj OBJECT)
@@ -32,11 +36,13 @@ if(UT_TEST_ALL OR OP_HOST_UT)
         ${ASCEND_DIR}/include/exe_graph
         ${ASCEND_DIR}/include/base/context_builder
         ${OP_TILING_INCLUDE}
+        ${GTEST_INCLUDE}
         )
     target_link_libraries(${OP_TILING_MODULE_NAME}_common_obj PRIVATE
         $<BUILD_INTERFACE:intf_llt_pub_asan_cxx17>
         $<BUILD_INTERFACE:dlog_headers>
         c_sec
+        gtest
     )
 
     target_compile_options(${OP_TILING_MODULE_NAME}_common_obj PRIVATE
@@ -55,6 +61,7 @@ if(UT_TEST_ALL OR OP_HOST_UT)
         ${CMAKE_CURRENT_SOURCE_DIR}/infer_shape_context_faker.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/infer_shaperange_context_faker.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/infer_datatype_context_faker.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/infershape_case_executor.cpp
     )
     target_sources(${OP_INFERSHAPE_MODULE_NAME}_common_obj PRIVATE
         ${OP_INFERSHAPE_UT_COMMON_SRC}
@@ -66,6 +73,7 @@ if(UT_TEST_ALL OR OP_HOST_UT)
         ${ASCEND_DIR}/include/exe_graph
         ${ASCEND_DIR}/include/base/context_builder
         ${CMAKE_CURRENT_SOURCE_DIR}/
+        ${GTEST_INCLUDE}
     )
 
     target_compile_options(${OP_INFERSHAPE_MODULE_NAME}_common_obj PRIVATE
@@ -80,5 +88,6 @@ if(UT_TEST_ALL OR OP_HOST_UT)
     target_link_libraries(${OP_INFERSHAPE_MODULE_NAME}_common_obj PRIVATE
         $<BUILD_INTERFACE:intf_llt_pub_asan_cxx17>
         c_sec
+        gtest
     )
 endif()

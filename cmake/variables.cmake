@@ -16,16 +16,11 @@ set(OPHOST_NAME ophost_${PKG_NAME})
 set(OPSTATIC_NAME cann_${PKG_NAME}_static)
 set(OPAPI_NAME opapi_${PKG_NAME})
 set(OPGRAPH_NAME opgraph_${PKG_NAME})
-set(ONNX_PLUGIN_NAME op_${PKG_NAME}_onnx_plugin)
+set(ONNX_PLUGIN_NAME oponnx_plugin_${PKG_NAME})
+set(TF_PLUGIN_NAME optf_plugin_${PKG_NAME})
+set(CUBE_UTILS_PLUGIN_NAME cube_utils_${PKG_NAME}_util)
 set(GRAPH_PLUGIN_NAME graph_plugin_${PKG_NAME})
 set(VENDOR_PACKAGE_NAME ${VENDOR_NAME}_ras)
-
-if(NOT CANN_3RD_LIB_PATH)
-  set(CANN_3RD_LIB_PATH ${PROJECT_SOURCE_DIR}/build/third_party)
-endif()
-if(NOT CANN_3RD_PKG_PATH)
-  set(CANN_3RD_PKG_PATH ${PROJECT_SOURCE_DIR}/build/third_party/pkg)
-endif()
 
 message(STATUS "System processor: ${CMAKE_SYSTEM_PROCESSOR}")
 if (${CMAKE_SYSTEM_PROCESSOR} MATCHES "x86_64")
@@ -82,13 +77,16 @@ if(ENABLE_CUSTOM)
   set(AICPU_KERNEL_IMPL               packages/vendors/${VENDOR_PACKAGE_NAME}/op_impl/cpu/aicpu_kernel/impl)
   set(AICPU_JSON_CONFIG               packages/vendors/${VENDOR_PACKAGE_NAME}/op_impl/cpu/config)
   set(CUST_AICPU_OP_PROTO             packages/vendors/${VENDOR_PACKAGE_NAME}/op_proto)
+  set(ES_INC_INSTALL_DIR              packages/vendors/${VENDOR_PACKAGE_NAME}/op_proto/es/include)
+  set(ES_LIB_INSTALL_DIR              packages/vendors/${VENDOR_PACKAGE_NAME}/op_proto/es/lib/linux/${CMAKE_SYSTEM_PROCESSOR})
   set(VERSION_INFO_INSTALL_DIR        packages/vendors/${VENDOR_PACKAGE_NAME}/)
-  set(PACK_CUSTOM_NAME                "cann-ops-ras-${VENDOR_NAME}-linux.${ARCH}")
+  set(PACK_CUSTOM_NAME                "cann-ops-ras-${VENDOR_NAME}_linux-${ARCH}")
 else()
   # built-in package install path
-  set(ACLNN_INC_INSTALL_DIR           opp/include/aclnnop)
-  set(ACLNN_OP_INC_INSTALL_DIR        opp/include/aclnnop/level2)
-  set(ACLNN_LIB_INSTALL_DIR           opp/built-in/op_impl/ai_core/tbe/op_api/lib/linux/${CMAKE_SYSTEM_PROCESSOR})
+  set(CMAKE_INSTALL_DEFAULT_COMPONENT_NAME ops-ras)
+  set(ACLNN_INC_INSTALL_DIR           ${CMAKE_SYSTEM_PROCESSOR}-linux/include/aclnnop)
+  set(ACLNN_OP_INC_INSTALL_DIR        ${CMAKE_SYSTEM_PROCESSOR}-linux/include/aclnnop/level2)
+  set(ACLNN_LIB_INSTALL_DIR           ${CMAKE_SYSTEM_PROCESSOR}-linux/lib64)
   set(OPS_INFO_INSTALL_DIR            opp/built-in/op_impl/ai_core/tbe/config)
   set(IMPL_INSTALL_DIR                opp/built-in/op_impl/ai_core/tbe/impl/ops_ras/ascendc)
   set(IMPL_DYNAMIC_INSTALL_DIR        opp/built-in/op_impl/ai_core/tbe/impl/ops_ras/dynamic)
@@ -96,12 +94,15 @@ else()
   set(BIN_KERNEL_CONFIG_INSTALL_DIR   opp/built-in/op_impl/ai_core/tbe/kernel/config)
   set(OPHOST_LIB_INSTALL_PATH         opp/built-in/op_impl/ai_core/tbe/op_host/lib/linux/${CMAKE_SYSTEM_PROCESSOR})
   set(AICPU_KERNEL_IMPL               opp/built-in/op_impl/aicpu/kernel)
+  set(AICPU_HOST_KERNEL_IMPL          opp/built-in/op_impl/host_cpu)
   set(AICPU_JSON_CONFIG               opp/built-in/op_impl/aicpu/config)
   set(OPTILING_LIB_INSTALL_DIR        ${OPHOST_LIB_INSTALL_PATH})
   set(OPGRAPH_INC_INSTALL_DIR         opp/built-in/op_graph/inc)
   set(OPGRAPH_LIB_INSTALL_DIR         opp/built-in/op_graph/lib/linux/${CMAKE_SYSTEM_PROCESSOR})
   set(ONNX_PLUGIN_LIB_INSTALL_DIR     opp/built-in/framework/onnx)
-  set(VERSION_INFO_INSTALL_DIR        ops_ras)
+  set(TF_PLUGIN_LIB_INSTALL_DIR       opp/built-in/framework/tensorflow)
+  set(VERSION_INFO_INSTALL_DIR        ${CMAKE_SYSTEM_PROCESSOR}-linux)
+  set(WHL_INSTALL_DIR                 ops_ras)
 endif()
 
 # util path
@@ -136,6 +137,15 @@ execute_process(
 
 # pack path
 set(CMAKE_INSTALL_PREFIX ${CMAKE_SOURCE_DIR}/build_out)
+
+if(BUILD_WITH_INSTALLED_DEPENDENCY_CANN_PKG)
+  set(JSON_INCLUDE ${JSON_SOURCE_PATH}/include)
+  if(TARGET host_protoc)
+    get_target_property(Protobuf_PROTOC_EXECUTABLE host_protoc IMPORTED_LOCATION)
+  else()
+    set(Protobuf_PROTOC_EXECUTABLE ${CMAKE_BINARY_DIR}/bin/protoc)
+  endif()
+endif()
 
 set(OPAPI_INCLUDE
   ${C_SEC_INCLUDE}
@@ -210,4 +220,16 @@ set(AICPU_DEFINITIONS
   -DEigen=ascend_Eigen
   -fno-common
   -fPIC
+)
+
+set(ONNX_PLUGIN_INCLUDE
+  ${OP_PROTO_INCLUDE}
+  ${Protobuf_PATH}
+  ${CMAKE_BINARY_DIR}/proto
+  ${JSON_INCLUDE}
+  ${ABS_INSTALL_DIR}
+  ${OPS_RAS_DIR}
+  ${OPS_RAS_DIR}/common/inc/framework
+  ${OPS_RAS_DIR}/common/stub/inc/framework
+  ${OPS_RAS_DIR}/common/inc/op_graph
 )

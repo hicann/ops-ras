@@ -17,4 +17,35 @@
 
 #define ACLNN_API __attribute__((visibility("default")))
 
+#include "opdev/platform.h"
+#include <set>
+
+namespace Ops {
+namespace Ras {
+namespace AclnnUtil {
+
+using namespace op;
+
+/**
+ * 检查当前芯片架构是否为RegBase
+ */
+inline static bool IsRegbase()
+{
+    auto npuArch = GetCurrentPlatformInfo().GetCurNpuArch();
+    const static std::set<NpuArch> regbaseNpuArchs = {
+        NpuArch::DAV_3510};
+    return regbaseNpuArchs.find(npuArch) != regbaseNpuArchs.end();
+}
+
+inline static bool IsRegbase(NpuArch npuArch)
+{
+    const static std::set<NpuArch> regbaseNpuArchs = {
+        NpuArch::DAV_3510};
+    return regbaseNpuArchs.find(npuArch) != regbaseNpuArchs.end();
+}
+
+} // namespace AclnnUtil
+} // namespace Ras
+} // namespace Ops
+
 #endif  // COMMON_RAS_ACLNN_UTIL_H

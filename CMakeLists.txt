@@ -10,10 +10,16 @@
 
 cmake_minimum_required(VERSION 3.16)
 set(PKG_NAME ras)
+set(CANN_3RD_LIB_PATH ${CMAKE_CURRENT_SOURCE_DIR}/third_party CACHE STRING "cann third party lib path")
+include(cmake/third_party/fetch_cann_cmake.cmake)
+set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ${RULE_LAUNCH})
+set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK ${RULE_LAUNCH})
+
 project(${PKG_NAME} VERSION 1.0.0)
 
 find_program(CCACHE_PROGRAM ccache)
-if(CCACHE_PROGRAM)
+option(ENABLE_CCACHE "Enable ccache compilation acceleration" ON)
+if(ENABLE_CCACHE AND CCACHE_PROGRAM)
   set(CMAKE_C_COMPILER_LAUNCHER ${CCACHE_PROGRAM})
   set(CMAKE_CXX_COMPILER_LAUNCHER ${CCACHE_PROGRAM})
 endif()
@@ -45,14 +51,16 @@ option(ENABLE_EXPERIMENTAL "Enable experimental module" OFF)
 option(ENABLE_COVERAGE "Enable coverage" OFF)
 option(ENABLE_MSSANITIZER "Enable mssanitizer mode" OFF)
 option(ENABLE_OOM "Enable oom mode" OFF)
+option(ENABLE_DUMP_CCE "Enable dump_cce mode" OFF)
+option(NO_AICPU "Disable aicpu targets" OFF)
+option(NO_ACLNN "Disable ACLNN targets" OFF)
 option(OP_HOST_UT "Enable ophost ut" OFF)
 option(OP_API_UT "Enable opapi ut" OFF)
 option(OP_GRAPH_UT "Enable graph ut" OFF)
 option(OP_KERNEL_UT "Enable kernel ut" OFF)
 option(OP_KERNEL_AICPU_UT "Enable aicpu kernel ut" OFF)
 option(UT_TEST_ALL "Enable all ut" OFF)
-
-set(CANN_3RD_LIB_PATH ${PROJECT_SOURCE_DIR}/third_party CACHE STRING "cann third party lib path")
+option(DOWNLOAD_OPS_TEST_KIT "Download ops-test-kit repository" OFF)
 
 if(ENABLE_TEST)
     set(DEFAULT_BUILD_TYPE "Debug")
@@ -91,26 +99,37 @@ endif()
 set(CMAKE_CXX_STANDARD
     17
     CACHE STRING "c++17 is needed for this project")
+include(cmake/third_party/opbase.cmake) # 放在dependencies.cmake前面
+if(DOWNLOAD_OPS_TEST_KIT)
+  include(cmake/third_party/ops_test_kit.cmake)
+endif()
 include(cmake/dependencies.cmake)
-include(cmake/third_party/nlohmann_json.cmake)
-include(cmake/third_party/abseil-cpp.cmake)
-include(cmake/third_party/ascend_protobuf.cmake)
+add_cann_third_party(json)
+add_cann_third_party(abseil-cpp)
+add_cann_third_party(protobuf)
 include(cmake/variables.cmake)
 include(cmake/func.cmake)
 include(cmake/opbuild.cmake)
-include(cmake/third_party/eigen.cmake)
+add_cann_third_party(eigen)
 include(cmake/intf_pub_linux.cmake)
 include(cmake/modules/Finddlog.cmake)
+include(version.cmake)
 
 if(ENABLE_CUSTOM AND ENABLE_ASC_BUILD)
   include(cmake/custom_kernel.cmake)
 endif()
 
+init_cann_project()
+if(BUILD_WITH_INSTALLED_DEPENDENCY_CANN_PKG)
+  check_cann_pkg_build_deps("ops-ras")
+endif()
+add_cann_version_info_targets()
+
 if(ENABLE_TEST)
   # ut common dependencies
+  add_cann_third_party(gtest)
   include(cmake/intf_pub_llt_gccnative.cmake)
   include(cmake/ut.cmake)
-  include(cmake/third_party/gtest.cmake)
 
   # op host ut
   if(UT_TEST_ALL OR OP_HOST_UT)
@@ -122,11 +141,15 @@ if(ENABLE_TEST)
   # op api ut
   if(UT_TEST_ALL OR OP_API_UT)
     set(OP_API_MODULE_NAME ${PKG_NAME}_op_api_ut)
+    set(OP_API_UT_COMMON_INC
+        ${CMAKE_SOURCE_DIR}/tests/ut/op_api/op_api_ut_common/inc
+        CACHE STRING "opapi ut common include path" FORCE)
   endif()
 
   # op graph ut
   if(UT_TEST_ALL OR OP_GRAPH_UT)
-    include(cmake/opbuild.cmake)
+    include(cmake/gen_ops_info.cmake)
+    include(cmake/symbol.cmake)
     set(OP_GRAPH_MODULE_NAME ${PKG_NAME}_op_graph_ut)
   endif()
 

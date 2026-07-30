@@ -9,9 +9,9 @@
 # ============================================================================
 
 set -e
-RELEASE_TARGETS=("ophost" "opapi" "onnxplugin" "opgraph")
+RELEASE_TARGETS=("ophost" "opapi" "onnxplugin" "opgraph" "tfplugin")
 
-SUPPORT_COMPUTE_UNIT_SHORT=("ascend031" "ascend035" "ascend310b" "ascend310p" "ascend910_93" "ascend950" "ascend910b" "ascend910" "kirinx90" "kirin9030" "mc62cm12a")
+SUPPORT_COMPUTE_UNIT_SHORT=("ascend031" "ascend035" "ascend310b" "ascend310p" "ascend910_93" "ascend950" "ascend350" "ascend910b" "ascend910" "kirinx90" "kirin9030" "mc62")
 # 对SUPPORT_COMPUTE_UNIT_SHORT按字符串长度从长到短排序，避免前缀匹配时出错
 SUPPORT_COMPUTE_UNIT_SHORT=($(printf '%s\n' "${SUPPORT_COMPUTE_UNIT_SHORT[@]}" | awk '{print length($0) " " $0}' | sort -rn | cut -d ' ' -f2-))
 TRIGER_UTS=()
@@ -21,9 +21,10 @@ SUPPORTED_SHORT_OPTS="hj:vO:uf:-:"
 
 # 所有支持的长选项
 SUPPORTED_LONG_OPTS=(
-  "help" "ops=" "soc=" "vendor_name=" "build-type=" "cov" "noexec" "opkernel" "opkernel_aicpu" "opkernel_aicpu_test" "static"
+  "help" "ops=" "soc=" "vendor_name=" "build-type=" "cov" "noexec" "noaicpu" "opkernel" "opkernel_aicpu" "opkernel_aicpu_test" "static"
    "jit" "pkg" "asan" "make_clean_all" "make_clean" "no_force"
-  "ophost" "opgraph" "opapi" "run_example" "example_name=" "genop=" "genop_aicpu=" "experimental" "cann_3rd_lib_path=" "oom" "onnxplugin" "dump_cce"
+  "ophost" "opgraph" "opapi" "run_example" "example_name=" "genop=" "genop_aicpu=" "experimental" "cann_3rd_lib_path=" "oom" "onnxplugin" "tfplugin" "dump_cce"
+  "module_extension=" "noaclnn" "mssanitizer" "rule_launch=" "ccache="
 )
 
 in_array() {
@@ -241,6 +242,19 @@ usage() {
         echo "    bash build.sh --onnxplugin --debug"
         return
         ;;
+      tfplugin)
+        echo "TensorFlow Plugin Build Options:"
+        echo $dotted_line
+        echo "    --tfplugin             Build TensorFlow plugin library"
+        echo "    -j[n]                  Compile thread nums, default is 8, eg: -j8"
+        echo "    -O[n]                  Compile optimization options, support [O0 O1 O2 O3], eg:-O3"
+        echo "    --debug                Build with debug mode"
+        echo $dotted_line
+        echo "Examples:"
+        echo "    bash build.sh --tfplugin -j16 -O3"
+        echo "    bash build.sh --tfplugin --debug"
+        return
+        ;;
       opgraph)
         echo "Opgraph Build Options:"
         echo $dotted_line
@@ -330,7 +344,8 @@ usage() {
   echo "    --ops Compile specified operator, use snake name, like: --ops=add,add_lora, use ',' to separate different operator"
   echo "    --soc Compile binary with specified Ascend SoC, like: --soc=ascend910b"
   echo "    --vendor_name Specify the custom operator pkg vendor name, like: --vendor_name=customize, default to customize-ras"
-  echo "    --onnxplugin build op_ras_onnx_plugin.so"
+  echo "    --onnxplugin build oponnx_plugin_ras.so"
+  echo "    --tfplugin build optf_plugin_ras.so"
   echo "    --opapi build opapi_ras.so"
   echo "    --ophost build ophost_ras.so"
   echo "    --opkernel build binary kernel"
@@ -360,7 +375,7 @@ check_help_combinations() {
   for arg in "${args[@]}"; do
     case "$arg" in
       -u) has_u=true ;;
-      --ophost | --opapi | --onnxplugin | --opgraph)
+      --ophost | --opapi | --onnxplugin | --tfplugin | --opgraph)
         has_test_command=true
         has_build_command=true
         ;;
@@ -466,7 +481,7 @@ set_create_libs() {
     return
   fi
   if [[ "$ENABLE_PACKAGE" == "TRUE" && "$ENABLE_CUSTOM" != "TRUE" ]]; then
-    BUILD_LIBS=("ophost_${REPOSITORY_NAME}" "opapi_${REPOSITORY_NAME}" "op_${REPOSITORY_NAME}_onnx_plugin" "opgraph_${REPOSITORY_NAME}")
+    BUILD_LIBS=("ophost_${REPOSITORY_NAME}" "opapi_${REPOSITORY_NAME}" "oponnx_plugin_${REPOSITORY_NAME}" "optf_plugin_${REPOSITORY_NAME}" "opgraph_${REPOSITORY_NAME}")
     ENABLE_CREATE_LIB=TRUE
   else
     if [[ "$OP_HOST" == "TRUE" ]]; then
@@ -478,7 +493,11 @@ set_create_libs() {
       ENABLE_CREATE_LIB=TRUE
     fi
     if [[ "$ONNX_PLUGIN" == "TRUE" ]]; then
-      BUILD_LIBS+=("op_${REPOSITORY_NAME}_onnx_plugin")
+      BUILD_LIBS+=("oponnx_plugin_${REPOSITORY_NAME}")
+      ENABLE_CREATE_LIB=TRUE
+    fi
+    if [[ "$TF_PLUGIN" == "TRUE" ]]; then
+      BUILD_LIBS+=("optf_plugin_${REPOSITORY_NAME}")
       ENABLE_CREATE_LIB=TRUE
     fi
     if [[ "$OP_GRAPH" == "TRUE" ]]; then
@@ -597,6 +616,12 @@ checkopts() {
   OP_HOST_UT=FALSE
   OP_GRAPH_UT=FALSE
   ONNX_PLUGIN=FALSE
+  TF_PLUGIN=FALSE
+  NO_AICPU=FALSE
+  NO_ACLNN=FALSE
+  MODULE_EXT=""
+  ENABLE_RULE_LAUNCH=""
+  ENABLE_CCACHE=TRUE
   OP_KERNEL_UT=FALSE
   OP_KERNEL_AICPU_UT=FALSE
   OP_API=FALSE
@@ -653,6 +678,7 @@ checkopts() {
           --opgraph) SHOW_HELP="opgraph" ;;
           --opapi) SHOW_HELP="opapi" ;;
           --onnxplugin) SHOW_HELP="onnxplugin" ;;
+          --tfplugin) SHOW_HELP="tfplugin" ;;
           --run_example) SHOW_HELP="run_example" ;;
           --genop) SHOW_HELP="genop" ;;
           --genop_aicpu) SHOW_HELP="genop_aicpu" ;;
@@ -742,7 +768,17 @@ checkopts() {
         build-type=*)
           BUILD_TYPE=${OPTARG#*=}
           ;;
-        mssanitizer) ENABLE_MSSANITIZER=FALSE ;;
+        mssanitizer) ENABLE_MSSANITIZER=TRUE ;;
+        noaicpu) NO_AICPU=TRUE ;;
+        noaclnn) NO_ACLNN=TRUE ;;
+        module_extension=*) MODULE_EXT=${OPTARG#*=} ;;
+        rule_launch=*) ENABLE_RULE_LAUNCH=${OPTARG#*=} ;;
+        ccache=*)
+          ccache_value=${OPTARG#*=}
+          if [[ "$ccache_value" == "off" || "$ccache_value" == "false" || "$ccache_value" == "disable" ]]; then
+            ENABLE_CCACHE=FALSE
+          fi
+          ;;
         oom) ENABLE_OOM=TRUE ;;
         dump_cce) ENABLE_DUMP_CCE=TRUE ;;
         noexec) ENABLE_UT_EXEC=FALSE ;;
@@ -801,6 +837,8 @@ checkopts() {
             OP_KERNEL_AICPU=TRUE
           elif [[ "$OPTARG" == "onnxplugin" ]]; then
             ONNX_PLUGIN=TRUE
+          elif [[ "$OPTARG" == "tfplugin" ]]; then
+            TF_PLUGIN=TRUE
           else
             usage
             exit 1
@@ -815,7 +853,8 @@ checkopts() {
     esac
   done
 
-  if [[ "$OP_KERNEL_AICPU_UT" != "TRUE" && "$ENABLE_TEST" == "TRUE" && "$OP_HOST" == "FALSE" && "$OP_GRAPH" == "FALSE" && "$OP_API" == "FALSE" && "$OP_KERNEL" == "FALSE" ]]; then
+  if [[ "$OP_KERNEL_AICPU_UT" != "TRUE" && "$OP_KERNEL_AICPU" != "TRUE" && "$ENABLE_TEST" == "TRUE" &&
+        "$OP_HOST" == "FALSE" && "$OP_GRAPH" == "FALSE" && "$OP_API" == "FALSE" && "$OP_KERNEL" == "FALSE" ]]; then
     OP_HOST=TRUE
     OP_GRAPH=TRUE
     OP_API=TRUE
@@ -871,6 +910,13 @@ assemble_cmake_args() {
   CMAKE_ARGS="$CMAKE_ARGS -DENABLE_UT_EXEC=${ENABLE_UT_EXEC}"
   CMAKE_ARGS="$CMAKE_ARGS -DENABLE_CUSTOM=${ENABLE_CUSTOM}"
   CMAKE_ARGS="$CMAKE_ARGS -DENABLE_STATIC=${ENABLE_STATIC}"
+  CMAKE_ARGS="$CMAKE_ARGS -DNO_AICPU=${NO_AICPU}"
+  CMAKE_ARGS="$CMAKE_ARGS -DNO_ACLNN=${NO_ACLNN}"
+  CMAKE_ARGS="$CMAKE_ARGS -DMODULE_EXT=${MODULE_EXT}"
+  CMAKE_ARGS="$CMAKE_ARGS -DENABLE_CCACHE=${ENABLE_CCACHE}"
+  if [[ -n "$ENABLE_RULE_LAUNCH" ]]; then
+    CMAKE_ARGS="$CMAKE_ARGS -DRULE_LAUNCH=${ENABLE_RULE_LAUNCH}"
+  fi
   custom_cmake_args
   if [[ "$ENABLE_ASAN" == "TRUE" ]]; then
     set +e
@@ -1113,6 +1159,7 @@ build_ut() {
   # 删除ai_core下的json文件，强制UT执行时重新生成json文件，避免多次执行之间的干扰
   cd "${BUILD_PATH}"  && rm -rf ${BUILD_PATH}/tbe/op_info_cfg/ai_core/* && cmake ${CMAKE_ARGS} ..
   local enable_cov=FALSE
+  local ut_build_failed=0
   if [[ "$CI_MODE" == "TRUE" ]]; then
     # ci 模式
     for trigger_option in "${TRIGGER_UTS[@]}"; do
@@ -1125,7 +1172,7 @@ build_ut() {
  	        else
  	          cmake ${CMAKE_ARGS} -DASCEND_OP_NAME=${ut_args[1]} -DASCEND_COMPILE_OPS=${ut_args[2]} -DASCEND_COMPUTE_UNIT=${ut_args[3]} ..
  	        fi
-        cmake --build . --target ${REPOSITORY_NAME}_${ut_args[0]} -- ${VERBOSE} -j $THREAD_NUM
+        cmake --build . --target ${REPOSITORY_NAME}_${ut_args[0]} -- ${VERBOSE} -j $THREAD_NUM || ut_build_failed=1
       else
         echo "Not need trigger Ut: ${ut_args[0]}"
       fi
@@ -1140,11 +1187,15 @@ build_ut() {
         cmake ${CMAKE_ARGS} ..
       fi
     fi
-    cmake --build . --target ${UT_TARGES[@]} -- ${VERBOSE} -j $THREAD_NUM
+    cmake --build . --target ${UT_TARGES[@]} -- ${VERBOSE} -j $THREAD_NUM || ut_build_failed=1
   fi
 
   if [[ "$ENABLE_COVERAGE" =~ "TRUE" && "$enable_cov" == "TRUE" ]]; then
     cmake --build . --target generate_ops_cpp_cov -- ${VERBOSE} -j $THREAD_NUM
+  fi
+  if [[ "$ut_build_failed" == "1" ]]; then
+    print_error "UT build/test failed"
+    exit 1
   fi
 }
 
@@ -1156,19 +1207,33 @@ build_single_example() {
       if [[ "${VENDOR_NAME}" == "" ]]; then
         VENDOR_NAME="custom"
       fi
-      export CUST_LIBRARY_PATH="${ASCEND_HOME_PATH}/opp/vendors/${VENDOR_NAME}_ras/op_api/lib"     # 仅自定义算子需要
-      export CUST_INCLUDE_PATH="${ASCEND_HOME_PATH}/opp/vendors/${VENDOR_NAME}_ras/op_api/include" # 仅自定义算子需要
-      export LD_LIBRARY_PATH=${CUST_LIBRARY_PATH}:${LD_LIBRARY_PATH}
-      if [ -f ${EAGER_LIBRARY_PATH}/libascendcl.so ]; then
-        g++ ${file} -I ${CUST_INCLUDE_PATH} -I ${INCLUDE_PATH} -I ${INCLUDE_PATH}/aclnnop -L ${CUST_LIBRARY_PATH} -L ${EAGER_LIBRARY_PATH} -lcust_opapi -lopapi_math -lascendcl -lnnopbase -o test_aclnn_${example} -Wl,-rpath=${CUST_LIBRARY_PATH}
+      local cust_include_flags=""
+      local cust_library_flags=""
+      local cust_rpath_flags=""
+      if [[ -n "${ASCEND_CUSTOM_OPP_PATH}" ]]; then
+        IFS=':' read -ra PATH_ARRAY <<< "${ASCEND_CUSTOM_OPP_PATH}"
+        for path in "${PATH_ARRAY[@]}"; do
+          cust_include_flags="${cust_include_flags} -I ${path}/op_api/include"
+          cust_library_flags="${cust_library_flags} -L ${path}/op_api/lib"
+          cust_rpath_flags="${cust_rpath_flags}:${path}/op_api/lib"
+        done
+        cust_rpath_flags="${cust_rpath_flags#:}"
       else
-        g++ ${file} -I ${CUST_INCLUDE_PATH} -I ${INCLUDE_PATH} -I ${INCLUDE_PATH}/aclnnop -L ${CUST_LIBRARY_PATH} -L ${EAGER_LIBRARY_PATH} -lcust_opapi -lopapi_math -lacl_rt -lnnopbase -o test_aclnn_${example} -Wl,-rpath=${CUST_LIBRARY_PATH}
+        cust_include_flags="-I ${ASCEND_HOME_PATH}/opp/vendors/${VENDOR_NAME}_ras/op_api/include"
+        cust_library_flags="-L ${ASCEND_HOME_PATH}/opp/vendors/${VENDOR_NAME}_ras/op_api/lib"
+        cust_rpath_flags="${ASCEND_HOME_PATH}/opp/vendors/${VENDOR_NAME}_ras/op_api/lib"
+      fi
+      export LD_LIBRARY_PATH=${cust_rpath_flags}:${LD_LIBRARY_PATH}
+      if [ -f ${EAGER_LIBRARY_PATH}/libascendcl.so ]; then
+        g++ ${file} ${cust_include_flags} -I ${INCLUDE_PATH} -I ${INCLUDE_PATH}/aclnnop ${cust_library_flags} -L ${EAGER_LIBRARY_PATH} -lcust_opapi -lopapi_math -lascendcl -lnnopbase -o test_aclnn_${example} -Wl,-rpath=${cust_rpath_flags}
+      else
+        g++ ${file} ${cust_include_flags} -I ${INCLUDE_PATH} -I ${INCLUDE_PATH}/aclnnop ${cust_library_flags} -L ${EAGER_LIBRARY_PATH} -lcust_opapi -lopapi_math -lacl_rt -lnnopbase -o test_aclnn_${example} -Wl,-rpath=${cust_rpath_flags}
       fi
     elif [[ "${PKG_MODE}" == "" ]]; then
       if [ -f ${EAGER_LIBRARY_PATH}/libascendcl.so ] || [ -f ${EAGER_LIBRARY_OPP_PATH}/libascendcl.so]; then
-        g++ ${file} -I ${INCLUDE_PATH} -I ${INCLUDE_PATH}/aclnnop -I ${ACLNN_INCLUDE_PATH} -L ${EAGER_LIBRARY_OPP_PATH} -L ${EAGER_LIBRARY_PATH} -lopapi_nn -lopapi_math -lascendcl -lnnopbase -o test_aclnn_${example}
+        g++ ${file} -I ${INCLUDE_PATH} -I ${INCLUDE_PATH}/aclnnop -I ${ACLNN_INCLUDE_PATH} -L ${EAGER_LIBRARY_OPP_PATH} -L ${EAGER_LIBRARY_PATH} -lopapi_ras -lopapi_math -lascendcl -lnnopbase -o test_aclnn_${example}
       else
-        g++ ${file} -I ${INCLUDE_PATH} -I ${INCLUDE_PATH}/aclnnop -I ${ACLNN_INCLUDE_PATH} -L ${EAGER_LIBRARY_OPP_PATH} -L ${EAGER_LIBRARY_PATH} -lopapi_nn -lopapi_math -lacl_rt -lnnopbase -o test_aclnn_${example}
+        g++ ${file} -I ${INCLUDE_PATH} -I ${INCLUDE_PATH}/aclnnop -I ${ACLNN_INCLUDE_PATH} -L ${EAGER_LIBRARY_OPP_PATH} -L ${EAGER_LIBRARY_PATH} -lopapi_ras -lopapi_math -lacl_rt -lnnopbase -o test_aclnn_${example}
       fi
     else
       usage "run_example"
@@ -1385,7 +1450,11 @@ main() {
     exit $?
   fi
   mkdir -p "${BUILD_PATH}"
-  cd "${BUILD_PATH}" && rm -f CMakeCache.txt && cmake -DENABLE_EXPERIMENTAL=${ENABLE_EXPERIMENTAL} -DPREPROCESS_ONLY=ON ..
+  cd "${BUILD_PATH}" && rm -f CMakeCache.txt && cmake \
+    -DCANN_3RD_LIB_PATH="${CANN_3RD_LIB_PATH}" \
+    -DENABLE_CCACHE="${ENABLE_CCACHE}" \
+    -DENABLE_EXPERIMENTAL="${ENABLE_EXPERIMENTAL}" \
+    -DPREPROCESS_ONLY=ON ..
 
   if [[ "$CI_MODE" == "TRUE" ]]; then
     set_ci_mode

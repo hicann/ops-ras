@@ -1,11 +1,11 @@
 #!/bin/bash
 # ----------------------------------------------------------------------------
-# This program is free software, you can redistribute it and/or modify.
 # Copyright (c) 2026 Huawei Technologies Co., Ltd.
-# This file is a part of the CANN Open Software.
-# Licensed under CANN Open Software License Agreement Version 2.0 (the "License").
+# This program is free software, you can redistribute it and/or modify it under the terms and conditions of
+# CANN Open Software License Agreement Version 2.0 (the "License").
 # Please refer to the License for details. You may not use this file except in compliance with the License.
-# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
+# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
+# INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
 # See LICENSE in the root of the software repository for the full text of the License.
 # ----------------------------------------------------------------------------
 
@@ -16,6 +16,7 @@ SOC_MAP=([Ascend310P]="Ascend310P3"
           [Ascend910B]="Ascend910B1"
           [Ascend910_93]="Ascend910_9391"
           [Ascend950]="Ascend950PR_9599"
+          [Ascend350]="Ascend350_355e"
           [KirinX90]="KirinX90"
           [Kirin9030]="Kirin9030"
           [MC62CM12A]="MC62CM12AA"
@@ -23,7 +24,7 @@ SOC_MAP=([Ascend310P]="Ascend310P3"
 
 OPC_TASK_NAME="opc_cmd.sh"
 OUT_TASK_NAME="out_cmd.sh"
-OP_CATEGORY_LIST="matmul conv activation foreach vfusion index loss norm optim pooling quant rnn control"
+OP_CATEGORY_LIST="reliability"
 
 function trans_soc() {
   local _soc_input=$1

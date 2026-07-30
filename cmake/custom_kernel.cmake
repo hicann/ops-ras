@@ -1,10 +1,10 @@
 # ----------------------------------------------------------------------------
-# This program is free software, you can redistribute it and/or modify.
 # Copyright (c) 2026 Huawei Technologies Co., Ltd.
-# This file is a part of the CANN Open Software.
-# Licensed under CANN Open Software License Agreement Version 2.0 (the "License").
+# This program is free software, you can redistribute it and/or modify it under the terms and conditions of
+# CANN Open Software License Agreement Version 2.0 (the "License").
 # Please refer to the License for details. You may not use this file except in compliance with the License.
-# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
+# THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED,
+# INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
 # See LICENSE in the root of the software repository for the full text of the License.
 # ----------------------------------------------------------------------------
 #### custom to kernel build #####
@@ -23,6 +23,12 @@ function(add_custom_kernel_library ascendc_kernels)
                 get_op_type_from_binary_json(${binary_json} op_type)
                 if(EXISTS ${OP_DIR}/op_kernel/${op_name}.cpp)
                     list(APPEND op_def_list "${OP_DIR}/op_host/${op_name}_def.cpp")
+                    if(NOT ${MODULE_EXT} STREQUAL "")
+                        get_filename_component(PARENT_DIR ${OP_DIR} DIRECTORY)
+                        get_filename_component(op_category ${PARENT_DIR} NAME)
+                        file(GLOB op_def_ext_list ${MODULE_EXT}/${op_category}/${op_name}/op_host/${op_name}*_def*.cpp )
+                        list(APPEND op_def_list ${op_def_ext_list})
+                    endif()
                     list(APPEND op_name_list "${op_name}")
                     list(APPEND op_type_list "${op_type}")
                 endif()

@@ -14,24 +14,14 @@ if(UT_TEST_ALL OR OP_KERNEL_UT)
     ## set variables
     set(OP_KERNEL_UT_EXE ${PKG_NAME}_op_kernel_ut)
 
+    if(NOT fastOpTestSocVersions)
+        message(STATUS "No op kernel UT cases found, creating empty target ${OP_KERNEL_UT_EXE}.")
+        add_custom_target(${OP_KERNEL_UT_EXE})
+        return()
+    endif()
+
     ## add opkernel ut cases dynamic lib: libras_op_kernel_ut_cases.so
     add_opkernel_ut_modules(${OP_KERNEL_MODULE_NAME})
-
-    ## add op tiling so
-    add_library(${OP_KERNEL_MODULE_NAME}_tiling SHARED
-            $<$<TARGET_EXISTS:${OPHOST_NAME}_tiling_obj>:$<TARGET_OBJECTS:${OPHOST_NAME}_tiling_obj>>
-            $<$<TARGET_EXISTS:${COMMON_NAME}_obj>:$<TARGET_OBJECTS:${COMMON_NAME}_obj>>
-            )
-    target_link_libraries(${OP_KERNEL_MODULE_NAME}_tiling PRIVATE
-            $<BUILD_INTERFACE:intf_llt_pub_asan_cxx17>
-            -Wl,--no-as-needed
-                $<$<TARGET_EXISTS:opsbase>:opsbase>
-            -Wl,--as-needed
-            -Wl,--whole-archive
-                rt2_registry_static
-            -Wl,--no-whole-archive
-            tiling_api
-            )
 
     ## add op kernel ut exe for each socVersion
     foreach (socVersion ${fastOpTestSocVersions})
@@ -43,9 +33,16 @@ if(UT_TEST_ALL OR OP_KERNEL_UT)
             test_op_kernel_main.cpp
         )
         target_include_directories(${OP_KERNEL_UT_EXE}_${socVersion} PRIVATE
+            ${CMAKE_CURRENT_SOURCE_DIR}
             ${ASCEND_DIR}/${SYSTEM_PREFIX}/pkg_inc
         )
-        add_dependencies(${OP_KERNEL_UT_EXE}_${socVersion} ${OP_KERNEL_MODULE_NAME}_tiling)
+        get_property(lib_list GLOBAL PROPERTY OPKERNEL_OBJECT_LIBS)
+        foreach(lib_name ${lib_list})
+            target_link_libraries(${OP_KERNEL_UT_EXE}_${socVersion} PRIVATE
+                    -Wl,--no-as-needed
+                    ${lib_name}
+                    )
+        endforeach()
         target_link_libraries(${OP_KERNEL_UT_EXE}_${socVersion} PRIVATE
                 $<BUILD_INTERFACE:intf_llt_pub_asan>
                 -Wl,--no-as-needed

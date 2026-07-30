@@ -2,6 +2,7 @@
 <config name="ops_ras" copy_type="delivery" src_path="" dst_path="ops_ras" install_type="all" install_mod="550" install_own="$username:$usergroup">
     <package_info>
         <product_name>cann</product_name>
+        <share_info_name>ops_ras</share_info_name>
         <func_name>ops-ras</func_name>
         <suffix>run</suffix>
         <install_script>share/info/ops_ras/script/install.sh</install_script>
@@ -9,8 +10,9 @@
         <version>package/ops_ras/version.xml</version>
         <cleanup>share/info/ops_ras/script/cleanup.sh</cleanup>
         <check_features>true</check_features>
+        <copy_all>true</copy_all>
     </package_info>
-    <generate_info value="ops_ras_version.h" dst_path="share/info/ops_ras" install_path="$(TARGET_ENV)/include/version" install_mod="440" install_type="devel" generator="version_header">
+    <generate_info value="ops_ras_version.h" dst_path="$(TARGET_ENV)/include/version" install_path="$(TARGET_ENV)/include/version" install_mod="440" install_type="devel" generator="version_header">
        <OPS_RAS_VERSION>$(ASCEND_VER)</OPS_RAS_VERSION>
        <OPS_RAS_TIMESTAMP>$(TIMESTAMP_NO)</OPS_RAS_TIMESTAMP>
     </generate_info>
@@ -24,19 +26,31 @@
         <file value="script" entity="true"/>
         <file value="version.info"/>
     </file_info>
+    <file_info value="ops_es_packages_lib" copy_type="delivery" src_path=""
+        dst_path="$(TARGET_ENV)/lib64"
+        install_path="$(TARGET_ENV)/lib64" install_mod="555" optional="true">
+        <file value="libes_ras.so" file_type="shared" optional="true"/>
+    </file_info>
+    <file_info copy_type="source" src_path=""
+        dst_path="$(TARGET_ENV)/include/es"
+        install_path="$(TARGET_ENV)/include/es" install_type="all" optional="true">
+        <file value="es_ras" install_mod="555" entity="true" optional="true"/>
+    </file_info>
     <!--block_info-->
-    <block_info dependtree="false" dst_path="ops_ras" block_conf_path="ascend">
+    <block_info dependtree="false" dst_path="" block_conf_path="ascend">
         <block name="EngineeringCommon"/>
         <block name="EngineeringFiles"/>
     </block_info>
-    <block_info dependtree="false" dst_path="opp" block_conf_path="ascend">
+    <block_info dependtree="false" dst_path="" block_conf_path="ascend">
         <block name="OpsRasInfo"/>
     </block_info>
     <!--dir_info-->
     <dir_info value="ops_ras" install_path="ops_ras" install_mod="550" install_type="all">
-        <path value="share" install_mod="550"/>
+        <path value="share" install_mod="750"/>
         <path value="share/info" install_mod="750"/>
         <path value="share/info/ops_ras" install_mod="550"/>
         <path value="share/info/ops_ras/script" install_mod="550"/>
+        <path value="python" install_mode="750"/>
+        <path value="python/site-packages" install_mode="750"/>
     </dir_info>
 </config>

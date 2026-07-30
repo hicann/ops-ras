@@ -9,10 +9,8 @@
 # ----------------------------------------------------------------------------
 #### CPACK to package run #####
 
-# download makeself package
-include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/third_party/makeself-fetch.cmake)
-
 function(pack_custom)
+  add_cann_third_party(makeself-fetch)
 
   npu_op_package(${PACK_CUSTOM_NAME}
     TYPE RUN
@@ -31,17 +29,27 @@ function(pack_custom)
   if(TARGET ${OPHOST_NAME}_opapi_obj OR TARGET opbuild_gen_aclnn_all)
     list(APPEND op_package_list cust_opapi)
   endif()
-  if(TARGET ${OPHOST_NAME}_infer_obj)
+  if(TARGET cust_proto)
     list(APPEND op_package_list cust_proto)
   endif()
   if(TARGET ${OPHOST_NAME}_tiling_obj)
     list(APPEND op_package_list cust_opmaster)
   endif()
 
-  npu_op_package_add(${PACK_CUSTOM_NAME}
-    LIBRARY
-      ${op_package_list}
-  )
+  list(LENGTH op_package_list OP_PACKAGE_LENGTH)
+  if(OP_PACKAGE_LENGTH GREATER 0)
+    npu_op_package_add(${PACK_CUSTOM_NAME}
+      LIBRARY
+        ${op_package_list}
+    )
+  endif()
+
+  set(custom_proto_target "${PACK_CUSTOM_NAME}_ascendc_cust_op_proto")
+  if(TARGET ${custom_proto_target})
+    set_target_properties(${custom_proto_target} PROPERTIES
+      INSTALL_RPATH "\$ORIGIN/../../../es/lib/linux/${CMAKE_SYSTEM_PROCESSOR}"
+    )
+  endif()
 endfunction()
 
 macro(INSTALL_SCRIPTS src_path)
@@ -62,59 +70,48 @@ endmacro()
 function(pack_built_in)
   # 打印路径
   message(STATUS "CMAKE_INSTALL_PREFIX = ${CMAKE_INSTALL_PREFIX}")
-  message(STATUS "CMAKE_SOURCE_DIR = ${CMAKE_SOURCE_DIR}")
+  message(STATUS "CANN_CMAKE_DIR = ${CANN_CMAKE_DIR}")
   message(STATUS "CMAKE_BINARY_DIR = ${CMAKE_BINARY_DIR}")
 
   set(script_prefix ${CMAKE_CURRENT_SOURCE_DIR}/scripts/package/ops_ras/scripts)
   INSTALL_SCRIPTS(${script_prefix})
 
   set(SCRIPTS_FILES
-      ${CMAKE_SOURCE_DIR}/scripts/package/common/sh/check_version_required.awk
-      ${CMAKE_SOURCE_DIR}/scripts/package/common/sh/common_func.inc
-      ${CMAKE_SOURCE_DIR}/scripts/package/common/sh/common_interface.sh
-      ${CMAKE_SOURCE_DIR}/scripts/package/common/sh/common_interface.csh
-      ${CMAKE_SOURCE_DIR}/scripts/package/common/sh/common_interface.fish
-      ${CMAKE_SOURCE_DIR}/scripts/package/common/sh/version_compatiable.inc
+      ${CANN_CMAKE_DIR}/scripts/install/check_version_required.awk
+      ${CANN_CMAKE_DIR}/scripts/install/common_func.inc
+      ${CANN_CMAKE_DIR}/scripts/install/common_interface.sh
+      ${CANN_CMAKE_DIR}/scripts/install/common_interface.csh
+      ${CANN_CMAKE_DIR}/scripts/install/common_interface.fish
+      ${CANN_CMAKE_DIR}/scripts/install/version_compatiable.inc
   )
 
   install(FILES ${SCRIPTS_FILES}
       DESTINATION share/info/ops_ras/script
   )
   set(COMMON_FILES
-      ${CMAKE_SOURCE_DIR}/scripts/package/common/sh/install_common_parser.sh
-      ${CMAKE_SOURCE_DIR}/scripts/package/common/sh/common_func_v2.inc
-      ${CMAKE_SOURCE_DIR}/scripts/package/common/sh/common_installer.inc
-      ${CMAKE_SOURCE_DIR}/scripts/package/common/sh/script_operator.inc
-      ${CMAKE_SOURCE_DIR}/scripts/package/common/sh/version_cfg.inc
+      ${CANN_CMAKE_DIR}/scripts/install/install_common_parser.sh
+      ${CANN_CMAKE_DIR}/scripts/install/common_func_v2.inc
+      ${CANN_CMAKE_DIR}/scripts/install/common_installer.inc
+      ${CANN_CMAKE_DIR}/scripts/install/script_operator.inc
+      ${CANN_CMAKE_DIR}/scripts/install/version_cfg.inc
   )
 
   set(PACKAGE_FILES
       ${COMMON_FILES}
-      ${CMAKE_SOURCE_DIR}/scripts/package/common/sh/multi_version.inc
-  )
-  set(LATEST_MANGER_FILES
-      ${COMMON_FILES}
-      ${CMAKE_SOURCE_DIR}/scripts/package/common/sh/common_func.inc
-      ${CMAKE_SOURCE_DIR}/scripts/package/common/sh/version_compatiable.inc
-      ${CMAKE_SOURCE_DIR}/scripts/package/common/sh/check_version_required.awk
+      ${CANN_CMAKE_DIR}/scripts/install/multi_version.inc
   )
   set(CONF_FILES
-      ${CMAKE_SOURCE_DIR}/scripts/package/common/cfg/path.cfg
+      ${CANN_CMAKE_DIR}/scripts/package/cfg/path.cfg
   )
-  install(FILES ${CMAKE_SOURCE_DIR}/version.info
+  install(FILES ${CMAKE_BINARY_DIR}/version.ops-ras.info
       DESTINATION share/info/ops_ras
+      RENAME version.info
   )
   install(FILES ${CONF_FILES}
-      DESTINATION ops_ras/conf
+      DESTINATION ${CMAKE_SYSTEM_PROCESSOR}-linux/conf
   )
   install(FILES ${PACKAGE_FILES}
       DESTINATION share/info/ops_ras/script
-  )
-  install(FILES ${LATEST_MANGER_FILES}
-      DESTINATION latest_manager
-  )
-  install(DIRECTORY ${CMAKE_SOURCE_DIR}/scripts/package/latest_manager/scripts/
-      DESTINATION latest_manager
   )
 
   string(FIND "${ASCEND_COMPUTE_UNIT}" ";" SEMICOLON_INDEX)
@@ -131,28 +128,19 @@ function(pack_built_in)
   set(script_with_soc_prefix ${CMAKE_CURRENT_SOURCE_DIR}/scripts/package/ops_ras/scripts)
   INSTALL_SCRIPTS(${script_with_soc_prefix})
 
+  # 打包可选的 cann_ops_ras whl；PR8 未落地时安全跳过。
+  set(WHL_SOURCE_DIR "${CMAKE_SOURCE_DIR}/torch_extension/dist")
+  file(GLOB WHL_FILES "${WHL_SOURCE_DIR}/cann_ops_ras-*.whl")
+
+  if(WHL_FILES)
+      install(FILES ${WHL_FILES}
+          DESTINATION python/site-packages
+      )
+      message(STATUS "Including whl package: ${WHL_FILES}")
+  else()
+      message(STATUS "Optional cann_ops_ras whl not found in ${WHL_SOURCE_DIR}, skipping")
+  endif()
+
   include(${CMAKE_SOURCE_DIR}/cmake/runtimeKB.cmake)
-
-  # ============= CPack =============
-  set(CPACK_PACKAGE_NAME "${PROJECT_NAME}")
-  set(CPACK_PACKAGE_VERSION "${PROJECT_VERSION}")
-  set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}-${CMAKE_SYSTEM_NAME}")
-
-  set(CPACK_INSTALL_PREFIX "/")
-
-  set(CPACK_CMAKE_SOURCE_DIR "${CMAKE_SOURCE_DIR}")
-  set(CPACK_CMAKE_BINARY_DIR "${CMAKE_BINARY_DIR}")
-  set(CPACK_CMAKE_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}")
-  set(CPACK_CMAKE_CURRENT_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
-  set(CPACK_MAKESELF_PATH "${MAKESELF_PATH}")
-  set(CPACK_SOC "${compute_unit}")
-  set(CPACK_ARCH "${ARCH}")
-  set(CPACK_SET_DESTDIR ON)
-  set(CPACK_GENERATOR External)
-  set(CPACK_EXTERNAL_PACKAGE_SCRIPT "${CMAKE_SOURCE_DIR}/cmake/makeself_built_in.cmake")
-  set(CPACK_EXTERNAL_ENABLE_STAGING true)
-  set(CPACK_PACKAGE_DIRECTORY "${CMAKE_INSTALL_PREFIX}")
-
-  message(STATUS "CMAKE_INSTALL_PREFIX = ${CMAKE_INSTALL_PREFIX}")
-  include(CPack)
+  set_cann_cpack_config(ops-ras ENABLE_DEVICE ${ENABLE_DEVICE} COMPUTE_UNIT ${ASCEND_COMPUTE_UNIT} SHARE_INFO_NAME ops_ras)
 endfunction()
