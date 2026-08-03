@@ -50,7 +50,7 @@
         <path value="share/info" install_mod="750"/>
         <path value="share/info/ops_ras" install_mod="550"/>
         <path value="share/info/ops_ras/script" install_mod="550"/>
-        <path value="python" install_mode="750"/>
-        <path value="python/site-packages" install_mode="750"/>
+        <path value="python" install_mod="750"/>
+        <path value="python/site-packages" install_mod="750"/>
     </dir_info>
 </config>
