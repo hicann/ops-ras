@@ -1,27 +1,30 @@
 # aclnnCrypto
 
-## 产品支持情况
+<!-- md-trans-meta sourceCommit=unknown translatedAt=2026-07-30T01:46:18.382Z pushedAt=2026-07-30T03:35:18.412Z -->
 
-| 产品                                                    | 是否支持 |
-| :----------------------------------------------------------- | :------: |
-| <term>Ascend 950PR/Ascend 950DT</term>   |    ×    |
-| <term>Atlas A3 训练系列产品/Atlas A3 推理系列产品</term>     |     √    |
-| <term>Atlas A2 训练系列产品/Atlas A2 推理系列产品</term>     |     √    |
-| <term>Atlas 200I/500 A2 推理产品</term>                      |     ×    |
-| <term>Atlas 推理系列产品</term>                             |    ×     |
-| <term>Atlas 训练系列产品</term>                              |      ×     |
+## Applicable Products
 
-## 功能说明
+| Product                                                    | Supported |
+| :----------------------------------------------------------- | :-------: |
+| Ascend 950PR/Ascend 950DT  |     √     |
+| Atlas A3 training products/Atlas A3 inference products       |     √     |
+| Atlas A2 training products/Atlas A2 inference products       |     √     |
+| Atlas 200I/500 A2 inference products                         |     √     |
+| Atlas inference products                                     |     √     |
+| Atlas training products                                      |     ×     |
 
-- 接口功能：分为读秘钥功能和加解密功能。读秘钥功能获取spdm派生的加解密秘钥并写入device侧tensor，加解密功能使用已读取的秘钥对device侧tensor做加密/解密。
+## Function
 
-  读秘钥：读密钥前，host和device已经通过spdm派生了加解密秘钥，且调用者已经获取到要读取的秘钥的keyId。读秘钥时，通过uds从KMS-proxy按key_id, alg_type, key_type获取秘钥,并写入device侧的aclTensor key中。
+- Description: Includes a key reading function and an encryption/decryption function. The key reading function obtains the SPDM-derived encryption/decryption key and writes it to a device-side tensor. The encryption/decryption function uses the read key to encrypt or decrypt a device-side tensor.
 
-  加解密：加解密时，采用标准AES_CTR_128和AES_GCM_128算法计算加解密。使用的秘钥为传入的device侧aclTensor key (已经由读秘钥功能写入)。使用的iv和tag可由host传到device侧。
+  Key reading: Before reading the key, the host and device have already derived the encryption/decryption key through SPDM, and the caller has obtained the keyId of the key to be read. When reading the key, the key is obtained from KMS-proxy via UDS by key_id, alg_type, and key_type, and written to the device-side aclTensor key.
 
-## 函数原型
+  Encryption/decryption: During encryption/decryption, standard AES_CTR_128 and AES_GCM_128 algorithms are used for computation. The key used is the passed device-side aclTensor key (already written by the key reading function). The iv and tag used can be passed from the host to the device side.
 
-每个算子分为两段式接口，必须先调用“aclnnCryptoGetWorkspaceSize”接口获取计算所需workspace大小以及包含了算子计算流程的执行器，再调用“aclnnCrypto”接口执行计算。
+## Function Prototype
+
+Each operator uses a two-phase API. You must first call the "aclnnCryptoGetWorkspaceSize" API to obtain the required workspace size and the executor that includes the operator computation flow, and then call the "aclnnCrypto" API to perform the computation.
+
 ```c++
 aclnnStatus aclnnCryptoAicpuGetWorkspaceSize(
   const aclTensor      *key,
@@ -46,7 +49,7 @@ aclnnStatus aclnnCryptoAicpu(
 
 ## aclnnCryptoGetWorkspaceSize
 
-- **参数说明**
+- **Parameters**
 
   <table style="undefined;table-layout: fixed; width: 1452px"><colgroup>
     <col style="width: 174px">
@@ -60,93 +63,91 @@ aclnnStatus aclnnCryptoAicpu(
     </colgroup>
     <thead>
       <tr>
-        <th>参数名</th>
-        <th>输入/输出</th>
-        <th>描述</th>
-        <th>使用说明</th>
-        <th>数据类型</th>
-        <th>数据格式</th>
-        <th>维度(shape)</th>
-        <th>非连续Tensor</th>
+        <th>Parameter</th>
+        <th>Input/Output</th>
+        <th>Description</th>
+        <th>Instruction</th>
+        <th>Data Type</th>
+        <th>Data Format</th>
+        <th>Dimension (Shape)</th>
+        <th>Non-contiguous Tensor</th>
       </tr></thead>
     <tbody>
       <tr>
-        <td>key(aclTensor*)</td>
-        <td>输入</td>
-        <td>算子使用的秘钥。</td>
-        <td>不支持空Tensor。</td>
+        <td>key (aclTensor*)</td>
+        <td>Input</td>
+        <td>The key used by the operator.</td>
+        <td>Does not support null tensor.</td>
         <td>UINT8</td>
         <td>ND</td>
-        <td>任意维度</td>
+        <td>Arbitrary Dimension</td>
         <td>√</td>
       </tr>
       <tr>
-        <td>inputText (aclTensor*) </td>
-        <td>输入</td>
-        <td>算子加解密输入的明文或密文。</td>
-        <td>
-            支持空Tensor，读密钥时可为空。
-            形状和类型需要与outputText一致。</td>
+        <td>inputText (aclTensor*)</td>
+        <td>Input</td>
+        <td>Specifies the plaintext or ciphertext input for operator encryption/decryption.</td>
+        <td>Supports null tensor. Nullable when reading key. The shape and type must be consistent with outputText.</td>
         <td>FLOAT, FLOAT16, INT32, INT64, INT16, INT8, UINT8, DOUBLE, BFLOAT16</td>
         <td>ND</td>
-        <td>任意维度</td>
+        <td>Arbitrary Dimension</td>
         <td>√</td>
       </tr>
       <tr>
         <td>outputText(aclTensor*)</td>
-        <td>输入/输出</td>
-        <td>算子加解密输出的明文或密文。</td>
-        <td>支持空Tensor，读密钥时可为空。形状和类型需要与inputText一致。</td>
+        <td>Input/Output</td>
+        <td>Specifies the plaintext or ciphertext output by the operator encryption/decryption.</td>
+        <td>Supports null tensor. Nullable when reading key. The shape and type must be consistent with inputText.</td>
         <td>FLOAT, FLOAT16, INT32, INT64, INT16, INT8, UINT8, DOUBLE, BFLOAT16</td>
         <td>ND</td>
-        <td>任意维度</td>
+        <td>Arbitrary Dimension</td>
         <td>√</td>
       </tr>
       <tr>
         <td>iv (aclTensor*)</td>
-        <td>输入</td>
-        <td>算子加解密使用的IV。</td>
-        <td>支持空Tensor，读密钥时可为空。</td>
+        <td>Input</td>
+        <td>IV used for operator encryption/decryption.</td>
+        <td>Supports null tensor. Nullable when reading key.</td>
         <td>UINT8</td>
         <td>ND</td>
-        <td>任意维度</td>
+        <td>Arbitrary Dimension</td>
         <td>√</td>
       </tr>
       <tr>
         <td>opConfig (aclTensor*)</td>
-        <td>输入</td>
-        <td>算子参数设置，结构为 {version, mode, alg_type, key_type, key_id, device_id}。</td>
-        <td>不支持空Tenosr。version表示算子版本，取值范围为[1,2], 1表示支持A2/A3的版本， 2表示支持A5的版本；mode表示算子工作模式，取值范围为[0,2], 0表示读取秘钥，1表示加密模式，2表示解密模式；alg_type表示算法类型，取值范围为[1,2], 1表示AES_CTR_128算法，2表示AES_GCM_128算法；key_type表示秘钥类型，取值范围为[1],默认为1，表示秘钥保存在key指向的张量内；key_id表示秘钥id，取值范围为[0,UINT32_MAX],从0开始，key_id越大说明秘钥越新；device_id表示设备id,取值范围为[0,63],从0开始</td>
+        <td>Input</td>
+        <td>Operator parameter configuration, structured as {version, mode, alg_type, key_type, key_id, device_id}.</td>
+        <td>Does not support null tensor. version indicates the operator version, with a value range of [1,2], where 1 indicates the version supporting A2/A3 and 2 indicates the version supporting A5. mode indicates the operator working mode, with a value range of [0,2], where 0 indicates key reading, 1 indicates encryption mode, and 2 indicates decryption mode. alg_type indicates the algorithm type, with a value range of [1,2], where 1 indicates the AES_CTR_128 algorithm and 2 indicates the AES_GCM_128 algorithm. key_type indicates the key type, with a value range of [1] and a default value of 1, indicating that the key is stored in the tensor pointed to by key. key_id indicates the key ID, with a value range of [0, UINT32_MAX], starting from 0, where a larger key_id indicates a newer key. device_id indicates the device ID, with a value range of [0,63], starting from 0.</td>
         <td>UINT32</td>
         <td>ND</td>
-        <td>任意维度</td>
+        <td>Arbitrary Dimension</td>
         <td>√</td>
       </tr>
       <tr>
         <td>tag (aclTensor*)</td>
-        <td>输入/输出</td>
-        <td>加解密使用的tag。</td>
-        <td>支持空Tensor,读密钥和aes-ctr-128加解密时可为空Tensor。</td>
+        <td>Input/Output</td>
+        <td>Tag used for encryption/decryption.</td>
+        <td>Supports null tensor. Nullable when reading key and during AES-CTR-128 encryption/decryption.</td>
         <td>UINT8</td>
         <td>ND</td>
-        <td>任意维度</td>
+        <td>Arbitrary Dimension</td>
         <td>√</td>
       </tr>
       <tr>
         <td>aad (aclTensor*)</td>
-        <td>输入/输出</td>
-        <td>算子使用的辅助信息。</td>
-        <td>仅支持空Tensor，目前不支持传入非空Tensor。</td>
+        <td>Input/Output</td>
+        <td>Auxiliary information used by the operator.</td>
+        <td>Supports only null tensor. Passing a non-null tensor is not supported.</td>
         <td>UINT8</td>
         <td>ND</td>
-        <td>任意维度</td>
+        <td>Arbitrary Dimension</td>
         <td>-</td>
       </tr>
       <tr>
         <td>out (aclTensor*)</td>
-        <td>输出</td>
-        <td>状态码，标识算子执行成功还是失败。</td>
-        <td>不支持空Tensor。</td>
+        <td>Output</td>
+        <td>Status code that indicates whether the operator execution succeeds or fails.</td>
+        <td>Does not support null tensor.</td>
         <td>UINT32</td>
         <td>ND</td>
         <td>(1)</td>
@@ -154,8 +155,8 @@ aclnnStatus aclnnCryptoAicpu(
       </tr>
       <tr>
         <td>workspaceSize(uint64_t)*</td>
-        <td>输出</td>
-        <td>返回用户需要在Device侧申请的workspace大小</td>
+        <td>Output</td>
+        <td>Returns the workspace size that the user needs to apply on the Device side.</td>
         <td>-</td>
         <td>-</td>
         <td>-</td>
@@ -164,8 +165,8 @@ aclnnStatus aclnnCryptoAicpu(
       </tr>
       <tr>
         <td>executor(aclOpExecutor**)</td>
-        <td>输出</td>
-        <td>返回op执行器，包含了算子计算流程</td>
+        <td>Output</td>
+        <td>Returns the op executor, which includes the operator computation flow.</td>
         <td>-</td>
         <td>-</td>
         <td>-</td>
@@ -175,11 +176,11 @@ aclnnStatus aclnnCryptoAicpu(
     </tbody>
   </table>
 
-- **返回值**
+- **Return Value**
 
-  aclnnStatus:返回状态码，具体参见 [aclnn返回码](../../../docs/zh/context/aclnn返回码.md)
+  aclnnStatus: Return status code. For details, see [aclnn Return Codes](../../../docs/en/context/aclnn_return_code.md).
 
-  第一段接口完成入参校验，出现以下场景时报错:
+  The first-phase API performs input parameter validation and returns an error in the following scenarios:
 
   <table style="undefined;table-layout: fixed;width: 1202px"><colgroup>
   <col style="width: 262px">
@@ -188,28 +189,29 @@ aclnnStatus aclnnCryptoAicpu(
   </colgroup>
   <thead>
     <tr>
-      <th>返回值</th>
-      <th>错误码</th>
-      <th>描述</th>
+      <th>Return Value</th>
+      <th>Error Code</th>
+      <th>Description</th>
     </tr>
   </thead>
   <tbody>
     <tr>
       <td>ACLNN_ERR_PARAM_NULLPTR</td>
       <td>161001</td>
-      <td>传入的指针存在空指针</td>
+      <td>The passed pointer is a null pointer.</td>
     </tr>
     <tr>
       <td>ACLNN_ERR_PARAM_INVALID</td>
       <td>161002</td>
-      <td>算子输入的数据类型和数据格式不在支持的范围之内</td>
+      <td>The data type or data format of the operator input is not within the supported range.</td>
     </tr>
   </tbody>
   </table>
 
 ## aclnnCrypto
 
-- **参数说明**
+- **Parameters**
+
   <table style="undefined;table-layout: fixed; width: 1154px"><colgroup>
   <col style="width: 153px">
   <col style="width: 121px">
@@ -217,55 +219,63 @@ aclnnStatus aclnnCryptoAicpu(
   </colgroup>
   <thead>
     <tr>
-      <th>参数名</th>
-      <th>输入/输出</th>
-      <th>描述</th>
+      <th>Parameter</th>
+      <th>Input/Output</th>
+      <th>Description</th>
     </tr></thead>
   <tbody>
     <tr>
       <td>workspace</td>
-      <td>输入</td>
-      <td>在Device侧申请的workspace内存地址</td>
+      <td>Input</td>
+      <td>Memory address of the workspace applied on the Device side.</td>
     </tr>
     <tr>
       <td>workspaceSize</td>
-      <td>输入</td>
-      <td>在Device侧申请的workspace大小，由第一段aclnnCryptoGetWorkspaceSize接口获取</td>
+      <td>Input</td>
+      <td>Size of the workspace applied on the Device side, obtained from the first-phase aclnnCryptoGetWorkspaceSize API.</td>
     </tr>
     <tr>
       <td>executor</td>
-      <td>输入</td>
-      <td>返回op执行器，包含了算子计算流程</td>
+      <td>Input</td>
+      <td>Returns the operator executor, which includes the operator calculation process.</td>
     </tr>
     <tr>
       <td>stream</td>
-      <td>输入</td>
-      <td>指定执行任务的Stream</td>
+      <td>Input</td>
+      <td>Specifies the stream for task execution.</td>
     </tr>
   </tbody>
   </table>
 
-- **返回值**
+- **Return Value**
 
-    返回aclnnStatus状态码，具体见[aclnn返回码](../../../docs/zh/context/aclnn返回码.md)
+Returns an aclnnStatus status code. For details, see [aclnn Return Codes](../../../docs/en/context/aclnn_return_code.md).
 
-## 约束说明
+## Constraints
 
-- 确定性计算： aclnnCrypto默认确定性实现。
+aclnnCrypto defaults to a deterministic implementation.
 
-- 入参约束：
-  1. opConfig.mode = 0 (读取秘钥)时，inputText, outputText, iv, tag可以为空(不为空但是类型和形状符合约束也不会报错)
-  2. key, opConfig, out不能为空
-  3. inputText和outputText不为空时，形状和大小要相同(类型相同，维数相同，每一维的大小相同)
-  4. 不为空的入参类型必须符合表格里的类型约束
-  5. opConfig.algType = 1 (AES-CTR-128算法)时，tag可以为空(不为空也不会使用该参数)
-  6. opConfig.algType = 2 (AES-GCM-128算法)时，tag不能为空
-  7. opConfig的参数必须符合定义，version取值1,2，mode取值0,1,2, algType取值1,2, keyType取值1，keyId取值 [0, UINT32_MAX], deviceId取值 [0,63]
-  8. 读秘钥时必须传入正确的keyId (一个keyId对应一个spdm已派生的加解密秘钥)，否则会报错
+Input Constraints:
 
-## 调用示例
+1. When opConfig.mode = 0 (read key), inputText, outputText, iv, and tag can be null (no error occurs if they are not null but their types and shapes comply with the constraints).
 
-示例代码如下，仅供参考，具体编译和执行过程请参考[编译与运行样例](../../../docs/zh/context/编译与运行样例.md)。
+  2. key, opConfig, and out cannot be null.
+
+  3. When inputText and outputText are not null, their shapes and sizes must be identical (same type, same number of dimensions, and same size in each dimension).
+
+  4. Non-null input parameters must conform to the type constraints in the table.
+
+  5. When opConfig.algType = 1 (AES-CTR-128 algorithm), tag can be null (if not null, this parameter is not used).
+
+  6. When opConfig.algType = 2 (AES-GCM-128 algorithm), tag cannot be null.
+
+  7. The parameters of opConfig must comply with the definition: version takes values 1 and 2, mode takes values 0, 1, and 2, algType takes values 1 and 2, keyType takes value 1, keyId takes values in [0, UINT32_MAX], and deviceId takes values in [0, 63].
+
+  8. When reading the key, a correct keyId must be passed in (one keyId corresponds to one SPDM-derived encryption/decryption key). Otherwise, an error is reported.
+
+## Example
+
+The sample code is as follows for reference only. For the specific compilation and execution process, see [Compile and Run Samples](../../../docs/en/context/compile_and_run_sample.md).
 
 ```cpp
 #include <iostream>
@@ -331,30 +341,30 @@ int aes_128_ctr_encrypt(const unsigned char *key, const unsigned char *iv,
     EVP_CIPHER_CTX *ctx = NULL;
     int len = 0, ciphertext_len = 0;
 
-    // 1. 创建并初始化加密上下文
+    // 1. Create and initialize the encryption context.
     if (!(ctx = EVP_CIPHER_CTX_new())) return -1;
 
-    // 2. 初始化加密算法：AES-128-CTR
+    // 2. Initialize the encryption algorithm: AES-128-CTR.
     if (1 != EVP_EncryptInit_ex(ctx, EVP_aes_128_ctr(), NULL, key, iv)) {
         EVP_CIPHER_CTX_free(ctx);
         return -1;
     }
 
-    // 3. 分块加密（支持任意长度数据）
+    // 3. Encrypt in blocks (supports data of arbitrary length).
     if (1 != EVP_EncryptUpdate(ctx, ciphertext, &len, plaintext, plaintext_len)) {
         EVP_CIPHER_CTX_free(ctx);
         return -1;
     }
     ciphertext_len += len;
 
-    // 4. 处理最后一块（CTR模式下此步骤无实际数据，但必须调用）
+    // 4. Process the last block (no actual data in CTR mode, but must be called).
     if (1 != EVP_EncryptFinal_ex(ctx, ciphertext + len, &len)) {
         EVP_CIPHER_CTX_free(ctx);
         return -1;
     }
     ciphertext_len += len;
 
-    // 5. 释放上下文
+    // 5. Release the context.
     EVP_CIPHER_CTX_free(ctx);
     if (ciphertext_len != plaintext_len) {
         return -1;
@@ -368,29 +378,29 @@ int aes_128_ctr_decrypt(const unsigned char *key, unsigned char *iv,
     EVP_CIPHER_CTX *ctx = NULL;
     int len = 0, plaintext_len = 0;
 
-    // 1. 创建并初始化解密上下文
+    // 1. Create and initialize the decryption context.
     if (!(ctx = EVP_CIPHER_CTX_new())) return -1;
 
-    // 2. 初始化解密算法：AES-128-CTR
+    // 2. Initialize the decryption algorithm: AES-128-CTR.
     if (1 != EVP_DecryptInit_ex(ctx, EVP_aes_128_ctr(), NULL, key, iv)) {
         EVP_CIPHER_CTX_free(ctx);
         return -1;
     }
 
-    // 3. 分块解密
+    // 3. Decrypt in blocks.
     if (1 != EVP_DecryptUpdate(ctx, plaintext, &len, ciphertext, ciphertext_len)) {
         EVP_CIPHER_CTX_free(ctx);
         return -1;
     }
     plaintext_len += len;
 
-    // 4. 处理最后一块（CTR模式下无实际数据，但必须调用）
+    // 4. Process the last block (no actual data in CTR mode, but must be called).
     if (1 != EVP_DecryptFinal_ex(ctx, plaintext + len, &len)) {
         EVP_CIPHER_CTX_free(ctx);
         return -1;
     }
     plaintext_len += len;
-    // 5. 释放上下文
+    // 5. Release the context.
     EVP_CIPHER_CTX_free(ctx);
 
     if (ciphertext_len != plaintext_len) {
@@ -452,9 +462,9 @@ int aes_128_gcm_decrypt(unsigned char *key, unsigned char *iv,
         EVP_CIPHER_CTX_free(ctx);
         return -3;
     }
-    // 释放
+    // Release.
     EVP_CIPHER_CTX_free(ctx);
-    // GCM密文长度 = 明文长度
+    // GCM ciphertext length = plaintext length.
     if (plaintext_len != ciphertext_len) {
         return -4;
     }
@@ -528,7 +538,7 @@ void HostCryptoGcm(unsigned char *key, unsigned char *iv, int text_len, unsigned
     if (mode == 1) {
         res = aes_128_gcm_encrypt(reinterpret_cast<unsigned char *>(key), reinterpret_cast<unsigned char *>(iv), input_data, text_len, reinterpret_cast<unsigned char *>(out_data), tag);
     }
-    else if (mode == 2) { // 先加密再解密
+    else if (mode == 2) { // Encrypt first, then decrypt.
         std::vector<uint8_t> org_data(text_len, 1);
         res = aes_128_gcm_encrypt(reinterpret_cast<unsigned char *>(key), reinterpret_cast<unsigned char *>(iv), reinterpret_cast<unsigned char *>(org_data.data()), text_len, reinterpret_cast<unsigned char *>(input_data), tag);
         if (res != 0) {
@@ -557,7 +567,7 @@ void HostCryptoGcm(unsigned char *key, unsigned char *iv, int text_len, unsigned
 }
 
 int main(int argc, char *argv[]) {
-    // ===================== 1. 初始化 =====================
+    // ===================== 1. Initialization =====================
 
     int msg_len = std::stoi(argv[1]);
     int mode = std::stoi(argv[2]);
@@ -568,17 +578,17 @@ int main(int argc, char *argv[]) {
     auto ret = Init(deviceId, &stream);
     CHECK_RET(ret == 0, LOG_PRINT("Init acl failed. ERROR: %d\n", ret); return ret);
     printf("start\n");
-    // ===================== 2. 构造所有输入输出Tensor =====================
-    // 你可以根据算子实际需求修改shape和数据
-    std::vector<int64_t> shape_scalar = {1};       // 标量用shape [1]
+    // ===================== 2. Construct all input and output tensors =====================
+    // Modify the shape and data based on actual operator requirements.
+    std::vector<int64_t> shape_scalar = {1};       // Use shape [1] for scalars.
     std::vector<int64_t> key_shape_data = {16};        // key shape
     std::vector<int64_t> input_shape_data = {msg_len};
     std::vector<int64_t> iv_shape_data = {32};
     std::vector<int64_t> shape_op_cfg = {6};
-    std::vector<int64_t> shape_output = {msg_len};      // 输出shape
+    std::vector<int64_t> shape_output = {msg_len};      // Output shape.
     std::vector<int64_t> shape_y = {1};
     std::vector<int64_t> shape_tag = {GCM_TAG_SIZE};
-    // 设备地址
+    // Device address.
     void* keyDeviceAddr = nullptr;
     void* inputDeviceAddr = nullptr;
     void* outputDeviceAddr = nullptr;
@@ -588,7 +598,7 @@ int main(int argc, char *argv[]) {
     void* yDeviceAddr = nullptr;
 
 
-    // Tensor指针
+    // Tensor pointer.
     aclTensor* key = nullptr;
     aclTensor* input = nullptr;
     aclTensor* iv = nullptr;
@@ -597,14 +607,14 @@ int main(int argc, char *argv[]) {
     aclTensor* output = nullptr;
     aclTensor* y = nullptr;
 
-    // 构造测试数据（全部使用Tensor）
-    std::vector<uint8_t> keyHostData(16, 0x11);            // key数据
-    std::vector<uint8_t> inputHostData(msg_len, 0x00);         // 输入数据
+    // Construct test data (all using Tensor).
+    std::vector<uint8_t> keyHostData(16, 0x11);            // Key data.
+    std::vector<uint8_t> inputHostData(msg_len, 0x00);         // Input data.
 
     std::vector<uint8_t> ivHostData(16, 0x1f);            // iv
-    std::vector<uint32_t> opConfigHostData = {1, static_cast<uint32_t>(mode), static_cast<uint32_t>(alg_type), 1, 34, 0};          // 配置version, mode, alg_type, key_type, keyId, device_id
-    std::vector<uint8_t> outputHostData(msg_len, 0);           // 输出
-    std::vector<uint32_t> yHostData = {0};           // 输出
+    std::vector<uint32_t> opConfigHostData = {1, static_cast<uint32_t>(mode), static_cast<uint32_t>(alg_type), 1, 34, 0};          // Configure version, mode, alg_type, key_type, keyId, and device_id.
+    std::vector<uint8_t> outputHostData(msg_len, 0);           // Output.
+    std::vector<uint32_t> yHostData = {0};           // Output.
 
     std::vector<uint8_t> outExpectedData(msg_len, 0);
     std::vector<uint8_t> tagHostData(16, 0);
@@ -614,7 +624,7 @@ int main(int argc, char *argv[]) {
         HostCryptoGcm(reinterpret_cast<unsigned char*>(keyHostData.data()), reinterpret_cast<unsigned char*>(ivHostData.data()), msg_len, reinterpret_cast<unsigned char*>(inputHostData.data()), reinterpret_cast<unsigned char*>(outExpectedData.data()), reinterpret_cast<unsigned char*>(tagHostData.data()), mode);
     }
 
-    // ===================== 创建所有aclTensor =====================
+    // ===================== Create all aclTensors =====================
     CreateAclTensor(keyHostData, key_shape_data, &keyDeviceAddr, ACL_UINT8, &key);
 
     CreateAclTensor(inputHostData, input_shape_data, &inputDeviceAddr, ACL_UINT8, &input);
@@ -626,7 +636,7 @@ int main(int argc, char *argv[]) {
 
     CreateAclTensor(tagHostData, shape_tag, &tagRefOptionalDeviceAddr, ACL_UINT8, &tagRefOptional);
     printf("tensor created\n");
-    // ===================== 3. 调用自定义算子aclnnCrypto =====================
+    // ===================== 3. Call the custom operator aclnnCrypto. =====================
     uint64_t workspaceSize = 0;
     aclOpExecutor* executor = nullptr;
 
@@ -644,22 +654,22 @@ int main(int argc, char *argv[]) {
     );
     CHECK_RET(ret == ACL_SUCCESS, LOG_PRINT("aclnnCryptoGetWorkspaceSize failed retCode: %d\n", ret); return ret);
     printf("getworkspaceSIze %d\n", workspaceSize);
-    // 申请workspace
+    // Allocate workspace.
     void* workspaceAddr = nullptr;
     if (workspaceSize > 0) {
         ret = aclrtMalloc(&workspaceAddr, workspaceSize, ACL_MEM_MALLOC_HUGE_FIRST);
         CHECK_RET(ret == ACL_SUCCESS, LOG_PRINT("malloc workspace failed\n"); return ret);
     }
     printf("malloc workspaceSize\n");
-    // 【第二段】执行算子
+    // [Second Phase] Execute the operator.
     ret = aclnnCrypto(workspaceAddr, workspaceSize, executor, stream);
     CHECK_RET(ret == ACL_SUCCESS, LOG_PRINT("aclnnCrypto execute failed retCode: %d\n",ret); return ret);
 
-    // ===================== 4. 同步流 =====================
+    // ===================== 4. Synchronize the stream. =====================
     ret = aclrtSynchronizeStream(stream);
     CHECK_RET(ret == ACL_SUCCESS, LOG_PRINT("stream sync failed %d \n", ret); return ret);
 
-    // ===================== 5. 拷贝输出到主机并打印 =====================
+    // ===================== 5. Copy the output to the host and print. =====================
     auto outSize = GetShapeSize(shape_output);
     std::vector<uint8_t> result(outSize);
     ret = aclrtMemcpy(
@@ -712,7 +722,7 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    // ===================== 6. 销毁资源 =====================
+    // ===================== 6. Destroy Resources =====================
     aclDestroyTensor(key);
     aclDestroyTensor(input);
     aclDestroyTensor(iv);

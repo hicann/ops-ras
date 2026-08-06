@@ -1,25 +1,27 @@
 # aclnnObfuscationCalculate
 
-## 产品支持情况
+<!-- md-trans-meta sourceCommit=unknown translatedAt=2026-07-30T01:47:45.560Z pushedAt=2026-07-30T03:35:18.426Z -->
 
-| 产品                                                         | 是否支持 |
-| :----------------------------------------------------------- | :------: |
-| <term>Ascend 950PR/Ascend 950DT</term>                             |    ×     |
-| <term>Atlas A3 训练系列产品/Atlas A3 推理系列产品</term>     |    ×     |
-| <term>Atlas A2 训练系列产品/Atlas A2 推理系列产品</term>     |    √     |
-| <term>Atlas 200I/500 A2 推理产品</term>                      |    ×     |
-| <term>Atlas 推理系列产品</term>                             |    √     |
-| <term>Atlas 训练系列产品</term>                              |    ×     |
+## Applicable Products
 
-## 功能说明
+| Product                                                        | Supported |
+| :------------------------------------------------------------- | :-------: |
+| Ascend 950PR/Ascend 950DT                                      |     ×     |
+| <term>Atlas A3 training products/Atlas A3 inference products</term> |     ×     |
+| <term>Atlas A2 training products/Atlas A2 inference products</term> |     √     |
+| <term>Atlas 200I/500 A2 inference products</term>              |     ×     |
+| <term>Atlas inference products</term>                          |     √     |
+| <term>Atlas training products</term>                           |     ×     |
 
-- 接口功能：将张量x和配置参数（如param、cmd）发送至PMCC混淆引擎。引擎的CA模块调用TA模块，进行张量混淆处理，最终返回shape与x一致的混淆后的张量y。
+## Function
 
-- 背景：PMCC（Privacy&Model Confidential Computing）模型混淆特性利用CPU核中的TrustZone可信执行环境隔离存储混淆因子、派生混淆掩码、执行动态掩码添加。PMCC基于NPU TrustZone构建了模型混淆引擎CA（普通OS中的Client Application）与模型混淆引擎TA（TEE OS中的Trusted Application）。为了使模型在推理执行过程中能够访问模型混淆引擎TA，通过AICPU算子机制及NPU卡内localhost socket进行中转。
+- Description: Sends the tensor x and configuration parameters (such as param and cmd) to the PMCC obfuscation engine. The CA module of the engine calls the TA module to perform tensor obfuscation, and finally returns an obfuscated tensor y with the same shape as x.
 
-## 函数原型
+- Background: The PMCC (Privacy & Model Confidential Computing) model obfuscation feature uses the TrustZone trusted execution environment in the CPU core to isolate and store obfuscation factors, derive obfuscation masks, and perform dynamic mask addition. PMCC builds the model obfuscation engine CA (Client Application in the normal OS) and the model obfuscation engine TA (Trusted Application in the TEE OS) based on the NPU TrustZone. To enable the model to access the model obfuscation engine TA during inference execution, the AICPU operator mechanism and the localhost socket within the NPU card are used for relay.
 
-每个算子分为[两段式接口](../../../docs/zh/context/两段式接口.md)，必须先调用 “aclnnObfuscationCalculateGetWorkspaceSize”接口获取计算所需workspace大小以及包含了算子计算流程的执行器，再调用“aclnnObfuscationCalculate”接口执行计算。
+## Function Prototype
+
+Each operator is divided into a [two-phase API](../../../docs/en/context/two_phase_api.md). You must first call the "aclnnObfuscationCalculateGetWorkspaceSize" API to obtain the workspace size required for computation and the executor that contains the operator computation process, and then call the "aclnnObfuscationCalculate" API to perform the computation.
 
 ```c++
 aclnnStatus aclnnObfuscationCalculateGetWorkspaceSize(
@@ -42,7 +44,7 @@ aclnnStatus aclnnObfuscationCalculate(
 
 ## aclnnObfuscationCalculateGetWorkspaceSize
 
-- **参数说明**
+- **Parameters**
 
   <table style="undefined;table-layout: fixed; width: 1452px"><colgroup>
     <col style="width: 174px">
@@ -56,21 +58,21 @@ aclnnStatus aclnnObfuscationCalculate(
     </colgroup>
     <thead>
       <tr>
-        <th>参数名</th>
-        <th>输入/输出</th>
-        <th>描述</th>
-        <th>使用说明</th>
-        <th>数据类型</th>
-        <th>数据格式</th>
-        <th>维度(shape)</th>
-        <th>非连续Tensor</th>
+        <th>Parameter</th>
+        <th>Input/Output</th>
+        <th>Description</th>
+        <th>Instruction</th>
+        <th>Data Type</th>
+        <th>Data Format</th>
+        <th>Dimension (shape)</th>
+        <th>Non-contiguous Tensor</th>
       </tr></thead>
     <tbody>
       <tr>
-        <td>fd（int32_t）</td>
-        <td>输入</td>
-        <td>socket连接符。</td>
-        <td>数据类型为INT32。</td>
+        <td>fd (int32_t)</td>
+        <td>Input</td>
+        <td>Socket connector.</td>
+        <td>The data type is INT32.</td>
         <td>INT32</td>
         <td>ND</td>
         <td>-</td>
@@ -78,48 +80,48 @@ aclnnStatus aclnnObfuscationCalculate(
       </tr>
       <tr>
         <td>x（const aclTensor*）</td>
-        <td>输入</td>
-        <td>待混淆处理的张量。</td>
-        <td>不支持空Tensor。</td>
-        <td>FLOAT、FLOAT16、INT8、BFLOAT16</td>
+        <td>Input</td>
+        <td>The tensor to be obfuscated.</td>
+        <td>Empty tensors are not supported.</td>
+        <td>FLOAT, FLOAT16, INT8, BFLOAT16</td>
         <td>ND</td>
         <td>[...,H]</td>
         <td>×</td>
       </tr>
       <tr>
-        <td>param（int32_t）</td>
-        <td>输入</td>
-        <td>预留的参数字段。</td>
-        <td>当前版本仅支持0。</td>
+        <td>param (int32_t)</td>
+        <td>Input</td>
+        <td>Reserved parameter field.</td>
+        <td>Only 0 is supported in the current version.</td>
         <td>INT32</td>
         <td>-</td>
         <td>-</td>
         <td>-</td>
       </tr>
       <tr>
-        <td>cmd（int32_t）</td>
-        <td>输入</td>
-        <td>混淆算子指令编号。</td>
-        <td>当前版本仅支持1。</td>
+        <td>cmd (int32_t)</td>
+        <td>Input</td>
+        <td>Obfuscation operator instruction number.</td>
+        <td>Only 1 is supported in the current version.</td>
         <td>INT32</td>
         <td>-</td>
         <td>-</td>
         <td>-</td>
       </tr>
       <tr>
-        <td>y（aclTensor*）</td>
-        <td>输出</td>
-        <td>混淆处理后的张量。</td>
-        <td>数据类型及Shape与x相同。</td>
-        <td>FLOAT、FLOAT16、INT8、BFLOAT16</td>
+        <td>y (aclTensor*)</td>
+        <td>Output</td>
+        <td>The obfuscated tensor.</td>
+        <td>The data type and shape are the same as those of x.</td>
+        <td>FLOAT, FLOAT16, INT8, BFLOAT16</td>
         <td>ND</td>
         <td>[...,H]</td>
         <td>×</td>
       </tr>
       <tr>
-        <td>workspaceSize（uint64_t*）</td>
-        <td>输出</td>
-        <td>返回用户需要在Device侧申请的workspace大小。</td>
+        <td>workspaceSize (uint64_t*)</td>
+        <td>Output</td>
+        <td>Returns the workspace size that the user needs to allocate on the Device side.</td>
         <td>-</td>
         <td>-</td>
         <td>-</td>
@@ -127,9 +129,9 @@ aclnnStatus aclnnObfuscationCalculate(
         <td>-</td>
       </tr>
       <tr>
-        <td>executor（aclOpExecutor**）</td>
-        <td>输出</td>
-        <td>返回op执行器，包含了算子计算流程。</td>
+        <td>executor (aclOpExecutor**)</td>
+        <td>Output</td>
+        <td>Returns the op executor, which contains the operator computation flow.</td>
         <td>-</td>
         <td>-</td>
         <td>-</td>
@@ -139,13 +141,13 @@ aclnnStatus aclnnObfuscationCalculate(
     </tbody>
   </table>
 
-- <term>Atlas 推理系列产品</term>：不支持BFLOAT16
+- <term>Atlas inference products</term>: BFLOAT16 is not supported.
 
-- **返回值**
+- **Return Value**
 
-  aclnnStatus：返回状态码，具体参见[aclnn返回码](../../../docs/zh/context/aclnn返回码.md)。
+  aclnnStatus: return status code. For details, see [aclnn Return Codes](../../../docs/en/context/aclnn_return_code.md).
 
-  第一段接口完成入参校验，出现以下场景时报错：
+  The first-phase API performs input parameter validation and returns an error in the following scenarios:
 
   <table style="undefined;table-layout: fixed;width: 1202px"><colgroup>
   <col style="width: 262px">
@@ -154,34 +156,35 @@ aclnnStatus aclnnObfuscationCalculate(
   </colgroup>
   <thead>
     <tr>
-      <th>返回值</th>
-      <th>错误码</th>
-      <th>描述</th>
+      <th>Return Value</th>
+      <th>Error Code</th>
+      <th>Description</th>
     </tr>
   </thead>
   <tbody>
     <tr>
       <td>ACLNN_ERR_PARAM_NULLPTR</td>
       <td>161001</td>
-      <td>传入的x或y是空指针。</td>
+      <td>The input x or y is a null pointer.</td>
     </tr>
     <tr>
       <td rowspan="3">ACLNN_ERR_PARAM_INVALID</td>
       <td rowspan="3">161002</td>
-      <td>x的数据类型和数据格式不在支持的范围之内。</td>
+      <td>The data type and data format of x are not within the supported range.</td>
     </tr>
     <tr>
-      <td>x和y的数据类型不一致。</td>
+      <td>The data types of x and y are inconsistent.</td>
     </tr>
     <tr>
-      <td>x和y的形状不一致。</td>
+      <td>The shapes of x and y are inconsistent.</td>
     </tr>
   </tbody>
   </table>
 
 ## aclnnObfuscationCalculate
 
-- **参数说明**
+- **Parameters**
+
   <table style="undefined;table-layout: fixed; width: 1154px"><colgroup>
   <col style="width: 153px">
   <col style="width: 121px">
@@ -189,51 +192,55 @@ aclnnStatus aclnnObfuscationCalculate(
   </colgroup>
   <thead>
     <tr>
-      <th>参数名</th>
-      <th>输入/输出</th>
-      <th>描述</th>
+      <th>Parameter</th>
+      <th>Input/Output</th>
+      <th>Description</th>
     </tr></thead>
   <tbody>
     <tr>
       <td>workspace</td>
-      <td>输入</td>
-      <td>在Device侧申请的workspace内存地址。</td>
+      <td>Input</td>
+      <td>Workspace memory address allocated on the Device side.</td>
     </tr>
     <tr>
       <td>workspaceSize</td>
-      <td>输入</td>
-      <td>在Device侧申请的workspace大小，由第一段接口aclnnObfuscationCalculateGetWorkspaceSize获取。</td>
+      <td>Input</td>
+      <td>Workspace size allocated on the Device side, obtained from the first-phase API aclnnObfuscationCalculateGetWorkspaceSize.</td>
     </tr>
     <tr>
       <td>executor</td>
-      <td>输入</td>
-      <td>op执行器，包含了算子计算流程。</td>
+      <td>Input</td>
+      <td>Operator executor that contains the operator computation flow.</td>
     </tr>
     <tr>
       <td>stream</td>
-      <td>输入</td>
-      <td>指定执行任务的Stream。</td>
+      <td>Input</td>
+      <td>Specifies the stream for task execution.</td>
     </tr>
   </tbody>
   </table>
 
-- **返回值**
+- **Return Value**
 
-    返回aclnnStatus状态码，具体参见[aclnn返回码](../../../docs/zh/context/aclnn返回码.md)。
+    Returns an aclnnStatus status code. For details, see [aclnn Return Codes](../../../docs/en/context/aclnn_return_code.md).
 
-## 约束说明
+## Constraints
 
-- 确定性计算：
-  - aclnnObfuscationCalculate默认确定性实现。
+- Deterministic computation:
 
-- 该接口与[aclnnObfuscationSetup](../../obfuscation_setup/docs/aclnnObfuscationSetup.md)配套使用，完成PMCC模型混淆功能，使用方式如下：
-  - 首先调用aclnnObfuscationSetup进行资源初始化，可重复调用，以最后一次初始化为准
-  - 再多次调用aclnnObfuscationCalculate进行张量混淆处理
-  - 最后调用aclnnObfuscationSetup进行资源释放，只能调用一次；也可不显式进行资源释放，而是通过终止程序进程的方式达到资源释放的目的
+  - aclnnObfuscationCalculate defaults to a deterministic implementation.
 
-## 调用示例
+- This API is used together with [aclnnObfuscationSetup](../../obfuscation_setup/docs/aclnnObfuscationSetup_en.md) to implement the PMCC model obfuscation function. The usage is as follows:
 
-示例代码如下，仅供参考，具体编译和执行过程请参考[编译与运行样例](../../../docs/zh/context/编译与运行样例.md)。
+  - First, call aclnnObfuscationSetup for resource initialization. It can be called repeatedly, and the last initialization takes effect.
+
+  - Then, call aclnnObfuscationCalculate multiple times for tensor obfuscation.
+
+  - Finally, call aclnnObfuscationSetup for resource release, which can only be called once. Alternatively, resource release can be achieved by terminating the program process instead of explicitly calling it.
+
+## Example
+
+The sample code is as follows for reference only. For details about compilation and execution, see [Compile and Run Samples](../../../docs/en/context/compile_and_run_sample.md).
 
 ```cpp
 #include <iostream>
@@ -263,7 +270,7 @@ int64_t GetShapeSize(const std::vector<int64_t>& shape) {
 }
 
 int Init(int32_t deviceId, aclrtStream* stream) {
-  // 固定写法，资源初始化
+  // Boilerplate, resource initialization.
   auto ret = aclInit(nullptr);
   CHECK_RET(ret == ACL_SUCCESS, LOG_PRINT("aclInit failed. ERROR: %d\n", ret); return ret);
   ret = aclrtSetDevice(deviceId);
@@ -277,34 +284,34 @@ template <typename T>
 int CreateAclTensor(const std::vector<T>& hostData, const std::vector<int64_t>& shape, void** deviceAddr,
                     aclDataType dataType, aclTensor** tensor) {
   auto size = GetShapeSize(shape) * sizeof(T);
-  // 调用aclrtMalloc申请device侧内存
+  // Call aclrtMalloc to apply for device memory.
   auto ret = aclrtMalloc(deviceAddr, size, ACL_MEM_MALLOC_HUGE_FIRST);
   CHECK_RET(ret == ACL_SUCCESS, LOG_PRINT("aclrtMalloc failed. ERROR: %d\n", ret); return ret);
-  // 调用aclrtMemcpy将host侧数据拷贝到device侧内存上
+  // Call aclrtMemcpy to copy data from the host to the device.
   ret = aclrtMemcpy(*deviceAddr, size, hostData.data(), size, ACL_MEMCPY_HOST_TO_DEVICE);
   CHECK_RET(ret == ACL_SUCCESS, LOG_PRINT("aclrtMemcpy failed. ERROR: %d\n", ret); return ret);
 
-  // 计算连续tensor的strides
+  // Calculate the strides of a contiguous tensor.
   std::vector<int64_t> strides(shape.size(), 1);
   for (int64_t i = shape.size() - 2; i >= 0; i--) {
     strides[i] = shape[i + 1] * strides[i + 1];
   }
 
-  // 调用aclCreateTensor接口创建aclTensor
+  // Call the aclCreateTensor API to create an aclTensor.
   *tensor = aclCreateTensor(shape.data(), shape.size(), dataType, strides.data(), 0, aclFormat::ACL_FORMAT_ND,
                             shape.data(), shape.size(), *deviceAddr);
   return 0;
 }
 
 int main() {
-  // 1. （固定写法）device/stream初始化，参考acl API手册
-  // 根据自己的实际device填写deviceId
+  // 1. (Boilerplate) Initialize the device/stream. For details, see the ACL API manual.
+  // Fill in the deviceId based on your actual device.
   int32_t deviceId = 0;
   aclrtStream stream;
   auto ret = Init(deviceId, &stream);
   CHECK_RET(ret == ACL_SUCCESS, LOG_PRINT("Init acl failed. ERROR: %d\n", ret); return ret);
 
-  // 2. 构造输入与输出，需要根据API的接口自定义构造
+  // 2. Construct the input and output. Customize the construction based on the API interface.
   std::vector<int64_t> fdShape = {1};
   void* fdDeviceAddr = nullptr;
 
@@ -319,34 +326,34 @@ int main() {
   aclTensor* fd = nullptr;
   std::vector<float> fdHostData = {-1};
 
-  //创建fd aclTensor
+  //Create the fd aclTensor.
   ret = CreateAclTensor(fdHostData, fdShape, &fdDeviceAddr, aclDataType::ACL_INT32, &fd);
   CHECK_RET(ret == ACL_SUCCESS, return ret);
 
-  // 3. 调用CANN算子库API，需要修改为具体的Api名称
+  // 3. Call the CANN operator library API. Replace with the specific API name.
   uint64_t workspaceSize = 0;
   aclOpExecutor* executor;
 
-  // 调用aclnnObfuscationSetup第一段接口
+  // Call the aclnnObfuscationSetup first-phase API.
   ret = aclnnObfuscationSetupGetWorkspaceSize(fdToClose, dataType, hiddenSize, tpRank, modelObfSeedId,dataObfSeedId, cmd, threadNum, fd, &workspaceSize, &executor);
   CHECK_RET(ret == ACL_SUCCESS, LOG_PRINT("aclnnObfuscationSetupGetWorkspaceSize failed. ERROR: %d\n", ret); return ret);
 
-  // 根据第一段接口计算出的workspaceSize申请device内存
+  // Apply for device memory based on the workspaceSize calculated by the first-phase API.
   void* workspaceAddr = nullptr;
   if (workspaceSize > 0) {
       ret = aclrtMalloc(&workspaceAddr, workspaceSize, ACL_MEM_MALLOC_HUGE_FIRST);
       CHECK_RET(ret == ACL_SUCCESS, LOG_PRINT("allocate workspace failed. ERROR: %d\n", ret); return ret);
   }
 
-  // 调用aclnnObfuscationSetup第二段接口
+  // Call the aclnnObfuscationSetup second-phase API.
   ret = aclnnObfuscationSetup(workspaceAddr, workspaceSize, executor, stream);
   CHECK_RET(ret == ACL_SUCCESS, LOG_PRINT("aclnnObfuscationSetup failed. ERROR: %d\n", ret); return ret);
 
-  // 4. （固定写法）同步等待任务执行结束
+  // 4. (Boilerplate) Synchronize and wait for task execution to complete.
   ret = aclrtSynchronizeStream(stream);
   CHECK_RET(ret == ACL_SUCCESS, LOG_PRINT("aclrtSynchronizeStream failed. ERROR: %d\n", ret); return ret);
 
-  // 5. 获取输出的值，将device侧内存上的结果拷贝至host侧，需要根据具体API的接口定义修改
+  // 5. Obtain the output value and copy the result from the device side memory to the host side. Modify this based on the specific API definition.
   auto fdSize = GetShapeSize(fdShape);
   std::vector<int32_t> fdData(fdSize, 0);
   ret = aclrtMemcpy(fdData.data(), fdData.size() * sizeof(fdData[0]), fdDeviceAddr, fdSize * sizeof(int32_t),ACL_MEMCPY_DEVICE_TO_HOST);
@@ -355,7 +362,7 @@ int main() {
       LOG_PRINT("fdData[%ld] is : %d\n", i, fdData[i]);
   }
 
-  // 6. 构造输入与输出,需要根据API的接口定义构造
+  // 6. Construct the input and output. Construct them based on the API definition.
   std::vector<int64_t> xShape = {2, 4};
   std::vector<int64_t> yShape = {2, 4};
   void *xDeviceAddr = nullptr;
@@ -369,36 +376,36 @@ int main() {
   std::vector<float> xHostData = {0.86, 0.79, 0.43, 0.37, 0.51, 0.89, 0.34, 0.49};
   std::vector<float> yHostData = {0, 0, 0, 0, 0, 0, 0, 0};
 
-  // 创建 x aclTensor
+  // Create x aclTensor.
   ret = CreateAclTensor(xHostData, xShape, &xDeviceAddr, aclDataType::ACL_FLOAT, &x);
   CHECK_RET(ret == ACL_SUCCESS, return ret);
 
-  // 创建 y aclTensor
+  // Create y aclTensor.
   ret = CreateAclTensor(yHostData, yShape, &yDeviceAddr, aclDataType::ACL_FLOAT, &y);
   CHECK_RET(ret == ACL_SUCCESS, return ret);
 
-  // 7. 调用CANN算子库API,需要修改为具体的API
+  // 7. Call the CANN operator library API. Replace with the specific API.
   uint64_t workspaceSize2 = 0;
   aclOpExecutor *executor2;
 
-  // 调用aclnnObfuscationCalculate第一段接口
+  // Call the first-phase API of aclnnObfuscationCalculate.
   ret = aclnnObfuscationCalculateGetWorkspaceSize(fdInput, x, param, cmd2, y, &workspaceSize2, &executor2);
   CHECK_RET(ret == ACL_SUCCESS, LOG_PRINT("aclnnObfuscationCalculateGetWorkspaceSize failed. ERROR : %d\n",ret); return ret);
-  // 根据第一段接口计算出的workspaceSize申请device内存
+  // Apply for device memory based on the workspaceSize calculated by the first-phase API.
   void *workspaceAddr2 = nullptr;
   if (workspaceSize2 > 0) {
       ret = aclrtMalloc(&workspaceAddr2, workspaceSize2, ACL_MEM_MALLOC_HUGE_FIRST);
       CHECK_RET(ret == ACL_SUCCESS, LOG_PRINT("allocate workspace failed. ERROR: %d\n", ret); return ret);
   }
 
-  // 调用aclnnObfuscationCalculate第二段接口
+  // Call the second-phase API of aclnnObfuscationCalculate.
   ret = aclnnObfuscationCalculate(workspaceAddr2, workspaceSize2, executor2, stream);
   CHECK_RET(ret == ACL_SUCCESS, LOG_PRINT("aclnnObfuscationCalculate failed. ERROR : %d\n", ret); return ret);
-  // 8. 固定写法，同步等待任务执行结束
+  // 8. Boilerplate: wait synchronously for the task to complete.
   ret = aclrtSynchronizeStream(stream);
   CHECK_RET(ret == ACL_SUCCESS, LOG_PRINT("aclrtSynchronizeStream failed. ERROR : %d\n", ret); return ret);
 
-  // 9. 获取输出的值，y表示经过混淆处理的数据，将device侧的内存上的结果拷贝至host侧,需要根据具体API的接口定义修改
+  // 9. Obtain the output value. y represents the obfuscated data. Copy the result from the device memory to the host memory. Modify based on the specific API definition.
   // y
   auto ySize = GetShapeSize(yShape);
   std::vector<float> yData(ySize, 0);
@@ -408,7 +415,7 @@ int main() {
       LOG_PRINT("yData[%ld] is : %f\n", i, yData[i]);
   }
 
-   // 10. 构造输入与输出，需要根据API的接口自定义构造
+   // 10. Construct the input and output. Customize the construction based on the API definition.
   fdToClose = fdInput;
   dataType = 0;
   hiddenSize = 0;
@@ -418,35 +425,35 @@ int main() {
   cmd = 16;
   threadNum = 4;
 
-  // 11. 调用CANN算子库API，需要修改为具体的Api名称
+  // 11. Call the CANN operator library API. Replace with the specific API name.
   uint64_t workspaceSize3 = 0;
   aclOpExecutor* executor3;
 
-  // 调用aclnnObfuscationSetup第一段接口
+  // Call the first-phase API of aclnnObfuscationSetup.
   ret = aclnnObfuscationSetupGetWorkspaceSize(fdToClose, dataType, hiddenSize, tpRank, modelObfSeedId,dataObfSeedId, cmd, threadNum, fd, &workspaceSize3, &executor3);
   CHECK_RET(ret == ACL_SUCCESS, LOG_PRINT("aclnnObfuscationSetupGetWorkspaceSize failed. ERROR: %d\n", ret); return ret);
 
-  // 根据第一段接口计算出的workspaceSize申请device内存
+  // Apply for device memory based on the workspaceSize calculated by the first-phase API.
   void* workspaceAddr3 = nullptr;
   if (workspaceSize3 > 0) {
       ret = aclrtMalloc(&workspaceAddr3, workspaceSize3, ACL_MEM_MALLOC_HUGE_FIRST);
       CHECK_RET(ret == ACL_SUCCESS, LOG_PRINT("allocate workspace failed. ERROR: %d\n", ret); return ret);
   }
 
-  // 调用aclnnObfuscationSetup第二段接口
+  // Call the second-phase API of aclnnObfuscationSetup.
   ret = aclnnObfuscationSetup(workspaceAddr3, workspaceSize3, executor3, stream);
   CHECK_RET(ret == ACL_SUCCESS, LOG_PRINT("aclnnObfuscationSetup failed. ERROR: %d\n", ret); return ret);
 
-  // 12. （固定写法）同步等待任务执行结束
+  // 12. (Boilerplate) Synchronously wait for task execution to complete.
   ret = aclrtSynchronizeStream(stream);
   CHECK_RET(ret == ACL_SUCCESS, LOG_PRINT("aclrtSynchronizeStream failed. ERROR: %d\n", ret); return ret);
 
-  // 13. 释放ObfuscationCalculate接口涉及的aclTensor和aclScalar,需要根据具体API的接口定义修改
+  // 13. Release the aclTensor and aclScalar involved in the ObfuscationCalculate API. Modify based on the specific API definition.
   aclDestroyTensor(x);
   aclDestroyTensor(y);
   aclDestroyTensor(fd);
 
-  // 14. 释放ObfuscationCalculate接口涉及的device资源,需要根据具体API的接口定义修改
+  // 14. Release the device resources involved in the ObfuscationCalculate API. Modify based on the specific API definition.
   aclrtFree(xDeviceAddr);
   aclrtFree(yDeviceAddr);
   aclrtFree(fdDeviceAddr);
@@ -460,7 +467,7 @@ int main() {
   if (workspaceSize3 > 0) {
       aclrtFree(workspaceAddr3);
   }
-  // 15. 释放ObfuscationSetup接口涉及的device资源
+  // 15. Release the device resources involved in the ObfuscationSetup API.
   aclrtDestroyStream(stream);
   aclrtResetDevice(deviceId);
   aclFinalize();
