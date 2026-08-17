@@ -1,5 +1,7 @@
 # ops-ras
 
+[简体中文](./README.md) | English
+
 ## 🔥Latest News
 
 - [2026/07] The ops-ras project was first released.
@@ -8,7 +10,7 @@
 
 ops-ras is the security and RAS (Reliability, Availability and Serviceability) operator library in the [CANN](https://hiascend.com/software/cann) (Compute Architecture for Neural Networks) operator library, providing reliability, availability, and maintainability capabilities, including security, encryption, and RAS-related operators. "ras" is derived from the initials of these three core characteristics. The operator library architecture is shown below:
 
-<img src="docs/zh/figures/architecture.png" alt="Architecture Diagram"  width="700px" height="320px">
+<img src="docs/en//figures/architecture.png" alt="Architecture Diagram"  width="700px" height="320px">
 
 ## 📌Version Compatibility
 
