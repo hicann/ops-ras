@@ -10,7 +10,6 @@
 # See LICENSE in the root of the software repository for the full text of the License.
 # ----------------------------------------------------------------------------
 import os
-import sys
 import re
 
 
@@ -29,18 +28,6 @@ def parse_foreach_config(config_str):
     """
     解析 FOREACH_OPDEF 中的配置字符串
     """
-    config_mapping = {
-        'A2': 'ascend910b',
-        '910_93': 'ascend910_93',
-        'A5': 'ascend950',
-        '910B': 'ascend910b',
-        '910B_93': 'ascend910_93',
-        '910B_95': 'ascend950',
-        '950': 'ascend950',
-        '910': 'ascend910',
-        '910_55': 'ascend910_55',
-    }
-
     found_configs = []
     config_str_upper = config_str.upper()
 
@@ -201,39 +188,11 @@ def split_list_by_num_groups(lst, num_groups):
         last = val
     return out
 
-GROUPING_CONFIGS = {
-    "default": {
-        0: ["mat_mul_v3"],
-        1: ["gemm_v3"],
-        2: ["quant_batch_matmul_v3", "conv3d_v2"],
-        3: ["weight_quant_batch_matmul_v2", "batch_mat_mul_v3", "apply_adam_w_v2"],
-        4: [
-            "scatter_elements_v2", "add_layer_norm", "layer_norm_grad_v3", 
-            "masked_softmax_with_rel_pos_bias", "group_norm_grad",
-            "group_norm_swish", "scatter_list", "group_norm_swish_grad"
-        ],
-    },
-    "ascend950": {
-        0: ["add_rms_norm_quant"],
-        1: ["scatter_elements_v2"],
-        2: ["quant_batch_matmul_v3"],
-        3: ["extend_conv2d", "conv3d_v2"],
-        4: ["conv2d_v2", "conv3d_transpose_v2"],
-        5: ["quant_conv3d", "conv3d_backprop_input_v2", "apply_adam_w_v2"],
-        6: ["batch_norm_grad_v3", "cross_entropy_loss_grad", "ascend_quant_v2", "dequant_swiglu_quant"],
-        7: ["mat_mul_v3", "cross_entropy_loss", "weight_quant_batch_matmul_v2", "group_norm_grad"]
-    }
-}
-
-
 def grouped(repository_path, soc, group_size):
-    if soc in ("950", "ascend950"):
-        config = GROUPING_CONFIGS.get("ascend950")
-    else:
-        config = GROUPING_CONFIGS.get("default")
-    result = [[] for _ in range(len(config))]
-    remain = []
-    zero_tensor_num = 0
+    if group_size <= 0:
+        raise ValueError("group_size must be greater than zero")
+
+    matched_ops = []
 
     for root, dirs, files in os.walk(repository_path):
         # 过滤掉不需要的目录
@@ -246,34 +205,10 @@ def grouped(repository_path, soc, group_size):
 
                 # 提取 AICore 配置
                 ai_core_configs = extract_ai_core_configs(full_path)
-                current_path = full_path
-                for _ in range(3):
-                    current_path = os.path.dirname(current_path)
-
-                # 获取三层父目录的文件名
-                parent_dir_name = os.path.basename(current_path)
                 if soc in ai_core_configs:
-                    matched = False
-                    for idx, op_list in config.items():
-                        if op_name in op_list:
-                            result[idx].append(op_name)
-                            matched = True
-                            break
-                    if not matched:
-                        remain.append(op_name)
-    
-    filtered_result = []
-    len_size = len(result)
-    for i in range(len_size):
-        if len(result[i]) == 0:
-            zero_tensor_num += 1
-        else:
-            filtered_result.append(result[i])
+                    matched_ops.append(op_name)
 
-    remain = sorted(remain)
-    remain = split_list_by_num_groups(remain, group_size - len_size + zero_tensor_num if group_size > 8 else group_size)
-    result.extend(remain)
-    return result
+    return split_list_by_num_groups(sorted(set(matched_ops)), group_size)
 
 
 def main(repository_path, soc, group_size):

@@ -74,6 +74,10 @@ if((UT_TEST_ALL OR OP_GRAPH_UT) AND HAS_GRAPH_PROTO_SOURCES)
         dl
         ascend_protobuf
     )
+    add_test(NAME ${OP_GRAPH_UT_EXE} COMMAND ${OP_GRAPH_UT_EXE})
+    set_tests_properties(${OP_GRAPH_UT_EXE} PROPERTIES
+        ENVIRONMENT "LD_LIBRARY_PATH=${CMAKE_BINARY_DIR}/es_packages/lib64:${ASCEND_DIR}/${SYSTEM_PREFIX}/lib64:$ENV{LD_LIBRARY_PATH}"
+    )
 
     if(ENABLE_UT_EXEC)
         add_custom_command(
@@ -84,7 +88,8 @@ if((UT_TEST_ALL OR OP_GRAPH_UT) AND HAS_GRAPH_PROTO_SOURCES)
             COMMENT "Run ops op_graph utest"
         )
     endif()
-elseif(UT_TEST_ALL OR OP_GRAPH_UT)
+elseif(OP_GRAPH_UT)
+    message(FATAL_ERROR "OpGraph UT was requested, but no selected RAS op_graph proto source exists.")
+elseif(UT_TEST_ALL)
     message(STATUS "No RAS op_graph proto sources found; op_graph UT is skipped.")
-    add_custom_target(${PKG_NAME}_op_graph_ut)
 endif()

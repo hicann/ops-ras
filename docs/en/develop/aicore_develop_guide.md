@@ -7,7 +7,7 @@
 > 1. For basic concepts involved in operator development, such as Tiling, Kernel, and hardware architecture, refer to [Ascend C Operator Development](https://www.hiascend.com/document/detail/en/CANNCommunityEdition/latest/programug/Ascendcopdevg/atlas_ascendc_map_10_0002.html). For the interfaces involved, refer to [Ascend C Operator Development Interface](https://www.hiascend.com/document/detail/en/CANNCommunityEdition/latest/API/ascendcopapi/atlasascendc_api_07_0003.html) and [Basic Data Structures and Interfaces](https://www.hiascend.com/document/detail/en/CANNCommunityEdition/latest/maintenref/basicdataapi/atlasopapi_07_00001.html).
 > 2. AI Core operators are developed using the Ascend C language and run on the AI Core hardware unit. AI CPU operators are developed using the C++ language and run on the AI CPU hardware unit. If you want to contribute AI CPU operators, refer to the [AI CPU Operator Development Guide](./aicpu_develop_guide.md).
 > 3. For operators contributed based on the [Ascend/samples](https://gitee.com/ascend/samples/tree/master) repository, refer to [Appendix > Operator Project Migration](#operator-project-migration) to complete the migration of existing operators to this project.
-> 4. build.sh: The commands involved in operator development can be viewed through `bash build.sh --help`. For function parameter descriptions, refer to [build Parameter Description](../context/build.md).
+> 4. build.sh: The commands involved in operator development can be viewed through `bash build.sh --help`. For function parameter descriptions, refer to [build Parameter Description](../install/build.md).
 
 This development guide uses the `AddExample` operator as an example to introduce the new operator development process and the deliverables involved. For complete sample code, visit the project `examples` directory.
 
@@ -29,7 +29,7 @@ This development guide uses the `AddExample` operator as an example to introduce
 
 **1. Environment Deployment**
 
-Before developing an operator, complete the basic environment setup by following [Environment Deployment](../context/quick_install.md).
+Before developing an operator, complete the basic environment setup by following [Environment Deployment](../install/quick_install.md).
 
 **2. Directory Creation**
 
@@ -397,14 +397,14 @@ After operator development is completed, compile the operator project to generat
     If the following message appears, the compilation is successful:
 
     ```bash
-    Self-extractable archive "cann-ops-nn-${vendor_name}-linux.${arch}.run" successfully created.
+    Self-extractable archive "cann-ops-ras-${vendor_name}_linux-${arch}.run" successfully created.
     ```
 
 3. **Install the custom operator package.**
 
     ```bash
     # Install the run package
-    ./build_out/cann-ops-nn-${vendor_name}-linux.${arch}.run
+    ./build_out/cann-ops-ras-${vendor_name}_linux-${arch}.run
     ```
 
     The custom operator package is installed in the `${ASCEND_HOME_PATH}/opp/vendors` path. `${ASCEND_HOME_PATH}` represents the CANN software installation directory, which can be configured in the environment variable in advance.

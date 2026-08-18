@@ -32,7 +32,7 @@ if(UT_TEST_ALL OR OP_API_UT)
   target_sources(${OPHOST_NAME}_opapi PRIVATE empty_runtime.cpp)
   target_link_libraries(${OPHOST_NAME}_opapi PRIVATE
           $<BUILD_INTERFACE:intf_llt_pub_asan_cxx17>
-          opapi_math_stub
+          ras_math_test_double
           )
 
   ## make ophost ut exe
@@ -62,11 +62,12 @@ if(UT_TEST_ALL OR OP_API_UT)
           gtest
           -Wl,--no-whole-archive
           )
+  add_test(NAME ${OP_API_UT_EXE} COMMAND ${OP_API_UT_EXE})
+  set_tests_properties(${OP_API_UT_EXE} PROPERTIES
+      ENVIRONMENT "LD_LIBRARY_PATH=$ENV{LD_LIBRARY_PATH}"
+  )
   ## exec ophost ut exe
   if(ENABLE_UT_EXEC)
-    if (EXISTS ${ASCEND_DIR}/${SYSTEM_PREFIX}/lib64/libopapi_math.so)
-        set(API_PATH ${ASCEND_DIR}/${SYSTEM_PREFIX}/lib64/libopapi_math.so)
-    endif()
     if(ENABLE_ASAN)
       execute_process(
         COMMAND ${CMAKE_C_COMPILER} -print-file-name=libasan.so
@@ -92,7 +93,7 @@ if(UT_TEST_ALL OR OP_API_UT)
           POST_BUILD
           COMMAND
               ${CMAKE_COMMAND} -E env LD_LIBRARY_PATH=$ENV{LD_LIBRARY_PATH}
-              LD_PRELOAD=${LIBASAN_PATH}:${LIBSTDC_PATH}:${API_PATH}
+              LD_PRELOAD=${LIBASAN_PATH}:${LIBSTDC_PATH}
               ASAN_OPTIONS=detect_leaks=0
               ./${OP_API_UT_EXE}
               COMMENT "Run ops op_api utest with asan"
@@ -102,7 +103,6 @@ if(UT_TEST_ALL OR OP_API_UT)
               TARGET ${OP_API_UT_EXE}
               POST_BUILD
               COMMAND
-              env LD_PRELOAD=${API_PATH}
               ${CMAKE_COMMAND} -E env LD_LIBRARY_PATH=$ENV{LD_LIBRARY_PATH} ./${OP_API_UT_EXE}
               COMMENT "Run ops op_api utest"
       )

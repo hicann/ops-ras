@@ -32,6 +32,10 @@ class OpApiUtEnvironment : public testing::Environment {
 
 int main(int argc, char **argv) {
   testing::InitGoogleTest(&argc,argv);
+  if (testing::UnitTest::GetInstance()->total_test_count() == 0) {
+    cerr << "No RAS OpAPI tests were discovered." << endl;
+    return 1;
+  }
   testing::AddGlobalTestEnvironment(new OpApiUtEnvironment());
 
   return RUN_ALL_TESTS();

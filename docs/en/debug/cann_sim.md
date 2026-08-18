@@ -26,7 +26,7 @@ This tool maintains binary compatibility with on-board execution (the same kerne
 
 ## Environment Preparation
 
-CANN Simulator is integrated in the CANN toolkit package. Complete the software package installation by following [Environment Deployment](../context/quick_install.md).
+CANN Simulator is integrated in the CANN toolkit package. Complete the software package installation by following [Environment Deployment](../install/quick_install.md).
 
 # Quick Start
 
@@ -40,7 +40,7 @@ The following uses [add_examples](../../../examples/add_example/) as an example 
 # Note: Enter the project root directory and execute the following compilation command. The command is for reference only. For details, refer to the operator invocation instructions.
 bash build.sh --pkg --soc=Ascend950 --vendor_name=custom --ops=add_example
 # Install the custom operator package
-./build_out/cann-ops-nn-${vendor_name}_linux-${arch}.run
+./build_out/cann-ops-ras-${vendor_name}_linux-${arch}.run
 ```
 
 * Complete the compilation of test_aclnn_add_example.cpp by following [aclnn Invocation](../invocation/op_invocation.md#aclnn-invocation), and generate the executable file test_aclnn_add_example.

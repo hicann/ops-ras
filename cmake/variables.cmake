@@ -46,13 +46,8 @@ set(COMPILED_OP_DIRS CACHE STRING "Compiled Ops Dirs" FORCE)
 # src path
 get_filename_component(OPS_RAS_CMAKE_DIR           "${OPS_RAS_DIR}/cmake"                               REALPATH)
 get_filename_component(OPS_RAS_COMMON_INC          "${OPS_RAS_DIR}/common/inc"                      REALPATH)
-get_filename_component(OPS_RAS_COMMON_INC_COMMON   "${OPS_RAS_COMMON_INC}/common"                       REALPATH)
-get_filename_component(OPS_RAS_COMMON_INC_EXTERNAL "${OPS_RAS_COMMON_INC}/external"                     REALPATH)
-get_filename_component(OPS_RAS_COMMON_INC_HEADERS  "${OPS_RAS_COMMON_INC_EXTERNAL}/aclnn_kernels"       REALPATH)
 get_filename_component(OPS_KERNEL_BINARY_SCRIPT     "${OPS_RAS_DIR}/scripts/kernel/binary_script"       REALPATH)
 get_filename_component(OPS_KERNEL_BINARY_CONFIG     "${OPS_RAS_DIR}/scripts/kernel/binary_config"       REALPATH)
-get_filename_component(OPS_ADV_ACT                  "${OPS_RAS_DIR}/common/act"                        REALPATH)
-get_filename_component(OPS_CMCT               "${OPS_RAS_DIR}/matmul/common/cmct"           REALPATH)
 
 # python
 if(NOT DEFINED ASCEND_PYTHON_EXECUTABLE)
@@ -161,7 +156,6 @@ set(OPAPI_INCLUDE
   ${OPS_RAS_DIR}/common/inc
   ${OPS_RAS_DIR}/common/inc/op_api
   ${TOP_DIR}/output/${PRODUCT}/aclnnop_resource
-  ${OPS_RAS_DIR}/common/stub/op_api
 )
 
 set(OP_TILING_INCLUDE
@@ -193,15 +187,7 @@ set(AICPU_INCLUDE
   ${C_SEC_INCLUDE}
   ${NNOPBASE_INCLUDE_DIRS}
   ${HCCL_EXTERNAL_INCLUDE}
-  ${OPS_RAS_DIR}/common/include/common
   ${METADEF_INCLUDE_DIRS}
-)
-
-set(ONNX_PLUGIN_COMMON_INCLUDE
-  ${OPS_RAS_DIR}
-  ${OPS_RAS_DIR}/common/inc/framework
-  ${OPS_RAS_DIR}/common/stub/inc/framework
-  ${OPS_RAS_DIR}/common/inc/op_graph
 )
 
 set(AICPU_DEFINITIONS

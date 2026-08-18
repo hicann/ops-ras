@@ -8,8 +8,8 @@
  * See LICENSE in the root of the software repository for the full text of the License.
  */
 
-#ifndef OPS_MATH_DEV_TESTS_UT_COMMON_TILING_CONTEXT_FAKER_H
-#define OPS_MATH_DEV_TESTS_UT_COMMON_TILING_CONTEXT_FAKER_H
+#ifndef OPS_RAS_TESTS_UT_COMMON_TILING_CONTEXT_FAKER_H
+#define OPS_RAS_TESTS_UT_COMMON_TILING_CONTEXT_FAKER_H
 
 #include <vector>
 #include <string>
@@ -18,6 +18,119 @@
 #include "any_value.h"
 
 namespace gert {
+class TilingContextPara {
+public:
+    class TensorDescription {
+    public:
+        TensorDescription(const gert::StorageShape& shape, ge::DataType dtype, ge::Format format,
+                          bool isConst = false, void* constValue = nullptr,
+                          ge::Format originFormat = ge::FORMAT_ND)
+            : shape_(shape),
+              dtype_(dtype),
+              format_(format),
+              originFormat_(originFormat),
+              isConst_(isConst),
+              constValue_(constValue)
+        {}
+
+        gert::StorageShape shape_;
+        ge::DataType dtype_ = ge::DT_FLOAT;
+        ge::Format format_ = ge::FORMAT_ND;
+        ge::Format originFormat_ = ge::FORMAT_ND;
+        bool isConst_ = false;
+        void* constValue_ = nullptr;
+    };
+
+    class OpAttr {
+    public:
+        OpAttr(const std::string& attrName, const Ops::Ras::AnyValue& attr)
+            : attrName_(attrName), attr_(attr)
+        {}
+
+        std::string attrName_;
+        Ops::Ras::AnyValue attr_;
+    };
+
+    TilingContextPara(const std::string& opName,
+                      const std::vector<TensorDescription>& inputTensorDesc,
+                      const std::vector<TensorDescription>& outputTensorDesc,
+                      const std::vector<OpAttr>& attrs, void* compileInfo = nullptr,
+                      uint64_t coreNum = 64, uint64_t ubSize = 262144,
+                      uint64_t tilingDataSize = 4096)
+        : opName_(opName),
+          inputTensorDesc_(inputTensorDesc),
+          outputTensorDesc_(outputTensorDesc),
+          attrs_(attrs),
+          coreNum_(coreNum),
+          ubSize_(ubSize),
+          tilingDataSize_(tilingDataSize),
+          compileInfo_(compileInfo)
+    {}
+
+    TilingContextPara(const std::string& opName,
+                      const std::vector<TensorDescription>& inputTensorDesc,
+                      const std::vector<TensorDescription>& outputTensorDesc,
+                      void* compileInfo = nullptr, uint64_t coreNum = 64,
+                      uint64_t ubSize = 262144, uint64_t tilingDataSize = 4096)
+        : opName_(opName),
+          inputTensorDesc_(inputTensorDesc),
+          outputTensorDesc_(outputTensorDesc),
+          coreNum_(coreNum),
+          ubSize_(ubSize),
+          tilingDataSize_(tilingDataSize),
+          compileInfo_(compileInfo)
+    {}
+
+    TilingContextPara(const std::string& opName,
+                      const std::vector<TensorDescription>& inputTensorDesc,
+                      const std::vector<TensorDescription>& outputTensorDesc,
+                      const std::vector<OpAttr>& attrs,
+                      const std::vector<uint32_t>& inputInstanceNum,
+                      const std::vector<uint32_t>& outputInstanceNum,
+                      void* compileInfo = nullptr, uint64_t coreNum = 64,
+                      uint64_t ubSize = 262144, uint64_t tilingDataSize = 4096)
+        : opName_(opName),
+          inputInstanceNum_(inputInstanceNum),
+          outputInstanceNum_(outputInstanceNum),
+          inputTensorDesc_(inputTensorDesc),
+          outputTensorDesc_(outputTensorDesc),
+          attrs_(attrs),
+          coreNum_(coreNum),
+          ubSize_(ubSize),
+          tilingDataSize_(tilingDataSize),
+          compileInfo_(compileInfo)
+    {}
+
+    TilingContextPara(const std::string& opName,
+                      const std::vector<TensorDescription>& inputTensorDesc,
+                      const std::vector<TensorDescription>& outputTensorDesc,
+                      const std::vector<uint32_t>& inputInstanceNum,
+                      const std::vector<uint32_t>& outputInstanceNum,
+                      void* compileInfo = nullptr, uint64_t coreNum = 64,
+                      uint64_t ubSize = 262144, uint64_t tilingDataSize = 4096)
+        : opName_(opName),
+          inputInstanceNum_(inputInstanceNum),
+          outputInstanceNum_(outputInstanceNum),
+          inputTensorDesc_(inputTensorDesc),
+          outputTensorDesc_(outputTensorDesc),
+          coreNum_(coreNum),
+          ubSize_(ubSize),
+          tilingDataSize_(tilingDataSize),
+          compileInfo_(compileInfo)
+    {}
+
+    std::string opName_;
+    std::vector<uint32_t> inputInstanceNum_;
+    std::vector<uint32_t> outputInstanceNum_;
+    std::vector<TensorDescription> inputTensorDesc_;
+    std::vector<TensorDescription> outputTensorDesc_;
+    std::vector<OpAttr> attrs_;
+    uint64_t coreNum_ = 64;
+    uint64_t ubSize_ = 262144;
+    uint64_t tilingDataSize_ = 4096;
+    void* compileInfo_ = nullptr;
+};
+
 class TilingContextFaker : public OpTilingContextBuilder, public KernelRunContextHolder {
 public:
     TilingContextFaker() = default;
@@ -94,4 +207,4 @@ public:
     bool inputTensorFlag_ = false;
 };
 } // namespace gert
-#endif // OPS_MATH_DEV_TESTS_UT_COMMON_INFERSHAPE_CONTEXT_FAKER_H
+#endif // OPS_RAS_TESTS_UT_COMMON_TILING_CONTEXT_FAKER_H

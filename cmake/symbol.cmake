@@ -125,9 +125,6 @@ function(gen_opgraph_symbol)
   has_graph_proto_sources(HAS_GRAPH_PROTO_SOURCES)
   if(NOT HAS_GRAPH_PROTO_SOURCES)
     message(STATUS "No RAS op_graph proto sources found, skipping ${OPGRAPH_NAME} and es_${PKG_NAME}.")
-    if(NOT TARGET ${OPGRAPH_NAME})
-      add_custom_target(${OPGRAPH_NAME})
-    endif()
     return()
   endif()
 
@@ -215,17 +212,12 @@ function(gen_opapi_symbol)
   target_sources(${OPAPI_NAME}_obj PUBLIC
     $<$<TARGET_EXISTS:${OPHOST_NAME}_opapi_obj>:$<TARGET_OBJECTS:${OPHOST_NAME}_opapi_obj>>
     $<$<TARGET_EXISTS:opbuild_gen_aclnn_all>:$<TARGET_OBJECTS:opbuild_gen_aclnn_all>>
-    $<$<TARGET_EXISTS:opbase_util_objs>:$<TARGET_OBJECTS:opbase_util_objs>>
   )
   # opapi shared
   add_library(
     ${OPAPI_NAME} SHARED
     $<TARGET_OBJECTS:${OPAPI_NAME}_obj>
     )
-
-  if(BUILD_WITH_INSTALLED_DEPENDENCY_CANN_PKG)
-    add_dependencies(${OPAPI_NAME} opapi_math)
-  endif()
 
   target_link_libraries(
     ${OPAPI_NAME}
@@ -248,15 +240,10 @@ function(gen_cust_opapi_symbol)
   # op_api
   npu_op_library(cust_opapi ACLNN)
 
-  if(BUILD_WITH_INSTALLED_DEPENDENCY_CANN_PKG)
-    add_dependencies(cust_opapi opapi_math)
-  endif()
-
   target_sources(
     cust_opapi
     PUBLIC $<$<TARGET_EXISTS:${OPHOST_NAME}_opapi_obj>:$<TARGET_OBJECTS:${OPHOST_NAME}_opapi_obj>>
            $<$<TARGET_EXISTS:opbuild_gen_aclnn_all>:$<TARGET_OBJECTS:opbuild_gen_aclnn_all>>
-           $<$<TARGET_EXISTS:opbase_util_objs>:$<TARGET_OBJECTS:opbase_util_objs>>
     )
   target_link_libraries(
     cust_opapi

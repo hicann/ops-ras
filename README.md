@@ -8,7 +8,7 @@
 
 ## 🚀概述
 
-ops-ras是[CANN](https://hiascend.com/software/cann)（Compute Architecture for Neural Networks）算子库中的安全和维测类算子库（Reliability, Availability and Serviceability），提供可靠性、可用性和可维护性等能力，包含安全、加密以及维测相关算子，"ras"即来源于这三项核心特性的首字母缩写。算子库架构图如下：
+ops-ras是[CANN](https://hiascend.com/software/cann)（Compute Architecture for Neural Networks）算子库中的RAS算子库（Reliability, Availability and Serviceability），提供可靠性、可用性和可维护性等能力，包含安全、加密以及维测相关算子，"ras"即来源于这三项核心特性的首字母缩写。算子库架构图如下：
 
 <img src="docs/zh/figures/architecture.png" alt="架构图"  width="700px" height="320px">
 

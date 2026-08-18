@@ -8,8 +8,8 @@
  * See LICENSE in the root of the software repository for the full text of the License.
  */
 
-#ifndef OPS_MATH_DEV_TESTS_UT_OP_API_STUB_OPDEV_PLATFORM_H
-#define OPS_MATH_DEV_TESTS_UT_OP_API_STUB_OPDEV_PLATFORM_H
+#ifndef OPS_RAS_TESTS_UT_OP_API_STUB_OPDEV_PLATFORM_H
+#define OPS_RAS_TESTS_UT_OP_API_STUB_OPDEV_PLATFORM_H
 
 #include "graph/ascend_string.h"
 #include "platform/platform_info.h"
@@ -160,4 +160,4 @@ void SetCubeCoreNum(uint32_t coreNum);
 
 } // namespace op
 
-#endif // OPS_MATH_DEV_TESTS_UT_OP_API_STUB_OPDEV_PLATFORM_H
+#endif // OPS_RAS_TESTS_UT_OP_API_STUB_OPDEV_PLATFORM_H

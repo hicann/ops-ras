@@ -54,16 +54,11 @@
 │   │   └── utils                                       # 公共工具（架构检测、坐标工具等）
 │   ├── inc                                             # 公共头文件目录
 │   │   ├── common                                      # 公共定义
-│   │   ├── err                                         # 错误码定义
-│   │   ├── fallback                                    # Fallback相关
 │   │   ├── framework                                   # 框架适配头文件
-│   │   ├── kernel                                      # Kernel相关头文件
 │   │   ├── op_api                                      # op_api相关头文件
 │   │   ├── op_graph                                    # op_graph相关头文件
-│   │   ├── op_host                                     # op_host相关头文件
+│   │   ├── op_host                                     # op_host及Tiling公共头文件
 │   │   ├── op_kernel                                   # op_kernel相关头文件
-│   │   ├── tiling_base                                 # Tiling基础头文件
-│   │   ├── error_util.h                                # 错误处理工具头文件
 │   │   └── op_util.h                                   # 算子工具头文件
 │   ├── src                                             # 公共代码目录
 │   │   ├── framework                                   # 框架适配实现

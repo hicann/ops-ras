@@ -62,6 +62,50 @@ option(OP_KERNEL_AICPU_UT "Enable aicpu kernel ut" OFF)
 option(UT_TEST_ALL "Enable all ut" OFF)
 option(DOWNLOAD_OPS_TEST_KIT "Download ops-test-kit repository" OFF)
 
+set(RAS_SELECTED_EXAMPLE FALSE)
+if(ASCEND_OP_NAME STREQUAL "add_example" OR ASCEND_OP_NAME STREQUAL "add_example_aicpu")
+  set(RAS_SELECTED_EXAMPLE TRUE)
+endif()
+
+set(RAS_HAS_GRAPH_SOURCE FALSE)
+if(RAS_SELECTED_EXAMPLE)
+  set(RAS_HAS_GRAPH_SOURCE TRUE)
+endif()
+file(GLOB_RECURSE RAS_PRODUCT_GRAPH_SOURCES CONFIGURE_DEPENDS
+  ${CMAKE_CURRENT_SOURCE_DIR}/reliability/*/op_graph/*_proto.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/experimental/reliability/*/op_graph/*_proto.h
+)
+if(RAS_PRODUCT_GRAPH_SOURCES)
+  set(RAS_HAS_GRAPH_SOURCE TRUE)
+endif()
+
+file(GLOB_RECURSE RAS_ONNX_PLUGIN_SOURCES CONFIGURE_DEPENDS
+  ${CMAKE_CURRENT_SOURCE_DIR}/common/src/framework/*_onnx_plugin.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/reliability/*/*_onnx_plugin.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/experimental/reliability/*/*_onnx_plugin.cpp
+)
+file(GLOB_RECURSE RAS_AICPU_SOURCES CONFIGURE_DEPENDS
+  ${CMAKE_CURRENT_SOURCE_DIR}/reliability/*/op_kernel_aicpu/*.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/experimental/reliability/*/op_kernel_aicpu/*.cpp
+)
+
+set(RAS_NEEDS_PROTOBUF FALSE)
+if(RAS_ONNX_PLUGIN_SOURCES OR RAS_AICPU_SOURCES OR ASCEND_OP_NAME STREQUAL "add_example_aicpu")
+  set(RAS_NEEDS_PROTOBUF TRUE)
+endif()
+set(RAS_NEEDS_EIGEN FALSE)
+if(RAS_AICPU_SOURCES OR ASCEND_OP_NAME STREQUAL "add_example_aicpu")
+  set(RAS_NEEDS_EIGEN TRUE)
+endif()
+set(RAS_NEEDS_AICPU FALSE)
+if(RAS_AICPU_SOURCES OR ASCEND_OP_NAME STREQUAL "add_example_aicpu")
+  set(RAS_NEEDS_AICPU TRUE)
+endif()
+set(RAS_NEEDS_TILING_API FALSE)
+if(RAS_SELECTED_EXAMPLE OR OP_HOST_UT OR UT_TEST_ALL)
+  set(RAS_NEEDS_TILING_API TRUE)
+endif()
+
 if(ENABLE_TEST)
     set(DEFAULT_BUILD_TYPE "Debug")
 else()
@@ -105,12 +149,16 @@ if(DOWNLOAD_OPS_TEST_KIT)
 endif()
 include(cmake/dependencies.cmake)
 add_cann_third_party(json)
-add_cann_third_party(abseil-cpp)
-add_cann_third_party(protobuf)
+if(RAS_NEEDS_PROTOBUF)
+  add_cann_third_party(abseil-cpp)
+  add_cann_third_party(protobuf)
+endif()
 include(cmake/variables.cmake)
 include(cmake/func.cmake)
 include(cmake/opbuild.cmake)
-add_cann_third_party(eigen)
+if(RAS_NEEDS_EIGEN)
+  add_cann_third_party(eigen)
+endif()
 include(cmake/intf_pub_linux.cmake)
 include(cmake/modules/Finddlog.cmake)
 include(version.cmake)
@@ -126,6 +174,7 @@ endif()
 add_cann_version_info_targets()
 
 if(ENABLE_TEST)
+  enable_testing()
   # ut common dependencies
   add_cann_third_party(gtest)
   include(cmake/intf_pub_llt_gccnative.cmake)
@@ -199,7 +248,3 @@ if(ENABLE_PACKAGE)
     pack_built_in()
   endif()
 endif()
-
-install(DIRECTORY ${OPS_ADV_ACT}/
-        DESTINATION ${IMPL_INSTALL_DIR}/common/act
-)

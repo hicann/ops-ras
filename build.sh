@@ -155,8 +155,8 @@ usage() {
         echo $dotted_line
         echo "Examples:"
         echo "    bash build.sh --pkg --soc=ascend910b --vendor_name=customize -j16 -O3"
-        echo "    bash build.sh --pkg --ops=transpose_batch_mat_mul,fatrelu_mul --build-type=Debug"
-        echo "    bash build.sh --pkg --soc=ascend910b --ops=transpose_batch_mat_mul --oom"
+        echo "    bash build.sh --pkg --ops=add_example --build-type=Debug"
+        echo "    bash build.sh --pkg --soc=ascend910b --ops=add_example --oom"
         echo "    bash build.sh --pkg --experimental --soc=ascend910b --ops=\${experimental_op}"
         return
         ;;
@@ -172,9 +172,9 @@ usage() {
         echo "    --no_force             Don't force dependency installation"
         echo $dotted_line
         echo "Examples:"
-        echo "    bash build.sh --opkernel --soc=ascend310p --ops=transpose_batch_mat_mul,fatrelu_mul"
-        echo "    bash build.sh --opkernel --soc=ascend310p --ops=transpose_batch_mat_mul,fatrelu_mul --build-type=Debug"
-        echo "    bash build.sh --opkernel --soc=ascend310p --ops=transpose_batch_mat_mul,fatrelu_mul --oom"
+        echo "    bash build.sh --opkernel --soc=ascend910b --ops=add_example"
+        echo "    bash build.sh --opkernel --soc=ascend910b --ops=add_example --build-type=Debug"
+        echo "    bash build.sh --opkernel --soc=ascend910b --ops=add_example --oom"
         return
         ;;
       opkernel_aicpu)
@@ -187,9 +187,9 @@ usage() {
         echo "    --oom                  Build with oom mode on the kernel side, with options: '-g --cce-enable-oom'"
         echo $dotted_line
         echo "Examples:"
-        echo "    bash build.sh --opkernel_aicpu --soc=ascend910b --ops=transpose_batch_mat_mul,fatrelu_mul"
-        echo "    bash build.sh --opkernel_aicpu --soc=ascend910b --ops=transpose_batch_mat_mul,fatrelu_mul --build-type=Debug"
-        echo "    bash build.sh --opkernel_aicpu --soc=ascend910b --ops=transpose_batch_mat_mul,fatrelu_mul --oom"
+        echo "    bash build.sh --opkernel_aicpu --soc=ascend910b --ops=add_example_aicpu"
+        echo "    bash build.sh --opkernel_aicpu --soc=ascend910b --ops=add_example_aicpu --build-type=Debug"
+        echo "    bash build.sh --opkernel_aicpu --soc=ascend910b --ops=add_example_aicpu --oom"
         return
         ;;
       test)
@@ -287,12 +287,12 @@ usage() {
         echo "    --run_example op_name  mode[eager:graph] [pkg_mode --vendor_name=name --example_name=name --soc=soc_version]      Compile and execute the test_aclnn_xxx.cpp/test_geir_xxx.cpp"
         echo $dotted_line
         echo "Examples:"
-        echo "    bash build.sh --run_example mat_mul_v3 eager"
-        echo "    bash build.sh --run_example mat_mul_v3 eager --soc=ascend950"
-        echo "    bash build.sh --run_example mat_mul_v3 graph"
-        echo "    bash build.sh --run_example mat_mul_v3 eager --example_name=mm"
-        echo "    bash build.sh --run_example mat_mul_v3 eager cust"
-        echo "    bash build.sh --run_example mat_mul_v3 eager cust --vendor_name=custom"
+        echo "    bash build.sh --run_example add_example eager"
+        echo "    bash build.sh --run_example add_example eager --soc=ascend950"
+        echo "    bash build.sh --run_example add_example graph"
+        echo "    bash build.sh --run_example add_example eager --example_name=add_example"
+        echo "    bash build.sh --run_example add_example eager cust"
+        echo "    bash build.sh --run_example add_example eager cust --vendor_name=custom"
         return
         ;;
       genop)
@@ -513,6 +513,16 @@ set_ut_mode() {
   fi
   ENABLE_CUSTOM=FALSE
   UT_TEST_ALL=TRUE
+  # A bare `-u` enables all library switches during option normalization.
+  # Preserve that command as all-UT mode so source-gated suites may skip
+  # cleanly instead of being treated as explicitly requested empty suites.
+  if [[ "$OP_HOST" == "TRUE" && "$OP_GRAPH" == "TRUE" && "$OP_API" == "TRUE" &&
+        "$OP_KERNEL" == "TRUE" && "$OP_KERNEL_AICPU" == "FALSE" ]]; then
+    OP_HOST=FALSE
+    OP_GRAPH=FALSE
+    OP_API=FALSE
+    OP_KERNEL=FALSE
+  fi
   if [[ "$OP_HOST" == "TRUE" ]]; then
     OP_HOST_UT=TRUE
     UT_TEST_ALL=FALSE
@@ -1187,7 +1197,20 @@ build_ut() {
         cmake ${CMAKE_ARGS} ..
       fi
     fi
-    cmake --build . --target ${UT_TARGES[@]} -- ${VERBOSE} -j $THREAD_NUM || ut_build_failed=1
+    local all_targets=$(cmake --build . --target help)
+    local available_ut_targets=()
+    for ut_target in "${UT_TARGES[@]}"; do
+      if grep -wq "${ut_target}" <<< "${all_targets}"; then
+        available_ut_targets+=("${ut_target}")
+      else
+        echo "Skip unavailable UT target: ${ut_target}"
+      fi
+    done
+    if [[ ${#available_ut_targets[@]} -eq 0 ]]; then
+      print_error "No requested UT target has real test sources"
+      exit 1
+    fi
+    cmake --build . --target ${available_ut_targets[@]} -- ${VERBOSE} -j $THREAD_NUM || ut_build_failed=1
   fi
 
   if [[ "$ENABLE_COVERAGE" =~ "TRUE" && "$enable_cov" == "TRUE" ]]; then

@@ -7,18 +7,18 @@
 
 ## Pre-compilation Preparation
 
-This chapter takes the development and runtime environment co-location scenario as an example, that is, the machine with AI processor serves as both the development environment and the runtime environment. In this scenario, code development and code running are on the same machine. Here we take the **AddMatMul operator** as an example. The calling logic, process, and compilation script of other operators are roughly the same as the AddMatMul operator. Please modify the API calling script (*.cpp) and compilation script (CMakeLists) according to the actual situation.
+This chapter uses a co-located development and runtime environment, where the machine with an AI processor is used for both development and execution. The **AddExample operator** is used below. Other operators follow the same general calling and compilation flow; adapt the API source file (*.cpp) and CMakeLists.txt as needed.
 
 - **Example Code**
 
-   The AddMatMul operator implements tensor addition operation, and the calculation formula is: out = β * self + α * (mat1 @ mat2). You can obtain the example code from the "Calling Example" section in [aclnnAddmm&aclnnInplaceAddmm.md](../../../matmul/mat_mul_v3/docs/aclnnAddmm&aclnnInplaceAddmm.md) and name the code file "**test\_addmm.cpp**".
+   AddExample performs element-wise tensor addition. Use [test_aclnn_add_example.cpp](../../../examples/add_example/examples/test_aclnn_add_example.cpp) as the example source file and name it `test_aclnn_add_example.cpp`.
 
 - **CMakeLists File**
 
     The CMake file example is as follows. Please modify according to the actual situation:
 
     ```bash
-    # Copyright (c) Huawei Technologies Co., Ltd. 2025. All rights reserved.
+    # Copyright (c) Huawei Technologies Co., Ltd. 2026. All rights reserved.
 
     # CMake lowest version requirement
     cmake_minimum_required(VERSION 3.14)
@@ -36,7 +36,7 @@ This chapter takes the development and runtime environment co-location scenario 
 
     # Set executable file name (such as opapi_test) and specify the directory where the operator file *.cpp to be run is located
     add_executable(opapi_test
-                   test_addmm.cpp)
+                   test_aclnn_add_example.cpp)
 
     # Set ASCEND_PATH (CANN software package directory, please modify according to the actual path) and INCLUDE_BASE_DIR (header file directory)
     if(NOT "$ENV{ASCEND_CUSTOM_PATH}" STREQUAL "")
@@ -53,29 +53,12 @@ This chapter takes the development and runtime environment co-location scenario 
     # Set linked library file path
     target_link_libraries(opapi_test PRIVATE
                           ${ASCEND_PATH}/lib64/libascendcl.so
-                          ${ASCEND_PATH}/lib64/libnnopbase.so
-                          ${ASCEND_PATH}/lib64/libopapi_math.so
-                          ${ASCEND_PATH}/lib64/libopapi_nn.so)
+                          ${ASCEND_PATH}/lib64/librasopbase.so
+                          ${ASCEND_PATH}/lib64/libopapi_ras.so)
 
     # The executable file is in the bin directory under the CMakeLists file directory
     install(TARGETS opapi_test DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
     ```
-
-    For operators that combine collective communication and MatMul calculation, and run in parallel, they are collectively called MC2 operators (communication-computation fusion operators), including AllGatherMatmul, AlltoAllAllGatherBatchMatMul, BatchMatMulReduceScatterAlltoAll, MatmulAllReduce, MatmulAllReduceAddRmsNorm, MatmulReduceScatter, etc. When calling such operator APIs, multi-threading and HCCL (Huawei Collective Communication Library) are generally involved. Therefore, the CMake file needs to additionally import the following content, otherwise compilation will fail.
-
-  ```bash
-  # Set linked library file path
-  find_package(Threads REQUIRED)
-  target_link_libraries(opapi_test PRIVATE
-                        ${ASCEND_PATH}/lib64/libascendcl.so
-                        ${ASCEND_PATH}/lib64/libnnopbase.so
-                        ${ASCEND_PATH}/lib64/libopapi_math.so
-                        ${ASCEND_PATH}/lib64/libopapi_nn.so
-                        ${ASCEND_PATH}/lib64/libhccl.so      # Collective communication library file
-                        ${CMAKE_THREAD_LIBS_INIT})           # Library file that multi-threading depends on
-  ```
-
-  Where "find_package(Threads REQUIRED)" is a CMake command used to find the thread library, which can automatically link the header files or indirectly dependent library files that the thread library depends on.
 
 ## Compilation and Running
 
@@ -113,7 +96,7 @@ This chapter takes the development and runtime environment co-location scenario 
           ./opapi_test
           ```
 
-          Taking the running result of the AddMatMul operator as an example, the result after running is shown below:
+          Taking the running result of AddExample as an example, the output is similar to the following:
 
           ```bash
           result[0] is: 1.200000
@@ -127,17 +110,17 @@ This chapter takes the development and runtime environment co-location scenario 
           ```
 
           If the execution result reports an error and the expected result does not appear, you can use the aclGetRecentErrMsg interface to obtain the specific error information.
-          Example of obtaining exception information when calling aclnnAddmmGetWorkspaceSize fails:
+          Example of obtaining exception information when calling `aclnnAddExampleGetWorkspaceSize` fails:
 
           ```bash
-          // self is nullptr
-          ret = aclnnAddmmGetWorkspaceSize(self, mat1, mat2, beta, alpha, out, cubeMathType, &workspaceSize, &executor);
-          CHECK_RET(ret == ACL_SUCCESS, LOG_PRINT("aclnnAddmmGetWorkspaceSize failed. ERROR: %d\n[ERROR msg]%s", ret, aclGetRecentErrMsg()); return ret);
+          // selfX is nullptr
+          ret = aclnnAddExampleGetWorkspaceSize(selfX, selfY, out, &workspaceSize, &executor);
+          CHECK_RET(ret == ACL_SUCCESS, LOG_PRINT("aclnnAddExampleGetWorkspaceSize failed. ERROR: %d\n[ERROR msg]%s", ret, aclGetRecentErrMsg()); return ret);
           ```
 
           The above null pointer construction problem obtains error information as shown below:
 
           ```bash
-          aclnnAddmmGetWorkspaceSize failed. ERROR: 161001
-          [ERROR msg][PID:xxxx] xxx(timesamp) AclNN_Parameter_Error(EZ1001): Expected a proper Tensor but got null for argument addmmTennsor.self.
+          aclnnAddExampleGetWorkspaceSize failed. ERROR: 161001
+          [ERROR msg][PID:xxxx] xxx(timestamp) AclNN_Parameter_Error(EZ1001): Expected a proper Tensor but got null for an input argument.
           ```

@@ -8,7 +8,7 @@ English | [简体中文](./README.md)
 
 ## 🚀Overview
 
-ops-ras is the security and RAS (Reliability, Availability and Serviceability) operator library in the [CANN](https://hiascend.com/software/cann) (Compute Architecture for Neural Networks) operator library, providing reliability, availability, and maintainability capabilities, including security, encryption, and RAS-related operators. "ras" is derived from the initials of these three core characteristics. The operator library architecture is shown below:
+ops-ras is the  RAS (Reliability, Availability and Serviceability) operator library in the [CANN](https://hiascend.com/software/cann) (Compute Architecture for Neural Networks) operator library, providing reliability, availability, and maintainability capabilities, including security, encryption, and RAS-related operators. "ras" is derived from the initials of these three core characteristics. The operator library architecture is shown below:
 
 <img src="docs/en//figures/architecture.png" alt="Architecture Diagram"  width="700px" height="320px">
 

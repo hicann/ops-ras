@@ -15,8 +15,10 @@ if(UT_TEST_ALL OR OP_KERNEL_UT)
     set(OP_KERNEL_UT_EXE ${PKG_NAME}_op_kernel_ut)
 
     if(NOT fastOpTestSocVersions)
-        message(STATUS "No op kernel UT cases found, creating empty target ${OP_KERNEL_UT_EXE}.")
-        add_custom_target(${OP_KERNEL_UT_EXE})
+        if(OP_KERNEL_UT)
+            message(FATAL_ERROR "OpKernel UT was requested, but no selected kernel UT case exists.")
+        endif()
+        message(STATUS "No op kernel UT cases found; ${OP_KERNEL_UT_EXE} is skipped.")
         return()
     endif()
 
@@ -55,6 +57,10 @@ if(UT_TEST_ALL OR OP_KERNEL_UT)
                 metadef
                 register
                 )
+        add_test(NAME ${OP_KERNEL_UT_EXE}_${socVersion} COMMAND ${OP_KERNEL_UT_EXE}_${socVersion})
+        set_tests_properties(${OP_KERNEL_UT_EXE}_${socVersion} PROPERTIES
+            ENVIRONMENT "BUILD_PATH=${BUILD_PATH};LD_LIBRARY_PATH=$ENV{LD_LIBRARY_PATH}"
+        )
 
         if(ENABLE_UT_EXEC)
             if(ENABLE_ASAN)

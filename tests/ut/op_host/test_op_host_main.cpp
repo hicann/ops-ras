@@ -9,8 +9,10 @@
  */
 
 #include <iostream>
+#include <memory>
 
 #include <gtest/gtest.h>
+#include "base/registry/op_impl_space_registry_v2.h"
 #include "platform/platform_info.h"
 
 class OpHostUtEnvironment : public testing::Environment {
@@ -21,6 +23,14 @@ public:
         compilationInfo.Init();
         compilationInfo.SetSocVersion("soc_version");
         fe::PlatformInfoManager::GeInstance().SetOptionalCompilationInfo(compilationInfo);
+
+        auto registry = std::make_shared<gert::OpImplSpaceRegistryV2>();
+        gert::DefaultOpImplSpaceRegistryV2::GetInstance().SetSpaceRegistry(registry);
+    }
+
+    void TearDown() override
+    {
+        gert::DefaultOpImplSpaceRegistryV2::GetInstance().SetSpaceRegistry(nullptr);
     }
 };
 

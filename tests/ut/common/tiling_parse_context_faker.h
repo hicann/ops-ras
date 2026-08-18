@@ -8,8 +8,8 @@
  * See LICENSE in the root of the software repository for the full text of the License.
  */
 
-#ifndef OPS_MATH_DEV_TESTS_UT_COMMON_TILING_PARSE_CONTEXT_FAKER_H
-#define OPS_MATH_DEV_TESTS_UT_COMMON_TILING_PARSE_CONTEXT_FAKER_H
+#ifndef OPS_RAS_TESTS_UT_COMMON_TILING_PARSE_CONTEXT_FAKER_H
+#define OPS_RAS_TESTS_UT_COMMON_TILING_PARSE_CONTEXT_FAKER_H
 
 #include <vector>
 #include "kernel_run_context_holder.h"
@@ -34,4 +34,4 @@ public:
 
 using KernelRunContextFaker = TilingParseContextFaker;
 } // namespace gert
-#endif // OPS_MATH_DEV_TESTS_UT_COMMON_TILING_PARSE_CONTEXT_FAKER_H
+#endif // OPS_RAS_TESTS_UT_COMMON_TILING_PARSE_CONTEXT_FAKER_H

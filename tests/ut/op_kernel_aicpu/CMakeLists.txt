@@ -19,8 +19,10 @@ if(UT_TEST_ALL OR OP_KERNEL_AICPU_UT)
         ${PROJECT_SOURCE_DIR}/experimental/reliability/*/op_kernel_aicpu/*.cpp
     )
     if(NOT RAS_AICPU_KERNEL_SOURCES)
+        if(OP_KERNEL_AICPU_UT)
+            message(FATAL_ERROR "AICPU OpKernel UT was requested, but no RAS AICPU kernel source exists.")
+        endif()
         message(STATUS "No RAS AICPU kernel sources found, skipping ${AICPU_OP_KERNEL_UT_EXE}.")
-        add_custom_target(${AICPU_OP_KERNEL_UT_EXE})
         return()
     endif()
  
@@ -53,6 +55,10 @@ if(UT_TEST_ALL OR OP_KERNEL_AICPU_UT)
         gtest
         c_sec
         Eigen3::Eigen
+    )
+    add_test(NAME ${AICPU_OP_KERNEL_UT_EXE} COMMAND ${AICPU_OP_KERNEL_UT_EXE})
+    set_tests_properties(${AICPU_OP_KERNEL_UT_EXE} PROPERTIES
+        ENVIRONMENT "LD_LIBRARY_PATH=$ENV{LD_LIBRARY_PATH}"
     )
  
     if(ENABLE_UT_EXEC)

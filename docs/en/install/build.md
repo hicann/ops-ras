@@ -2,13 +2,13 @@
 
 ## Introduction
 
-build.sh is the build script of this project, located in the project root directory by default. Its function is to automatically compile, link, and configure the source code, and finally generate executable files, library files, or other target files that can be installed or run directly. Specifically, the script configures different parameters to achieve multiple functions, including building multiple target libraries (such as libophost_nn.so), compiling operator packages, executing unit tests, etc.
+build.sh is the build script of this project, located in the project root directory by default. Its function is to automatically compile, link, and configure the source code, and finally generate executable files, library files, or other target files that can be installed or run directly. Specifically, the script configures different parameters to achieve multiple functions, including building multiple target libraries (such as libophost_ras.so), compiling operator packages, executing unit tests, etc.
 
 ## Usage
 
 1. **Configure Environment Variables**
 
-   Complete the basic environment setup by referring to [Environment Deployment](../context/quick_install.md).
+   Complete the basic environment setup by referring to [Environment Deployment](./quick_install.md).
 
    ```bash
    # Default path installation, taking root user as an example
@@ -40,10 +40,10 @@ bash build.sh --help
 | -O${n}           | Optional     | Specifies the compilation optimization level. Supports O0/O1/O2/O3 (such as -O3). ${n} is the optimization level identifier.                                |
 | -u               | Optional     | Enables unit test (UT) compilation mode and compiles all UT targets.                                                    |
 | --help, -h       | Optional     | Prints script usage help information.                                                               |
-| --ops            | Optional     | Specifies the operators to be compiled, such as mat_mul_v3, mse_loss. Multiple operators are separated by English commas ",". Cannot be used with --ophost and --opapi at the same time. |
+| --ops            | Optional     | Specifies the operators to be compiled, such as add_example or crypto. Multiple operators are separated by English commas ",". Cannot be used with --ophost and --opapi at the same time. |
 | --soc            | Optional     | Specifies the NPU model. Only 1 NPU model is supported per compilation.                                                   |
-| --jit            | Optional     | In the static graph scenario, when compiling the `cann-${soc_name}-ops-nn_${cann_version}_linux-${arch}.run` package, you do not need to compile the operator binary files (the graph runtime will compile online). You can configure this option to improve compilation speed. |
-| --static         | Optional     | When configured, it means generating a static library file, including libcann_nn_static.a and aclnn interface header files. Combined with the --pkg parameter, it generates a static library compressed package.|
+| --jit            | Optional     | In the static graph scenario, when compiling the `cann-${soc_name}-ops-ras_${cann_version}_linux-${arch}.run` package, you do not need to compile the operator binary files (the graph runtime will compile online). You can configure this option to improve compilation speed. |
+| --static         | Optional     | When configured, it means generating a static library file, including libcann_ras_static.a and aclnn interface header files. Combined with the --pkg parameter, it generates a static library compressed package.|
 | --vendor_name    | Optional     | Specifies the name of the custom operator package. The default value is custom.                                                   |
 | --build-type     | Optional     | Enables debug mode. Optional types: Release/Debug. The default is Release. When the value is Debug, it cannot be used with --mssanitizer, --oom, --dump_cce at the same time         |
 | --debug          | Optional     | Enables debug mode.                                                                     |
@@ -55,8 +55,8 @@ bash build.sh --help
 | --valgrind       | Optional     | Reserved parameter, developers do not need to pay attention for now.                                                              |
 | --make_clean     | Optional     | Executes basic cleanup operations (cleans compilation products). The script exits after execution.                                          |
 | --make_clean_all | Optional     | Executes complete cleanup operations (deletes all compilation-related files). The script exits after execution.                                   |
-| --ophost         | Optional     | Compiles the libophost_nn.so library. Cannot be used with --pkg, --ops at the same time.                                       |
-| --opapi          | Optional     | Compiles the libopapi_nn.so library. Cannot be used with --pkg, --ops at the same time.                                        |
+| --ophost         | Optional     | Compiles the libophost_ras.so library. Cannot be used with --pkg, --ops at the same time.                                      |
+| --opapi          | Optional     | Compiles the libopapi_ras.so library. Cannot be used with --pkg, --ops at the same time.                                       |
 | --run_example    | Optional     | Compiles the sample of the specified operator and mode and executes the compiled executable file. Use --run_example --help to view the usage.     |
 | --genop          | Optional     | Creates the AI Core custom operator initial directory.                                                           |
 | --genop_aicpu    | Optional     | Creates the AI CPU custom operator initial directory.                                                            |

@@ -16,16 +16,22 @@ function(kernel_src_copy)
   set(multiValueArgs IMPL_DIR)
   cmake_parse_arguments(KNCPY "" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
   add_custom_target(${KNCPY_TARGET})
+  set(HAS_KERNEL_SOURCES FALSE)
   foreach(OP_DIR ${KNCPY_IMPL_DIR})
     get_filename_component(OP_NAME ${OP_DIR} NAME)
     if (${OP_NAME} STREQUAL "CMakeLists.txt")
       continue()
     endif()
+    set(SRC_DIR ${OP_DIR}/op_kernel)
+    if(NOT EXISTS ${SRC_DIR})
+      continue()
+    endif()
+    file(GLOB_RECURSE OP_KERNEL_SOURCE_FILES CONFIGURE_DEPENDS "${SRC_DIR}/*")
+    if(NOT OP_KERNEL_SOURCE_FILES)
+      continue()
+    endif()
+    set(HAS_KERNEL_SOURCES TRUE)
     if(NOT TARGET ${OP_NAME}_src_copy)
-      set(SRC_DIR ${OP_DIR}/op_kernel)
-      if(NOT EXISTS ${SRC_DIR})
-        continue()
-      endif()
       add_custom_target(${OP_NAME}_src_copy
         COMMAND ${CMAKE_COMMAND} -E make_directory ${KNCPY_DST_DIR}/${OP_NAME}
         COMMAND bash -c "find ${SRC_DIR} -mindepth 1 -maxdepth 1 -exec cp -r {} ${KNCPY_DST_DIR}/${OP_NAME} \\;"
@@ -46,7 +52,12 @@ function(kernel_src_copy)
     endif()
   endforeach()
 
-  # common install
+  if(NOT HAS_KERNEL_SOURCES)
+    message(STATUS "No RAS op_kernel sources found, skipping OPBASE atvoss and op_kernel payload.")
+    return()
+  endif()
+
+  # OPBASE common kernel payload is delivered only when a real op_kernel source consumes it.
   if(NOT TARGET atvoss_src_copy)
     add_custom_target(
       atvoss_src_copy
@@ -58,8 +69,8 @@ function(kernel_src_copy)
         bash -c "cp -r ${OPBASE_SOURCE_PATH}/include/op_common/op_kernel ${KNCPY_DST_DIR}/common"
       VERBATIM
     )
-    add_dependencies(${KNCPY_TARGET} atvoss_src_copy)
   endif()
+  add_dependencies(${KNCPY_TARGET} atvoss_src_copy)
   if(ENABLE_PACKAGE)
     install(DIRECTORY ${OPBASE_SOURCE_PATH}/pkg_inc/op_common/atvoss DESTINATION ${IMPL_INSTALL_DIR}/common)
     install(DIRECTORY ${OPBASE_SOURCE_PATH}/include/op_common/op_kernel DESTINATION ${IMPL_INSTALL_DIR}/common)
@@ -258,6 +269,10 @@ endfunction()
 # generate outpath: ${CMAKE_BINARY_DIR}/tbe/graph
 # ##################################################################################################
 function(has_graph_proto_sources OUT_VAR)
+  if(NOT TARGET ${GRAPH_PLUGIN_NAME}_proto_headers)
+    set(${OUT_VAR} FALSE PARENT_SCOPE)
+    return()
+  endif()
   get_target_property(proto_headers ${GRAPH_PLUGIN_NAME}_proto_headers INTERFACE_SOURCES)
   if(proto_headers AND NOT proto_headers MATCHES "-NOTFOUND$")
     set(${OUT_VAR} TRUE PARENT_SCOPE)
@@ -542,18 +557,6 @@ function(gen_ops_info_and_python)
     return()
   endif()
 
-  add_custom_target(common_copy
-    COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/tbe/ascendc/inc
-    COMMAND cp -r ${PROJECT_SOURCE_DIR}/common/inc/op_kernel/* ${CMAKE_BINARY_DIR}/tbe/ascendc/inc
-  )
-
-  if(ENABLE_PACKAGE)
-    install(
-      DIRECTORY ${CMAKE_BINARY_DIR}/tbe/ascendc/inc/
-      DESTINATION ${IMPL_INSTALL_DIR}/inc
-    )
-  endif()
-
   string(JOIN "/" simplified_key_str ${simplified_key_list})
   string(JOIN "/" impl_mode_str ${impl_mode_list})
   string(JOIN "/" auto_sync_str ${auto_sync_list})
@@ -570,7 +573,7 @@ function(gen_ops_info_and_python)
             ${simplified_key_str} ${impl_mode_str} ${auto_sync_str} ${options_str}
   )
 
-  set(ascendc_impl_gen_depends ascendc_kernel_src_copy common_copy gen_kernel_options)
+  set(ascendc_impl_gen_depends ascendc_kernel_src_copy gen_kernel_options)
   foreach(compute_unit ${ASCEND_ALL_COMPUTE_UNIT})
     # generate aic-${compute_unit}-ops-info.json, operator infos
     if(ENABLE_CUSTOM)

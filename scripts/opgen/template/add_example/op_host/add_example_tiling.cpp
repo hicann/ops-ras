@@ -15,8 +15,8 @@
 
 #include "log/log.h"
 #include "util/math_util.h"
-#include "tiling_base/tiling_util.h"
-#include "tiling_base/tiling_templates_registry.h"
+#include "op_host/tiling_util.h"
+#include "op_host/tiling_templates_registry.h"
 #include "add_example/op_kernel/add_example_tiling_data.h"
 #include "add_example/op_kernel/add_example_tiling_key.h"
 
@@ -25,12 +25,14 @@ namespace optiling {
 struct AddExampleCompileInfo {};
 
 // tiling 分发入口
-static ge::graphStatus AddExampleTilingFunc(gert::TilingContext* context)
+static ge::graphStatus AddExampleTilingFunc([[maybe_unused]] gert::TilingContext* context)
 {
+    return ge::GRAPH_SUCCESS;
 }
 
 static ge::graphStatus TilingParseForAddExample([[maybe_unused]] gert::TilingParseContext* context)
-{   
+{
+    return ge::GRAPH_SUCCESS;
 }
 
 // tiling注册入口.

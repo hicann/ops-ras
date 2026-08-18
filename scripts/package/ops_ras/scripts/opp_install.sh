@@ -397,11 +397,13 @@ install_cann_ops_ras_whl() {
 add_init_py() {
   local opp_builtin_mod=""
   local built_in_impl_path=${TARGET_OPP_BUILT_IN}/op_impl/ai_core/tbe/impl/ops_ras
-  if [ -d ${built_in_impl_path} ]; then
-    opp_builtin_mod=$(stat -c %a ${built_in_impl_path})
-    if [ "$(id -u)" != 0 ] && [ ! -w "${built_in_impl_path}" ]; then
-      chmod u+w -R "${built_in_impl_path}" 2>/dev/null
-    fi
+  if [ ! -d "${built_in_impl_path}" ]; then
+    return
+  fi
+
+  opp_builtin_mod=$(stat -c %a ${built_in_impl_path})
+  if [ "$(id -u)" != 0 ] && [ ! -w "${built_in_impl_path}" ]; then
+    chmod u+w -R "${built_in_impl_path}" 2>/dev/null
   fi
   touch ${built_in_impl_path}/__init__.py
 

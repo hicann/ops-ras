@@ -19,8 +19,7 @@
 #include <string>
 #include <memory>
 #include "exe_graph/runtime/tiling_context.h"
-#include "tiling_base/tiling_base.h"
-#include "tiling_base/static_register_symbol.h"
+#include "op_host/tiling_base.h"
 #include "log/log.h"
 
 namespace Ops {
@@ -325,14 +324,12 @@ private:
 // op_type: 算子名称， class_name: 注册的 tiling 类, soc_version：芯片版本号
 // priority: tiling 类的优先级, 越小表示优先级越高, 即会优先选择这个tiling类
 #define REGISTER_TILING_TEMPLATE_WITH_SOCVERSION(op_type, class_name, soc_versions, priority)  \
-    GLOBAL_REGISTER_SYMBOL(op_type, class_name, priority, __COUNTER__, __LINE__);                \
     static Ops::Ras::Optiling::RegisterNew VAR_UNUSED##op_type##class_name##priority_register = \
         Ops::Ras::Optiling::RegisterNew(#op_type).tiling<class_name>(priority, soc_versions)
 
 // op_type: 算子名称， class_name: 注册的 tiling 类,
 // priority: tiling 类的优先级, 越小表示优先级越高, 即被选中的概率越大
 #define REGISTER_TILING_TEMPLATE(op_type, class_name, priority)                              \
-    GLOBAL_REGISTER_STR_SYMBOL(op_type, class_name, priority, __COUNTER__, __LINE__);         \
     static Ops::Ras::Optiling::Register VAR_UNUSED##op_type_##class_name##priority_register = \
         Ops::Ras::Optiling::Register(op_type).tiling<class_name>(priority)
 
@@ -340,7 +337,6 @@ private:
 // soc_version: soc版本，用于区分不同的soc
 // priority: tiling 类的优先级, 越小表示优先级越高, 即会优先选择这个tiling类
 #define REGISTER_TILING_TEMPLATE_NEW(op_type, class_name, soc_version, priority)               \
-    GLOBAL_REGISTER_SYMBOL(op_type, class_name, priority, __COUNTER__, __LINE__);                \
     static Ops::Ras::Optiling::RegisterNew VAR_UNUSED##op_type##class_name##priority_register = \
         Ops::Ras::Optiling::RegisterNew(#op_type).tiling<class_name>(priority, soc_version)
 
@@ -348,7 +344,7 @@ private:
 // priority: tiling 类的优先级, 越小表示优先级越高, 即被选中的概率越大
 // 取代 REGISTER_TILING_TEMPLATE , 传入的op_type如果是字符串常量，需要去掉引号
 #define REGISTER_OPS_TILING_TEMPLATE(op_type, class_name, priority)                       \
-    GLOBAL_REGISTER_SYMBOL(op_type, class_name, priority, __COUNTER__, __LINE__);                \
+    [[maybe_unused]] uint32_t op_impl_register_template_##op_type##_##class_name##priority; \
     static Ops::Ras::Optiling::Register                                                    \
         __attribute__((unused)) tiling_##op_type##_##class_name##_##priority##_register = \
             Ops::Ras::Optiling::Register(#op_type).tiling<class_name>(priority)

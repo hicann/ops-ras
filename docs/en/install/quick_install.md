@@ -66,7 +66,7 @@ For users without an environment, you can directly use the WebIDE development pl
 #### 1. Download Image
 
 1. Log in to the host machine as the root user. Ensure that the Docker engine (version 1.11.2 or above) is installed on the host machine.
-2. Pull the image with the CANN software package and `ops-nn` required dependencies pre-integrated from the [Ascend Image Repository](https://www.hiascend.com/developer/ascendhub/detail/17da20d1c2b6493cb38765adeba85884). The command is as follows. Choose according to the actual architecture:
+2. Pull the image with the CANN software package and operator-development dependencies pre-integrated from the [Ascend Image Repository](https://www.hiascend.com/developer/ascendhub/detail/17da20d1c2b6493cb38765adeba85884). The command is as follows. Choose according to the actual architecture:
 
     ```bash
     # Example: Pull ARM architecture CANN development image
@@ -175,9 +175,9 @@ Download the project source code through the following command, and install othe
 
 ```bash
 # Download the corresponding branch source code of the project
-git clone -b ${tag_version} https://gitcode.com/cann/ops-nn.git
+git clone -b ${tag_version} https://gitcode.com/cann/ops-ras.git
 # Install root directory requirements.txt dependencies
-cd ops-nn
+cd ops-ras
 pip3 install -r requirements.txt
 ```
 
@@ -186,5 +186,5 @@ pip3 install -r requirements.txt
 
 If your compilation environment cannot access the network and cannot download the code through the `git` command, you need to download the source code in a networked environment and manually upload it to the target environment.
 
-- In a networked environment, enter [this project homepage](https://gitcode.com/cann/ops-nn), and complete the source code download through the `Download ZIP` or `clone` button according to the instructions.
+- In a networked environment, enter [this project homepage](https://gitcode.com/cann/ops-ras), and complete the source code download through the `Download ZIP` or `clone` button according to the instructions.
 - Connect to the offline environment and upload the source code to your specified directory. If you downloaded a source code compressed package, you also need to decompress it.

@@ -175,9 +175,9 @@ int main()
    # Link the required dynamic libraries
    target_link_libraries(test_aclnn_add_example PRIVATE             # Replace with the actual operator executable file
        ${ASCEND_PATH}/lib64/libascendcl.so
-       ${ASCEND_PATH}/lib64/libnnopbase.so
+       ${ASCEND_PATH}/lib64/librasopbase.so
        ${ASCEND_PATH}/opp/vendors/${TARGET_SUBDIR}/op_api/lib/libcust_opapi.so   # Only required for custom operators
-       # ${ASCEND_PATH}/lib64/libopapi_nn.so    # Only required for built-in operators
+       # ${ASCEND_PATH}/lib64/libopapi_ras.so    # Only required for built-in RAS operators
    )
 
    # Install the target file to the bin directory

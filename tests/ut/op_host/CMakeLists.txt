@@ -24,11 +24,17 @@ if(UT_TEST_ALL OR OP_HOST_UT)
     ## already up to date.
     set(OP_HOST_UT_EXE ${PKG_NAME}_op_host_ut)
     set(OP_HOST_UT_BIN ${OP_HOST_UT_EXE}_bin)
-    add_executable(${OP_HOST_UT_BIN}
+    set(OP_HOST_UT_SOURCES
         test_op_host_main.cpp
         test_host_common.cpp
-        ${PROJECT_SOURCE_DIR}/common/src/op_host/hash.cpp
     )
+    # The operator tiling object already carries common op_host sources.  Keep
+    # the standalone hash implementation only for the common-only UT path.
+    if(NOT TARGET ${OP_TILING_MODULE_NAME}_static_lib)
+        list(APPEND OP_HOST_UT_SOURCES
+            ${PROJECT_SOURCE_DIR}/common/src/op_host/hash.cpp)
+    endif()
+    add_executable(${OP_HOST_UT_BIN} ${OP_HOST_UT_SOURCES})
 
     # Keep runtime resolution explicit in the execution target below.
     set_target_properties(${OP_HOST_UT_BIN} PROPERTIES
@@ -39,6 +45,9 @@ if(UT_TEST_ALL OR OP_HOST_UT)
     target_compile_options(${OP_HOST_UT_BIN} PUBLIC -fPIE -fno-access-control)
     target_include_directories(${OP_HOST_UT_BIN} PRIVATE
         ${PROJECT_SOURCE_DIR}/common/inc
+    )
+    target_link_directories(${OP_HOST_UT_BIN} PRIVATE
+        ${ASCEND_DIR}/${SYSTEM_PREFIX}/lib64
     )
     target_link_libraries(${OP_HOST_UT_BIN} PRIVATE
         $<BUILD_INTERFACE:intf_llt_pub_asan_cxx17>
@@ -65,13 +74,17 @@ if(UT_TEST_ALL OR OP_HOST_UT)
 
     add_dependencies(${OP_HOST_UT_BIN} json)
 
-    if(ENABLE_UT_EXEC)
-        set(ASCEND_HAL_STUB
-            ${ASCEND_DIR}/${SYSTEM_PREFIX}/devlib/linux/${CMAKE_SYSTEM_PROCESSOR}/libascend_hal.so)
-        if(NOT EXISTS ${ASCEND_HAL_STUB})
-            message(FATAL_ERROR "OpHost UT requires Ascend HAL stub: ${ASCEND_HAL_STUB}")
-        endif()
+    set(ASCEND_HAL_STUB
+        ${ASCEND_DIR}/${SYSTEM_PREFIX}/devlib/linux/${CMAKE_SYSTEM_PROCESSOR}/libascend_hal.so)
+    if(NOT EXISTS ${ASCEND_HAL_STUB})
+        message(FATAL_ERROR "OpHost UT requires Ascend HAL stub: ${ASCEND_HAL_STUB}")
+    endif()
+    add_test(NAME ${OP_HOST_UT_EXE} COMMAND ${OP_HOST_UT_BIN})
+    set_tests_properties(${OP_HOST_UT_EXE} PROPERTIES
+        ENVIRONMENT "BUILD_PATH=${BUILD_PATH};LD_PRELOAD=${ASCEND_HAL_STUB}:$ENV{LD_PRELOAD}"
+    )
 
+    if(ENABLE_UT_EXEC)
         if(${ENABLE_ASAN} STREQUAL "TRUE")
             execute_process(
                 COMMAND ${CMAKE_C_COMPILER} -print-file-name=libasan.so

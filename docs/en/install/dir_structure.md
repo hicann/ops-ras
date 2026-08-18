@@ -11,7 +11,7 @@ The full directory hierarchy of the project is introduced as follows:
 
 ```text
 ├── cmake                                               # Project engineering compilation directory
-│   ├── aclnn_ops_nn.h.in                               # aclnn summary header file template
+│   ├── aclnn_ops_ras.h.in                              # aclnn summary header file template
 │   └── ...
 ├── common                                              # Project common header files and common code
 │   ├── CMakeLists.txt

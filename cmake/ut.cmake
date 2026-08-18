@@ -157,7 +157,7 @@ function(add_opkernel_ut_modules OP_KERNEL_MODULE_NAME)
     set(UT_COMMON_INC ${CMAKE_CURRENT_SOURCE_DIR}/../common CACHE STRING "ut common include path" FORCE)
     set(UT_KERNEL_INC ${PROJECT_SOURCE_DIR}/tests/ut/op_kernel CACHE STRING "ut kernel include path" FORCE)
 
-    ## add opkernel ut common object: nn_op_kernel_ut_common_obj
+    ## add op kernel UT common object
     add_library(${OP_KERNEL_MODULE_NAME}_common_obj OBJECT)
     add_dependencies(${OP_KERNEL_MODULE_NAME}_common_obj json)
     file(GLOB OP_KERNEL_UT_COMMON_SRC
@@ -182,7 +182,7 @@ function(add_opkernel_ut_modules OP_KERNEL_MODULE_NAME)
     )
 
     foreach(socVersion ${fastOpTestSocVersions})
-        ## add op kernel ut cases dynamic lib: libnn_op_kernel_ut_${socVersion}_cases.so
+        ## add the per-SoC op kernel UT case library
         add_library(${OP_KERNEL_MODULE_NAME}_${socVersion}_cases SHARED
             $<TARGET_OBJECTS:${OP_KERNEL_MODULE_NAME}_common_obj>
             )
@@ -285,7 +285,7 @@ if(UT_TEST_ALL OR OP_KERNEL_AICPU_UT)
     target_link_libraries(${AICPU_OP_KERNEL_MODULE_NAME}_cases_obj PRIVATE gcov -ldl)
     target_sources(${AICPU_OP_KERNEL_MODULE_NAME}_cases_obj PRIVATE ${OP_KERNEL_AICPU_UT_UTILS_SRC})
 
-    ## add opkernel ut cases shared lib: libnn_aicpu_op_kernel_ut_cases.so
+    ## add the AICPU op kernel UT case shared library
     add_library(${AICPU_OP_KERNEL_MODULE_NAME}_cases SHARED
         $<TARGET_OBJECTS:${AICPU_OP_KERNEL_MODULE_NAME}_common_obj>
         $<TARGET_OBJECTS:${AICPU_OP_KERNEL_MODULE_NAME}_cases_obj>
@@ -427,20 +427,13 @@ function(AddOpTestCase opName supportedSocVersion otherCompileOptions)
     set(COMPILED_OPS_UT "${COMPILED_OPS_UT}" CACHE STRING "Compiled Ops" FORCE)
 
     set(KERNEL_COPY_TARGET "ascendc_kernel_ut_src_copy_${opName}")
-    set(KERNEL_COMMON_COPY_TARGET "ascendc_kernel_ut_common_src_copy_${opName}")
     if(NOT TARGET ${KERNEL_COPY_TARGET})
-        add_custom_target(${KERNEL_COMMON_COPY_TARGET}
-            COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/tbe/ascendc/inc
-            COMMAND cp -r ${PROJECT_SOURCE_DIR}/common/inc/op_kernel/* ${CMAKE_BINARY_DIR}/tbe/ascendc/inc
-        )
-
         kernel_src_copy(
             TARGET ${KERNEL_COPY_TARGET}
             OP_LIST ${COMPILED_OPS_UT}
             IMPL_DIR ${COMPILED_OP_DIRS_UT}
             DST_DIR ${ASCEND_KERNEL_SRC_DST}
         )
-        add_dependencies(${KERNEL_COPY_TARGET} ${KERNEL_COMMON_COPY_TARGET})
     endif()
 
     ## get/standardize opType
@@ -722,7 +715,6 @@ if(UT_TEST_ALL OR OP_KERNEL_AICPU_UT)
     target_compile_options(${opName}_cases_obj PRIVATE
             -g
             )
-    message(STATUS "111******************** ${AICPU_INCLUDE}")
     ## add op_kernel_aicpu test header file search path, so that header files can be referenced based on relative path
     target_include_directories(${opName}_cases_obj PRIVATE
             ${AICPU_INCLUDE}
@@ -739,7 +731,7 @@ if(UT_TEST_ALL OR OP_KERNEL_AICPU_UT)
             Eigen3::Eigen
             )
 
-    ## add object: nn_op_kernel_ut_cases_obj
+    ## add AICPU op kernel UT case object
     if(NOT TARGET ${AICPU_OP_KERNEL_MODULE_NAME}_cases_obj)
       add_library(
         ${AICPU_OP_KERNEL_MODULE_NAME}_cases_obj OBJECT
