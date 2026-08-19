@@ -8,34 +8,26 @@
 # See LICENSE in the root of the software repository for the full text of the License.
 #/
 
-find_library(OPAPI_MATH_LIBRARY
-    NAMES opapi_math
-    PATHS ${ASCEND_DIR}/${SYSTEM_PREFIX}/lib64
-    NO_DEFAULT_PATH
-)
-if(NOT OPAPI_MATH_LIBRARY)
-    message(FATAL_ERROR
-        "The installed CANN Math provider libopapi_math.so was not found under "
-        "${ASCEND_DIR}/${SYSTEM_PREFIX}/lib64")
-endif()
+function(add_ras_math_stub target_name)
+    add_library(${target_name} SHARED ras_math_test_double.cpp)
 
-add_library(opapi_math SHARED IMPORTED GLOBAL)
-set_target_properties(opapi_math PROPERTIES
-    IMPORTED_LOCATION "${OPAPI_MATH_LIBRARY}"
-    IMPORTED_SONAME "libopapi_math.so"
-)
-
-if(ENABLE_TEST)
-    add_library(ras_math_test_double SHARED ras_math_test_double.cpp)
-
-    target_compile_definitions(ras_math_test_double PRIVATE
+    target_compile_definitions(${target_name} PRIVATE
         _GLIBCXX_USE_CXX11_ABI=0
         LOG_CPP
     )
 
-    target_compile_options(ras_math_test_double PRIVATE -Wno-unused-parameter)
+    target_compile_options(${target_name} PRIVATE -Wno-unused-parameter)
 
-    target_include_directories(ras_math_test_double PRIVATE
+    target_include_directories(${target_name} PRIVATE
         ${OPAPI_INCLUDE}
     )
+endfunction()
+
+# The standalone build needs a link-time provider before the real ops-math
+# package is installed. This target is intentionally not installed; at runtime
+# libopapi_ras.so resolves these symbols from the ops-math package.
+add_ras_math_stub(opapi_math)
+
+if(ENABLE_TEST)
+    add_ras_math_stub(ras_math_test_double)
 endif()

@@ -156,6 +156,7 @@ set(OPAPI_INCLUDE
   ${OPS_RAS_DIR}/common/inc
   ${OPS_RAS_DIR}/common/inc/op_api
   ${TOP_DIR}/output/${PRODUCT}/aclnnop_resource
+  ${OPS_RAS_DIR}/common/stub/op_api
 )
 
 set(OP_TILING_INCLUDE
