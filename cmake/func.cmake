@@ -441,7 +441,7 @@ endfunction()
 # DEPENDENCIES 算子依赖
 # ACLNNEXTRAVERSION 算子版本(ex., v2, v3, 5, etc.)
 # COMPUTE_UNIT 设置支持芯片版本号，必须与TILING_DIR一一对应，示例：ascend910b ascend950
-# TILING_DIR 设置所支持芯片类型对应的tiling文件目录，必须与COMPUTE_UNIT一一对应，示例：arch32 arch35
+# TILING_DIR 设置所支持芯片类型对应的tiling文件目录，必须与COMPUTE_UNIT一一对应，示例：arch22 arch35
 # DISABLE_IN_OPP 设置是否在opp包中编译tiling文件，布尔类型：TRUE，FALSE
 # 需一一对应
 function(add_modules_sources)

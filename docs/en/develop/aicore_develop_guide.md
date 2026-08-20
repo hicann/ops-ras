@@ -244,7 +244,7 @@ Kernel requires two deliverables: `${op_name}.cpp` and `${op_name}.h`
 > Note:
 >
 > 1. `${op_name}.cpp` is the kernel entry function and must be placed in the `${op_name}/op_kernel` directory;
-> 2. `${op_name}.h` can be placed in the corresponding directory according to different SoC or template configurations, for example: `${op_name}/op_kernel/arch32`, `${op_name}/op_kernel/arch35`, or `${op_name}/op_kernel/impl` directories;
+> 2. `${op_name}.h` can be placed in the corresponding directory according to different SoC or template configurations, for example: `${op_name}/op_kernel/arch22`, `${op_name}/op_kernel/arch35`, or `${op_name}/op_kernel/impl` directories;
 
 **Deliverable 1: ${op_name}.cpp**
 
