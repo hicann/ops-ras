@@ -153,6 +153,9 @@ set(OPAPI_INCLUDE
   ${JSON_INCLUDE}
   ${OPS_RAS_DIR}
   ${AICPU_INC_DIRS}
+  ${OPS_RAS_DIR}/common/include
+  ${OPS_RAS_DIR}/common/include/external/ras
+  ${OPS_RAS_DIR}/common/include/static/ras
   ${OPS_RAS_DIR}/common/inc
   ${OPS_RAS_DIR}/common/inc/op_api
   ${TOP_DIR}/output/${PRODUCT}/aclnnop_resource

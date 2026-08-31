@@ -48,7 +48,6 @@ ras@ops-ras:
         - ops/ops-ras/tests/
         - ops/ops-ras/build.sh
         - ops/ops-ras/CMakeLists.txt
-        - ops/ops-ras/common/inc/op_api/level2_base.h
       non_delivery: null
       open_source: null
 
