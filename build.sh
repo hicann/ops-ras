@@ -11,7 +11,7 @@
 set -e
 RELEASE_TARGETS=("ophost" "opapi" "onnxplugin" "opgraph" "tfplugin")
 
-SUPPORT_COMPUTE_UNIT_SHORT=("ascend031" "ascend035" "ascend310b" "ascend310p" "ascend910_93" "ascend950" "ascend350" "ascend910b" "ascend910" "kirinx90" "kirin9030" "mc62")
+SUPPORT_COMPUTE_UNIT_SHORT=("ascend031" "ascend035" "ascend310b" "ascend310p" "ascend910_93" "ascend350" "ascend950" "ascend350" "ascend910b" "ascend910" "kirinx90" "kirin9030" "mc62")
 # 对SUPPORT_COMPUTE_UNIT_SHORT按字符串长度从长到短排序，避免前缀匹配时出错
 SUPPORT_COMPUTE_UNIT_SHORT=($(printf '%s\n' "${SUPPORT_COMPUTE_UNIT_SHORT[@]}" | awk '{print length($0) " " $0}' | sort -rn | cut -d ' ' -f2-))
 TRIGER_UTS=()
@@ -1294,13 +1294,16 @@ build_example() {
 
   OLDIFS=$IFS
   IFS=$'\n'
-  {  
+  {
     files=($(find ../ -path "*/${OP_NAME}/examples/${pattern}*.cpp" -not -path "*/opgen/template/*" | grep ${grep_word} "experimental"))
   } || {
     files=()
     echo "INFO: not find ${OP_NAME} A2/A3 examples."
   }
   if [[ "$COMPUTE_UNIT" == "ascend950" ]]; then
+    files=($(find ../ -path "*/${OP_NAME}/examples/arch35/${pattern}*.cpp" | grep ${grep_word} "experimental"))
+  fi
+  if [[ "$COMPUTE_UNIT" == "ascend350" ]]; then
     files=($(find ../ -path "*/${OP_NAME}/examples/arch35/${pattern}*.cpp" | grep ${grep_word} "experimental"))
   fi
   if [[ "$COMPUTE_UNIT" == "ascend310p" ]]; then

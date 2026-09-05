@@ -4,8 +4,9 @@
  * This file is a part of the CANN Open Software.
  * Licensed under CANN Open Software License Agreement Version 2.0 (the "License").
  * Please refer to the License for details. You may not use this file except in compliance with the License.
- * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE.
- * See LICENSE in the root of the software repository for the full text of the License.
+ * THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING
+ * BUT NOT LIMITED TO NON-INFRINGEMENT, MERCHANTABILITY, OR FITNESS FOR A PARTICULAR PURPOSE. See LICENSE in the root of
+ * the software repository for the full text of the License.
  */
 
 #ifndef OPS_RAS_TESTS_UT_OP_API_STUB_OPDEV_PLATFORM_H
@@ -21,6 +22,7 @@ enum class SocVersion {
     ASCEND910B,
     ASCEND910_93,
     ASCEND950,
+    ASCEND350,
     ASCEND910E,
     ASCEND310,
     ASCEND310P,
@@ -32,15 +34,7 @@ enum class SocVersion {
     RESERVED_VERSION = 99999
 };
 
-enum class NpuArch {
-    DAV_1001 = 0,
-    DAV_2002,
-    DAV_2201,
-    DAV_3002,
-    DAV_3102,
-    DAV_3510,
-    RESERVED_VERSION = 99999
-};
+enum class NpuArch { DAV_1001 = 0, DAV_2002, DAV_2201, DAV_3002, DAV_3102, DAV_3510, RESERVED_VERSION = 99999 };
 
 enum class SocSpec { INST_MMAD = 0, RESERVED_SPEC = 99999 };
 
@@ -72,7 +66,7 @@ class PlatformInfo {
 public:
     PlatformInfo() {};
 
-    PlatformInfo(int32_t deviceId) : deviceId_(deviceId){};
+    PlatformInfo(int32_t deviceId) : deviceId_(deviceId) {};
 
     SocVersion GetSocVersion() const;
 
@@ -94,24 +88,24 @@ public:
 
     bool GetFftsPlusMode() const;
 
-    fe::PlatFormInfos *GetPlatformInfos() const;
+    fe::PlatFormInfos* GetPlatformInfos() const;
 
     uint32_t coreNum_ = 0;
 
 private:
-    PlatformInfo &operator=(const PlatformInfo &other) = delete;
+    PlatformInfo& operator=(const PlatformInfo& other) = delete;
 
-    PlatformInfo &operator=(const PlatformInfo &&other) = delete;
+    PlatformInfo& operator=(const PlatformInfo&& other) = delete;
 
-    PlatformInfo(const PlatformInfo &other) = delete;
+    PlatformInfo(const PlatformInfo& other) = delete;
 
-    PlatformInfo(const PlatformInfo &&other) = delete;
+    PlatformInfo(const PlatformInfo&& other) = delete;
 
-    void SetPlatformImpl(PlatformInfoImpl *impl);
+    void SetPlatformImpl(PlatformInfoImpl* impl);
 
     bool valid_ = false;
     int32_t deviceId_{-1};
-    PlatformInfoImpl *impl_ = nullptr;
+    PlatformInfoImpl* impl_ = nullptr;
 
     ~PlatformInfo();
 };
@@ -129,7 +123,7 @@ public:
     ~SocVersionManager();
 
 private:
-    SocVersion originalVersion_; //保存原始的Soc版本
+    SocVersion originalVersion_; // 保存原始的Soc版本
 
     SocVersionManager(const SocVersionManager&) = delete;
     SocVersionManager(const SocVersionManager&&) = delete;
