@@ -24,7 +24,7 @@ SUPPORTED_LONG_OPTS=(
   "help" "ops=" "soc=" "vendor_name=" "build-type=" "cov" "noexec" "noaicpu" "opkernel" "opkernel_aicpu" "opkernel_aicpu_test" "static"
    "jit" "pkg" "asan" "make_clean_all" "make_clean" "no_force"
   "ophost" "opgraph" "opapi" "run_example" "example_name=" "genop=" "genop_aicpu=" "experimental" "cann_3rd_lib_path=" "oom" "onnxplugin" "tfplugin" "dump_cce"
-  "module_extension=" "noaclnn" "mssanitizer" "rule_launch=" "ccache="
+  "module_extension=" "noaclnn" "mssanitizer" "rule_launch=" "ccache=" "pkg-type="
 )
 
 in_array() {
@@ -37,6 +37,13 @@ in_array() {
     fi
   done
   return 1
+}
+
+check_pkg_type() {
+  if ! in_array "$1" run rpm deb all; then
+    print_error "--pkg-type only supports run/rpm/deb/all, got: $1"
+    exit 1
+  fi
 }
 
 # 检查参数是否合法
@@ -138,7 +145,8 @@ usage() {
       pkg)
         echo "pkg Build Options:"
         echo $dotted_line
-        echo "    --pkg                  Build run pkg with kernel bin"
+        echo "    --pkg                  Build package with kernel bin"
+        echo "    --pkg-type=<TYPE>      Package type: run/rpm/deb/all, default: run (requires --pkg)"
         echo "    --jit                  Build run pkg without kernel bin"
         echo "    --soc=soc_version      Compile for specified Ascend SoC (comma-separated for multiple)"
         echo "    --vendor_name=name     Specify custom operator pkg vendor name"
@@ -155,6 +163,9 @@ usage() {
         echo $dotted_line
         echo "Examples:"
         echo "    bash build.sh --pkg --soc=ascend910b --vendor_name=customize -j16 -O3"
+        echo "    bash build.sh --pkg --pkg-type=deb --soc=ascend910b"
+        echo "    bash build.sh --pkg --pkg-type=rpm --soc=ascend910b"
+        echo "    bash build.sh --pkg --pkg-type=all --soc=ascend910b"
         echo "    bash build.sh --pkg --ops=add_example --build-type=Debug"
         echo "    bash build.sh --pkg --soc=ascend910b --ops=add_example --oom"
         echo "    bash build.sh --pkg --experimental --soc=ascend910b --ops=\${experimental_op}"
@@ -351,7 +362,8 @@ usage() {
   echo "    --opkernel build binary kernel"
   echo "    --opkernel_aicpu build aicpu kernel"
   echo "    --opkernel_aicpu_test build and run aicpu opkernel unit tests"
-  echo "    --pkg build run pkg"
+  echo "    --pkg build package with kernel bin"
+  echo "    --pkg-type=<TYPE> Package type: run/rpm/deb/all, default: run (requires --pkg)"
   echo "    --jit build run pkg without kernel bin"
   echo "    --experimental Build experimental version"
   echo "    --run_example Compile and execute the example. use --run_example --help for more detail"
@@ -406,6 +418,21 @@ check_help_combinations() {
 }
 
 check_param() {
+  if [[ "$PACKAGE_TYPE_SET" == "TRUE" ]] && ! in_array --pkg "$@"; then
+    print_error "--pkg-type can only be used with --pkg"
+    exit 1
+  fi
+  if [[ "$PACKAGE_TYPE" != "run" ]]; then
+    if [[ "$ENABLE_STATIC" == "TRUE" || "$ENABLE_JIT" == "TRUE" ]]; then
+      print_error "--pkg-type=${PACKAGE_TYPE} cannot be used with --static or --jit"
+      exit 1
+    fi
+    if [[ "$ENABLE_CUSTOM" == "TRUE" || "$ENABLE_EXPERIMENTAL" == "TRUE" ]]; then
+      print_error "--pkg-type=${PACKAGE_TYPE} only supports built-in ops-ras packages; do not use --ops, --vendor_name, or --experimental"
+      exit 1
+    fi
+  fi
+
   # --ops不能与--ophost，--opapi, --opgraph同时存在，如果带U则可以
   if [[ -n "$COMPILED_OPS" && "$ENABLE_TEST" == "FALSE" ]] && [[ "$OP_HOST" == "TRUE" || "$OP_GRAPH" == "TRUE" || "$OP_API" == "TRUE" ]]; then
     print_error "--ops cannot be used with --ophost, --opapi"
@@ -606,6 +633,8 @@ checkopts() {
   USE_CMD="$*"
 
   BUILD_TYPE="Release"
+  PACKAGE_TYPE="run"
+  PACKAGE_TYPE_SET=FALSE
   ENABLE_MSSANITIZER=FALSE
   ENABLE_OOM=FALSE
   ENABLE_DUMP_CCE=FALSE
@@ -661,6 +690,13 @@ checkopts() {
       if ! check_option_validity "$arg"; then
         usage
         exit 1
+      fi
+      if [[ "$arg" == "--pkg-type" ]]; then
+        print_error "--pkg-type requires a value: run/rpm/deb/all"
+        exit 1
+      fi
+      if [[ "$arg" == --pkg-type=* ]]; then
+        check_pkg_type "${arg#*=}"
       fi
     fi
   done
@@ -778,6 +814,10 @@ checkopts() {
         build-type=*)
           BUILD_TYPE=${OPTARG#*=}
           ;;
+        pkg-type=*)
+          PACKAGE_TYPE=${OPTARG#*=}
+          PACKAGE_TYPE_SET=TRUE
+          ;;
         mssanitizer) ENABLE_MSSANITIZER=TRUE ;;
         noaicpu) NO_AICPU=TRUE ;;
         noaclnn) NO_ACLNN=TRUE ;;
@@ -874,7 +914,7 @@ checkopts() {
     ENABLE_PACKAGE=TRUE
     ENABLE_BINARY=FALSE
   fi
-  check_param
+  check_param "$@"
   set_create_libs
   set_ut_mode
 }
@@ -945,6 +985,7 @@ assemble_cmake_args() {
   fi
   CMAKE_ARGS="$CMAKE_ARGS -DENABLE_BINARY=${ENABLE_BINARY}"
   CMAKE_ARGS="$CMAKE_ARGS -DENABLE_PACKAGE=${ENABLE_PACKAGE}"
+  CMAKE_ARGS="$CMAKE_ARGS -DPACKAGE_TYPE=${PACKAGE_TYPE}"
   CMAKE_ARGS="$CMAKE_ARGS -DENABLE_EXPERIMENTAL=${ENABLE_EXPERIMENTAL}"
   CMAKE_ARGS="$CMAKE_ARGS -DNO_FORCE=${NO_FORCE}"
   CMAKE_ARGS="$CMAKE_ARGS -DBUILD_MODE=${BUILD_MODE}"
@@ -1109,6 +1150,51 @@ build_binary() {
   print_success "Build binary success!"
 }
 
+# CPack publishes completed packages at the build root; its staging copies are not artifacts.
+find_rpm_deb_package() {
+  local package_type="$1"
+  find "${BUILD_PATH}" -maxdepth 1 -type f \
+    \( -name "cann-ops-ras_*.${package_type}" -o -name "cann-*-ops-ras_*.${package_type}" \) -print0
+}
+
+clean_rpm_deb_package() {
+  local package_type package_file
+  for package_type in deb rpm; do
+    if [[ "$PACKAGE_TYPE" != "$package_type" && "$PACKAGE_TYPE" != "all" ]]; then
+      continue
+    fi
+    while IFS= read -r -d '' package_file; do
+      rm -f "${package_file}"
+    done < <(find_rpm_deb_package "$package_type")
+  done
+}
+
+collect_rpm_deb_package() {
+  local package_type package_file
+  local package_files=() type_files=()
+  for package_type in deb rpm; do
+    if [[ "$PACKAGE_TYPE" != "$package_type" && "$PACKAGE_TYPE" != "all" ]]; then
+      continue
+    fi
+    type_files=()
+    while IFS= read -r -d '' package_file; do
+      type_files+=("${package_file}")
+    done < <(find_rpm_deb_package "$package_type")
+    if [[ ${#type_files[@]} -eq 0 ]]; then
+      print_error "No .${package_type} package found in ${BUILD_PATH}"
+      exit 1
+    fi
+    package_files+=("${type_files[@]}")
+  done
+  if [[ ${#package_files[@]} -gt 0 ]]; then
+    mkdir -p "${BUILD_OUT_PATH}"
+    for package_file in "${package_files[@]}"; do
+      cp -f "${package_file}" "${BUILD_OUT_PATH}/"
+      echo "[INFO] Package artifact copied to ${BUILD_OUT_PATH}/$(basename "${package_file}")"
+    done
+  fi
+}
+
 build_pkg() {
   echo "--------------- build pkg start ---------------"
   local all_targets=$(cmake --build . --target help)
@@ -1119,7 +1205,12 @@ build_pkg() {
     fi
   fi
   cd "${BUILD_PATH}" && cmake ${CMAKE_ARGS} ..
-  cmake --build . --target package -- ${VERBOSE} -j $THREAD_NUM
+  clean_rpm_deb_package
+  if ! cmake --build . --target package -- ${VERBOSE} -j $THREAD_NUM; then
+    print_error "target:package build failed!"
+    exit 1
+  fi
+  collect_rpm_deb_package
 
   print_success "Build package success!"
 }
