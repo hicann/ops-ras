@@ -51,6 +51,7 @@ bash build.sh --help
 | --noexec         | Optional     | Only compiles the unit test binary file without automatically executing the compiled UT executable file.                                              |
 | --opkernel       | Optional     | Compiles the binary kernel.                                                     |
 | --pkg            | Optional     | Generates the installation package. Cannot be used with -u (UT mode) or --ophost, --opapi at the same time.                           |
+| --pkg-type       | Optional     | Package format: run/deb/rpm/all. Defaults to run and requires --pkg. deb/rpm/all support built-in, non-static packages only. |
 | --asan           | Optional     | Enables host-side ASAN (AddressSanitizer) memory detection function.                                           |
 | --valgrind       | Optional     | Reserved parameter, developers do not need to pay attention for now.                                                              |
 | --make_clean     | Optional     | Executes basic cleanup operations (cleans compilation products). The script exits after execution.                                          |

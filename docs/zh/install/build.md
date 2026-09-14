@@ -50,6 +50,7 @@ bash build.sh --help
 | --noexec        | 可选     | 仅编译单元测试二进制文件，不自动执行编译后的UT可执行文件。                                            |
 | --opkernel      | 可选     | 编译二进制内核。                                                                  |
 | --pkg           | 可选     | 生成安装包，不可与-u（UT模式）或--ophost、--opapi、--opgraph同时使用。                         |
+| --pkg-type      | 可选     | 安装包格式：run/deb/rpm/all，默认run，必须搭配--pkg；deb/rpm/all仅支持内置、非静态算子包。 |
 | --asan          | 可选     | 开启host侧ASAN（AddressSanitizer）内存检测功能。                                           |
 | --valgrind      | 可选     | 预留参数，开发者暂不需要关注。                                                           |
 | --make_clean    | 可选     | 执行基础清理操作（清理编译产物），执行后脚本退出。                                                 |
