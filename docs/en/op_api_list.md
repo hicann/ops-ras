@@ -31,3 +31,4 @@ The operator interface list is as follows:
 | [aclnnObfuscationSetup](../../reliability/obfuscation_setup/docs/aclnnObfuscationSetup.md) | Completes the resource initialization and release of the PMCC model obfuscation engine. |Default deterministic implementation| - |
 | [aclnnObfuscationSetupV2](../../reliability/obfuscation_setup/docs/aclnnObfuscationSetupV2.md) | Completes the resource initialization and release of the PMCC model obfuscation engine. |Default deterministic implementation| - |
 | [aclnnCrypto](../../reliability/crypto/docs/aclnnCrypto.md) | Calls the aicpu encryption/decryption operator and executes according to the input parameters. |Default deterministic implementation| - |
+| [aclnnMatmulAbftVerify](../../reliability/matmul_abft_verify/docs/MatmulAbftVerify_en.md) | Performs V-ABFT fault detection on a precomputed matrix multiplication result and outputs per-row detection results. |Default deterministic implementation| - |

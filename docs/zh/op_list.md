@@ -27,6 +27,15 @@
     <th>op_graph</th>
   </tr></thead>
 <tbody>
-
+  <tr>
+    <td>可靠性</td>
+    <td><a href="../../reliability/matmul_abft_verify">matmul_abft_verify</a></td>
+    <td>√</td>
+    <td>√</td>
+    <td>√</td>
+    <td>-</td>
+    <td>AI Core</td>
+    <td>基于V-ABFT对预先计算的矩阵乘结果进行容错检测。</td>
+  </tr>
 </tbody>
 </table>
