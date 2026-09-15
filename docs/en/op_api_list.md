@@ -17,12 +17,9 @@ Here, `${INSTALL_DIR}` represents the path where CANN is installed, and `${ops_p
 
 ## Interface List
 
-> **Determinism Description**:
+> [!NOTE]
 >
-> - Configuration description: Due to factors such as different CANN or NPU models, it may not be possible to guarantee that multiple runs of the same operator produce consistent results. Under the same conditions (platform, device, version number, and other randomness parameters), some operator interfaces can enable deterministic algorithms through `aclrtCtxSetSysParamOpt` (see [Runtime API](https://hiascend.com/document/redirect/CannCommunityCppApi)) to make multiple runs produce consistent results.
-> - Performance description: The same operator using deterministic computation is typically slower than non-deterministic computation, so the single-run performance of the model may degrade. However, in scenarios such as experimentation, debugging, and troubleshooting that require consistent results across multiple runs to locate issues, deterministic computation can improve efficiency.
-> - Thread description: The deterministic state can only be set once in the same thread. If set multiple times, the last effective setting takes precedence. An effective setting means that after setting the deterministic state, an operator task has actually been dispatched. If only the setting is made without dispatching an operator, the deterministic variable is enabled but not dispatched to the operator, so the operator is not executed.
->   Solution: It is not recommended to set determinism multiple times in one thread. This issue exists in both binary-enabled and binary-disabled cases and will be resolved in a future version.
+> - Operator feature introduction: Before invoking APIs, please first learn the basic knowledge of operators, including **deterministic algorithms**, **Batch consistency**, and **common quantization modes**. For details, see [Basic Operator Concepts](context/basic_concept.md).
 > - Symbol description: The "-" symbol in the table indicates that the interface does not currently support the product in that column.
 
 The operator interface list is as follows:

@@ -38,12 +38,12 @@ The following uses [add_examples](../../../examples/add_example/) as an example 
 
 ```bash
 # Note: Enter the project root directory and execute the following compilation command. The command is for reference only. For details, refer to the operator invocation instructions.
-bash build.sh --pkg --soc=Ascend950 --vendor_name=custom --ops=add_example
+bash build.sh --pkg --soc=ascend950 --vendor_name=custom --ops=add_example
 # Install the custom operator package
 ./build_out/cann-ops-ras-${vendor_name}_linux-${arch}.run
 ```
 
-* Complete the compilation of test_aclnn_add_example.cpp by following [aclnn Invocation](../invocation/op_invocation.md#aclnn-invocation), and generate the executable file test_aclnn_add_example.
+* Complete the compilation of test_aclnn_add_example.cpp by following [aclnn Invocation](../invocation/quick_op_invocation.md), and generate the executable file test_aclnn_add_example.
 
 ## Execute Simulation Command
 
@@ -51,27 +51,20 @@ bash build.sh --pkg --soc=Ascend950 --vendor_name=custom --ops=add_example
 cannsim record ./test_aclnn_add_example -s Ascend950 --gen-report
 ```
 
-The simulation tool execution log files are in the examples/add_example/examples/build/bin/cannsim_* directory. The execution log file is:
-
-```bash
-cannsim.log
-```
+The simulation tool execution log files are in the examples/add_example/examples/build/bin/cannsim_* directory. The execution log file is cannsim.log.
 
 From the simulation tool log file, you can see the print information in the sample:
 
 ```bash
-add_example first input[0] is: 1.000000, second input[0] is: 1.000000, result[0] is: 2.000000
-add_example first input[1] is: 1.000000, second input[1] is: 1.000000, result[1] is: 2.000000
-add_example first input[2] is: 1.000000, second input[2] is: 1.000000, result[2] is: 2.000000
-add_example first input[3] is: 1.000000, second input[3] is: 1.000000, result[3] is: 2.000000
-add_example first input[4] is: 1.000000, second input[4] is: 1.000000, result[4] is: 2.000000
-add_example first input[5] is: 1.000000, second input[5] is: 1.000000, result[5] is: 2.000000
-add_example first input[6] is: 1.000000, second input[6] is: 1.000000, result[6] is: 2.000000
+mean result[0] is: 2.000000
+mean result[1] is: 2.000000
+mean result[2] is: 2.000000
+...
 ```
 
 ## View Performance Pipeline
 
-The simulation performance pipeline files are in the `examples/add_example/examples/build/bin/cannsim_*/report` directory of this project. The pipeline-related file is:
+The simulation performance pipeline files are in the `examples/add_example/examples/build/bin/cannsim_*/report/results/kernel_*/core_*` directory of this project. The pipeline-related file is:
 
 ```bash
 trace_core0.json
@@ -87,7 +80,7 @@ Execute the application in the simulation environment.
 
 ## Command Format
 
-cannsim record [options] user_app --user-options
+cannsim record [options] user_app
 
 ## Parameter Description
 
@@ -95,22 +88,23 @@ Table 1 Simulation Execution Parameter Description
 
 |Parameter|Required/Optional|Description|
 | --- | --- | --- |
-|-s or --soc-version [options] parameter | Required | Specify the target chip version for simulation (for example: Ascend950).|
-|-o or --output [options] parameter | Optional| The path where the generated files are stored. It can be configured as an absolute path or a relative path, and the user executing the tool must have read-write permissions. If the path is not specified, data is saved in the current directory by default.|
-|-g or --gen-report [options] parameter | Optional | Enable automatic analysis after simulation completion and generate an analysis report. By default, automatic analysis is not enabled.|
-|user_app|Required|Operator executable file.|
-|--user-options|Optional|Running parameters of the operator executable file.|
+|-s or --soc-version | Required | Specify the target chip version for simulation (for example: Ascend950).|
+|-o or --output | Optional | The path where the generated files are stored. It can be configured as an absolute path or a relative path, and the user executing the tool must have read-write permissions. If the path is not specified, data is saved in the current directory by default.|
+|-g or --gen-report | Optional | Enable automatic analysis after simulation completion and generate an analysis report. By default, automatic analysis is not enabled.|
+|-u or --user-option | Optional | User-defined operator parameters, which are passed to the operator program as command-line options.|
+|-n or --core-id | Optional | AI Cores for which logs are enabled during simulation. The format is the same as that of report -n: 'all', '0-2,12-14', '5'. All cores are enabled by default. When -g is used and this parameter is not specified, it falls back to core 0.|
+|user_app|Required|Operator program or command to be run (for example, ./app, python train.py, bash run.sh).|
 
 ## Usage Example
 
 1. Complete operator development and compilation.
 2. Execute the simulation command. Refer to the following usage examples:
 
-    ```text
-    Method 1: Enable simulation and save the output to the ./output directory. /path/to/app is the operator program.
+    ```bash
+    # Method 1: Enable simulation and save the output to the ./output directory. /path/to/app is the operator program.
     $ cannsim record /path/to/app -o ./output -s Ascend950
 
-    Method 2: Enable simulation and generate a report for subsequent performance analysis.
+    # Method 2: Enable simulation and generate a report for subsequent performance analysis.
     $ cannsim record /path/to/app -o ./output -s Ascend950 --gen-report
     ```
 
@@ -118,12 +112,33 @@ Table 1 Simulation Execution Parameter Description
 
     ```text
     ├─cannsim_{timestamp}_${user_app}
-    ├── cannsim.log
+    ├── log
+    │   ├── AIC_0_0_0_0_ChiWrap.log0
+    │   ├── ccum_0_0_2.txt0
+    │   ├── hha_0_0_0_states.log
+    │   ├── L2Buf_0_0_0_0.txt0
+    │   ├── L2cache_stats.log
+    │   ├── lpddr_state0.log
+    │   ├── ManyRing_0_0_0_0DatPerf.txt0
+    │   ├── sdmam_0_0_0_debug.log0
+    │   ├── sllc_chip_0_die_0_1_0_0_perf.log
+    │   ├── STARS_ChiWrapper_0_1.log0
+    │   ├── Tg_Log_File_0_0.txt
+    │   ├── UB_0_0_2_0_ChiWrap.log0
+    │   └── ub_log
+    │       ├── UB_0_0_2_BA_0_statis.log
+    ├── log_ca
+    │   ├── core0.cubecore0_su_perf_summary_log
+    │   ├── core0_summary_log
+    │   ├── core0.wrapper_log.dump
+    │   ├── mcu_log.dump
+    │   ├── stars_log0_0.dump
+    │   └── stars_log0_1.dump
     ```
 
-4. You can obtain the operator execution results and compare the accuracy. The results are displayed in cannsim.log. An example is as follows:
+4. You can obtain the operator execution results and compare the accuracy. An example is as follows:
 
-    The following output is only an example of the AscendC single-operator direct invocation accuracy comparison result. It may vary slightly depending on the version. Please refer to the actual output.
+    The following output is only an example of the Ascend C single-operator direct invocation accuracy comparison result. It may vary slightly depending on the version. Please refer to the actual output.
 
     ```bash
     INFO:root:[INFO] compare data case[ case001]
@@ -150,9 +165,10 @@ Table 1 Simulation Result Analysis Parameter Description
 
 |Parameter | Required/Optional | Description|
 | --- | --- | --- |
-|-e  or --export  [options] parameter | Required | The original result file directory. It must be specified as the result directory generated after simulation execution, pointing to the cannsim_{timestamp}_${user_app} level. It can be configured as an absolute path or a relative path, and the tool execution user must have read-write permissions.|
-|-o or --output [options] parameter | Optional | The analysis result output directory. It can be configured as an absolute path or a relative path, and the execution user must have read-write permissions. If the path is not specified, data is saved in the current directory by default. If the generated result file has the same name as an existing file, the existing file is overwritten.|
-|-n or --core-id [options] parameter | Optional | Specify the core ID for generating the instruction pipeline. If not specified, the pipeline for core 0 is generated by default. The configuration format is as follows: To generate pipelines for all cores, configure 'all'. To specify a core ID range, for example: '0-1'. To specify a single core ID, for example: '5'.|
+|-e or --export | Required | Simulation execution result directory, specified at the cannsim_{timestamp}_${user_app} level. It can be configured as an absolute path or a relative path, and the execution user must have read-write permissions.|
+|-o or --output | Optional | Instruction pipeline output directory. It can be configured as an absolute path or a relative path, and the execution user must have read-write permissions. If no path is specified, it defaults to the export directory.|
+|-n or --core-id | Optional | Specify the core ID for generating the instruction pipeline. Supported formats: 'all', '0-2,12-14', '5'. If not specified, the instruction pipeline for core 0 is generated by default.|
+|-f or --object-file | Optional | Device object file path, used to assist in report generation.|
 
 ## Usage Example
 
@@ -169,7 +185,7 @@ Table 1 Simulation Result Analysis Parameter Description
 
 3. After the command execution completes, the corresponding pipeline files are generated in the output configured directory. The file format is JSON. The output result example is as follows:
 
-    ```bash
+    ```text
     trace_core0.json
     trace_core1.json
     ...
@@ -189,7 +205,7 @@ Table 1 Simulation Result Analysis Parameter Description
     |MTE1|Data transfer pipeline; data transfer direction: L1 ->{L0A/L0B, UBUF}.|
     |MTE2|Data transfer pipeline; data transfer direction: {DDR/GM, L2} ->{L1, L0A/B, UBUF}.|
     |MTE3|Data transfer pipeline; data transfer direction: UBUF -> {DDR/GM, L2, L1}, L1->{DDR/L2}.|
-    |FIXP|Data transfer pipeline; data transfer direction: FIXPIPE L0C -> OUT/L1.|
+    |FIXP|Data transfer pipeline; data transfer direction: FIXPIPE L0C -> OUT/L1. (Only the Atlas A2 training series products / Atlas A2 inference series products support the display.)|
     |FLOWCTRL|Control flow instruction.|
     |ICACHELOAD|View ICache misses.|
 
@@ -234,16 +250,28 @@ None
 
 ## Output Description
 
-```bash
-usage: cannsim [-h] {record,report} ...
+```text
+Usage: cannsim [OPTIONS] COMMAND [ARGS]...
 
 Command-line tool for performance simulation analysis on Ascend hardware.
+The simulation emulates real Ascend hardware behavior—including compute
+units, memory hierarchy, and scheduling—enabling accurate performance
+modeling without physical devices.
 
-positional arguments:
-  {record,report}  Available commands
-    record         Run user application in AscendOps simulation environment
-    report         Generate performance analysis reports
+Examples:
+$ cannsim record ./app -s Ascend910B -o ./output
+$ cannsim report -e ./output/sim -o ./output/trace.json
 
-options:
-  -h, --help       show this help message and exit
+Note:
+- Input app must be a valid AscendOps-built executable.
+- Output directories are auto-created.
+- `trace.json` is compatible with Chrome tracing tools.
+- Advanced reporting features (e.g., HTML, diagrams) are planned but not yet available.
+
+Options:
+--help  Show this message and exit.
+
+Commands:
+record  Run user application in AscendOps simulation environment.
+report  Command-line interface for generating performance reports.
 ```

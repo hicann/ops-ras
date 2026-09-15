@@ -1,190 +1,181 @@
 # Environment Deployment
 
-Before performing [operator invocation](../invocation/quick_op_invocation.md) or [operator development](../develop/aicore_develop_guide.md) based on this project, complete the basic environment setup by following the steps below.
+Before performing the operations in the [Learning Tutorials](../../../README_en.md#learning-tutorials), please complete the basic environment setup and source code download by following the steps below, and ensure that the NPU driver, firmware, and CANN software (`Ascend-cann-toolkit` and `Ascend-cann-ops`) have been installed.
 
-Note that the meanings of compilation and runtime scenarios mentioned in this document are as follows. Install as needed:
+## Environment Installation
 
-- Compilation scenario: For scenarios where only compilation without running this project is required, you only need to install the prerequisite dependencies and the CANN toolkit package.
-- Runtime scenario: For scenarios where this project is run (compilation and running or pure running), in addition to installing the prerequisite dependencies and the CANN toolkit package, you also need to install the driver and firmware, and the CANN ops package.
+This project provides multiple ways to set up the Ascend environment. Choose as needed.
 
-## Prerequisites
+> **Note**: The compilation and runtime scenarios mentioned in this document are defined as follows. Choose based on your actual situation.
+>
+> - Compilation: For scenarios where only this project is compiled without running, you only need to install the CANN toolkit package.
+> - Runtime: For scenarios where this project is run (compilation and running, or pure running), you need to install the driver and firmware, the CANN toolkit package, and the CANN ops package.
 
-Before using this project, ensure that the following basic dependencies, NPU driver, and firmware are installed.
+|  Installation Method  |  Description  |  Applicable Scenario  |
+| ----- | ------ | ------ |
+|  CANNLab  | One-stop development platform that provides an online Ascend environment that can be run directly, without manual installation.<br>Currently, single-node computing power is available, and the **latest CANN package is installed by default**. | Suitable for developers without Ascend devices.|
+|  Docker  | Docker images are an efficient deployment method with CANN packages and required dependencies pre-integrated.<br>Currently applicable to Atlas A2 and A3 series products. Supported OSs: ubuntu22.04 and openeuler24.03. The **latest CANN package is installed by default**. |Suitable for developers who have Ascend devices and need to quickly set up an environment.|
+|  Manual Installation  | Manually install CANN packages and basic dependencies, with high flexibility. |Suitable for developers who have Ascend devices and want to manually install CANN packages or experience the latest master branch capabilities.|
 
-1. **Install Dependencies**
+### Method 1: CANNLab
 
-   The dependencies used for source code compilation of this project are as follows. Please note the version requirements.
+For developers without Ascend devices, you can directly use the CANNLab cloud development environment, that is, the "**one-stop development platform**". This platform provides an online Ascend environment that can be run directly. The environment has the required drivers, firmware, software packages, and dependencies installed, so manual installation is not required.
 
-   - python >= 3.7.0 (recommended version <= 3.10)
-   - gcc >= 7.3.0
-   - cmake >= 3.16.0
-   - pigz (optional, installing it can improve packaging speed, recommended version >= 2.4)
-   - dos2unix
-   - gawk
-   - make
+> **Note**: The environment installs the latest CANN package by default. When downloading the source code, ensure that it matches the software version. For more information about the development platform, refer to the [CANNLab Guide](https://gitcode.com/cann/cann-learning-hub/blob/master/docs/CANNLab_env_experience_guide.md).
 
-   The above dependency packages can be installed through the install\_deps.sh script in the project root directory. The command is as follows. If you encounter an unsupported system, refer to the file to adapt it yourself.
+1. Enter the open source project and click the "`CANNLab`" button. Log in with a certified Huawei Cloud account. If you have not registered or certified, please register and certify as prompted.
 
-   ```bash
-   bash install_deps.sh
-   ```
+   <img src="../figures/cloudIDE.png" alt="Cloud Platform"  width="750px" height="85px">
 
-2. **Install Driver and Firmware (Runtime Dependency)**
-
-   When running operators, you must install the driver and firmware. If you are only compiling operators, you can skip this operation.
-
-   Click [download link](https://www.hiascend.com/hardware/firmware-drivers/community) to obtain the corresponding `Ascend-hdk-<chip_type>-npu-driver_<version>_linux-<arch>.run` and `Ascend-hdk-<chip_type>-npu-firmware_<version>.run` packages according to the actual product model and environment architecture.
-
-   For installation instructions, refer to [CANN Software Installation Guide](https://www.hiascend.com/document/detail/en/CANNCommunityEdition/latest/softwareinst/instg/instg_0000.html?OS=openEuler&InstallType=netyum).
-
-## Environment Preparation (Choose One of Three)
-
-This project provides multiple ways to deploy CANN packages. Choose as needed.
-
-- WebIDE and Docker environment: Provides minimal environment setup, **default installation of the latest commercial release CANN software package** (currently CANN 8.5.0).
-- Manual installation of CANN package: If you want to experience manual installation of CANN package or experience the latest master branch capabilities, manual installation is recommended.
-
-### Using WebIDE Environment
-
-For users without an environment, you can directly use the WebIDE development platform, that is, the "**Operator One-stop Development Platform**". This platform provides an online Ascend environment that can be run directly. The environment has installed the necessary software packages, and no manual installation is required. For more information about the development platform, refer to [LINK](https://gitcode.com/org/cann/discussions/54).
-
-1. Enter the open source project and click the "`Cloud Development`" button. Log in with a certified Huawei Cloud account. If you have not registered or certified, please register and certify according to the page prompts.
-
-    <img src="../figures/cloudIDE.png" alt="Cloud Platform"  width="750px" height="90px">
-
-2. Create and start the cloud development environment according to the page prompts. Click "`Connect > WebIDE`" to enter the operator one-stop development platform. The resources of the open source project are in the `/mnt/workspace` directory by default.
+2. Create an NPU environment and configure specifications as prompted. After the cloud development environment is started, click "`Connect > WebIDE`" to enter the one-stop development platform. By default, the resources of this open source project are stored in the `/mnt/workspace/gitCode` directory.
 
    <img src="../figures/webIDE.png" alt="Cloud Platform"  width="1000px" height="150px">
 
-### Using Docker Deployment
+### Method 2: Docker Deployment
 
-> **Note:**
+For developers with Ascend devices who want to quickly set up an Ascend environment, Docker image deployment is recommended.
+
+> **Note**:
 >
-> - Docker image is an efficient deployment method. Currently, it is only applicable to Atlas A2 series products and only adapted to the Ubuntu operating system.
-> - The image file is relatively large, and downloading takes some time. Please wait patiently.
+> - The image file is relatively large and takes some time to download. Please wait patiently. For options of docker commands, run `docker --help`.
+> - The environment installs the latest CANN package by default. When downloading the source code, ensure that it matches the software version.
 
-#### 1. Download Image
+1. **Install the driver (runtime dependency)**
 
-1. Log in to the host machine as the root user. Ensure that the Docker engine (version 1.11.2 or above) is installed on the host machine.
-2. Pull the image with the CANN software package and operator-development dependencies pre-integrated from the [Ascend Image Repository](https://www.hiascend.com/developer/ascendhub/detail/17da20d1c2b6493cb38765adeba85884). The command is as follows. Choose according to the actual architecture:
+    The driver is a runtime dependency and can be skipped if you only compile operators. Run `npu-smi info` to check whether NPU information is displayed. If no, install the driver by referring to [CANN Quick Installation](https://www.hiascend.com/en/cann/download):
 
-    ```bash
-    # Example: Pull ARM architecture CANN development image
-    docker pull --platform=arm64 swr.cn-south-1.myhuaweicloud.com/ascendhub/cann:8.5.0-910b-ubuntu22.04-py3.10-ops
-    # Example: Pull X86 architecture CANN development image
-    docker pull --platform=amd64 swr.cn-south-1.myhuaweicloud.com/ascendhub/cann:8.5.0-910b-ubuntu22.04-py3.10-ops
-    ```
+    - Step 1: On the page, select your product series, CPU architecture, and operating system, and select **Online Installation (Yum)** as the installation mode.
+    - Step 2: Follow the instructions on the page to complete the three procedures: **Configuring the user group**, **Installing dependencies and configuring the source**, and **Installing the NPU driver**.
+    - Step 3: Run `npu-smi info`. If NPU device information is properly displayed, the driver is successfully installed.
 
-#### 2. Run Docker
+2. **Download the image**
 
-After pulling the image, you need to start the container with specific parameters so that the container can access the host's Ascend device.
+    - Step 1: Log in to the host as the root user. Ensure that Docker Engine (v1.11.2 or later) has been installed on the host. Run `docker --version` to check the Docker version. If Docker is not installed, refer to the [Docker official installation guide](https://docs.docker.com/engine/install/).
+    - Step 2: Pull the image with the CANN software packages and dependencies required for operator development pre-integrated from the [Ascend image repository](https://www.hiascend.com/developer/ascendhub/detail/17da20d1c2b6493cb38765adeba85884).
 
-```bash
-docker run --name cann_container --device /dev/davinci0 --device /dev/davinci_manager --device /dev/devmm_svm --device /dev/hisi_hdc -v /usr/local/dcmi:/usr/local/dcmi -v /usr/local/bin/npu-smi:/usr/local/bin/npu-smi -v /usr/local/Ascend/driver/lib64/:/usr/local/Ascend/driver/lib64/ -v /usr/local/Ascend/driver/version.info:/usr/local/Ascend/driver/version.info -v /etc/ascend_install.info:/etc/ascend_install.info -it swr.cn-south-1.myhuaweicloud.com/ascendhub/cann:8.5.0-910b-ubuntu22.04-py3.10-ops bash
-```
-
-| Parameter | Description | Notes |
-| :--- | :--- | :--- |
-| `--name cann_container` | Specifies a name for the container for easy management. | Can be customized. |
-| `--device /dev/davinci0` | Core: Maps the host's NPU device card to the container. Multiple NPU device cards can be specified. | Must be adjusted according to the actual situation: `davinci0` corresponds to the 0th NPU card in the system. Please execute the `npu-smi info` command on the host first, and modify this number according to the device number displayed in the output (such as `NPU 0`, `NPU 1`).|
-| `--device /dev/davinci_manager` | Maps the NPU device management interface. |  |
-| `--device /dev/devmm_svm` | Maps the device memory management interface. |  |
-| `--device /dev/hisi_hdc` | Maps the communication interface between host and device. |  |
-| `-v /usr/local/dcmi:/usr/local/dcmi` | Mounts the device container management interface (DCMI) related tools and libraries. | |
-| `-v /usr/local/bin/npu-smi:/usr/local/bin/npu-smi` | Mounts the `npu-smi` tool. | Enables running this command directly in the container to query NPU status and performance information.|
-| `-v /usr/local/Ascend/driver/lib64/:/usr/local/Ascend/driver/lib64/` | Key mount: Maps the host's NPU driver library to the container. | |
-| `-v /usr/local/Ascend/driver/version.info:/usr/local/Ascend/driver/version.info` | Mounts the driver version information file. | |
-| `-v /etc/ascend_install.info:/etc/ascend_install.info` | Mounts the CANN software installation information file. | |
-| `-it` | Combination parameter of `-i` (interactive) and `-t` (allocate pseudo terminal). | |
-| `swr.cn-south-1.myhuaweicloud.com/ascendhub/cann:8.5.0-910b-ubuntu22.04-py3.10-ops` | Specifies the Docker image to run. | Please ensure that this image name and tag are exactly the same as the image you pulled through `docker pull`. |
-| `bash` | The command executed immediately after the container starts. | |
-
-### Manual Installation of CANN Package
-
-#### 1. Download Software Package
-
-Obtain `Ascend-cann-toolkit_${cann_version}_linux-${arch}.run` and `Ascend-cann-${soc_name}-ops_${cann_version}_linux-${arch}.run` according to the following scenarios.
-
-- Scenario 1: If you want to experience the **officially released CANN package** capabilities, visit the [CANN Official Download Center](https://www.hiascend.com/en/cann/download?versionId=731&ids=d806%2Ch0502%2Ch0601%2Ch0702), select the corresponding version of the CANN software package (only CANN 8.5.0 and later versions are supported). For installation instructions, refer to [CANN Software Installation Guide](https://www.hiascend.com/document/detail/en/CANNCommunityEdition/latest/softwareinst/instg/instg_0000.html?OS=openEuler&InstallType=netyum).
-
-- Scenario 2: If you want to experience the **latest master branch capabilities**, click [download link](https://ascend.devcloud.huaweicloud.com/artifactory/cann-run-release/software/master) to obtain.
-
-Note that the product model and environment architecture must correspond to the actual environment. In addition, the ops package is a runtime dependency. If you are only compiling operators, you can skip installing this package.
-
-#### 2. Install Software Package
-
-1. **Install Community CANN Toolkit Package**
+    The following is an example. Replace the CANN version, chip series, operating system, and Python version as required. For supported values of each field, see the Ascend image repository page.
 
     ```bash
-    # Ensure the installation package has executable permission
-    chmod +x Ascend-cann-toolkit_${cann_version}_linux-${arch}.run
-    # Installation command
-    ./Ascend-cann-toolkit_${cann_version}_linux-${arch}.run --install --force --install-path=${install_path}
+    # Use cann:9.1.0-beta.1 as an example
+    docker pull swr.cn-south-1.myhuaweicloud.com/ascendhub/cann:9.1.0-beta.1-910b-ubuntu22.04-py3.12-devel
     ```
 
-    - $\{cann\_version\}: Represents the CANN package version number.
-    - $\{arch\}: Represents the CPU architecture, such as aarch64, x86_64.
-    - $\{install\_path\}: Represents the specified installation path. The default installation is in the `/usr/local/Ascend` directory.
+    > **Note**: The image tag format is `<CANN version>-<chip series>-<OS>-<Python version>-devel`. Images with the `-devel` suffix are operator development images, which contain the dependencies for operator development and compilation.
 
-2. **Install Community CANN Ops Package (Runtime Dependency)**
+3. **Run Docker**
 
-    When running operators, you must install this package. If you are only compiling operators, you can skip this operation.
+    After pulling the image, start the container with specific parameters so that the container can access the Ascend devices on the host.
 
     ```bash
-    # Ensure the installation package has executable permission
-    chmod +x Ascend-cann-${soc_name}-ops_${cann_version}_linux-${arch}.run
-    # Installation command
-    ./Ascend-cann-${soc_name}-ops_${cann_version}_linux-${arch}.run --install --install-path=${install_path}
+    docker run --name cann_container --device /dev/davinci0 --device /dev/davinci_manager --device /dev/devmm_svm --device /dev/hisi_hdc -v /usr/local/dcmi:/usr/local/dcmi -v /usr/local/bin/npu-smi:/usr/local/bin/npu-smi -v /usr/local/Ascend/driver/lib64/:/usr/local/Ascend/driver/lib64/ -v /usr/local/Ascend/driver/version.info:/usr/local/Ascend/driver/version.info -v /etc/ascend_install.info:/etc/ascend_install.info -it swr.cn-south-1.myhuaweicloud.com/ascendhub/cann:9.1.0-beta.1-910b-ubuntu22.04-py3.12-devel bash
     ```
 
-    - $\{soc\_name\}: Represents the NPU model name.
-    - $\{install\_path\}: Represents the specified installation path. It needs to be installed in the same path as the toolkit package. The default installation is in the `/usr/local/Ascend` directory.
+    > **Note**: `--name` specifies the container name. Replace it with a recognizable custom name. If the name is already in use, the container fails to start.
+
+    | Parameter | Description | Notes |
+    | :--- | :--- | :--- |
+    | `--name cann_container` | Specifies a name for the container for easy management. | Can be customized. |
+    | `--device /dev/davinci0` | Key configuration: maps the NPU device card of the host to the container. Multiple NPU device cards can be mapped. | Must be adjusted based on the actual situation: `davinci0` corresponds to the 0th NPU card in the system. Run the `npu-smi info` command on the host first, and modify the number based on the device number displayed in the output (such as `NPU 0` and `NPU 1`).|
+    | `--device /dev/davinci_manager` | Maps the NPU device management interface. | - |
+    | `--device /dev/devmm_svm` | Maps the device memory management interface. | - |
+    | `--device /dev/hisi_hdc` | Maps the communication interface between the host and the device. | - |
+    | `-v /usr/local/dcmi:/usr/local/dcmi` | Mounts the tools and libraries related to the device container management interface (DCMI). | - |
+    | `-v /usr/local/bin/npu-smi:/usr/local/bin/npu-smi` | Mounts the `npu-smi` tool. | Enables you to run this command in the container to query NPU status and performance information.|
+    | `-v /usr/local/Ascend/driver/lib64/:/usr/local/Ascend/driver/lib64/` | Key mount: maps the NPU driver library of the host to the container. | - |
+    | `-v /usr/local/Ascend/driver/version.info:/usr/local/Ascend/driver/version.info` | Mounts the driver version information file. | - |
+    | `-v /etc/ascend_install.info:/etc/ascend_install.info` | Mounts the CANN software installation information file. | - |
+    | `-it` | Combination of `-i` (interactive) and `-t` (allocating a pseudo terminal). | - |
+    | `swr.cn-south-1.myhuaweicloud.com/ascendhub/cann:9.1.0-beta.1-910b-ubuntu22.04-py3.12-devel` | Specifies the Docker image to run. | Ensure that the image name and tag are exactly the same as those of the image you pulled using `docker pull`. |
+    | `bash` | Command executed immediately after the container starts. | - |
+
+### Method 3: Manual Installation
+
+For developers with Ascend devices who want to manually set up an Ascend environment, refer to the following steps.
+
+#### Installing Software
+
+- **Scenario 1: Experiencing the latest master capabilities or developing based on the CANN weekly version**
+
+    Refer to [CANN Quick Installation](https://www.hiascend.com/en/cann/download), select `Weekly version`, download the corresponding package based on the product series, CPU architecture, and operating system, and complete the installation by running the commands provided on the page.
+
+- **Scenario 2: Experiencing branch capabilities or developing based on the CANN stable version**
+
+    Refer to [CANN Quick Installation](https://www.hiascend.com/en/cann/download), select `Stable version` (only CANN 8.5.0 and later versions are supported), download the corresponding package based on the product series, CPU architecture, and operating system, and complete the installation by running the commands provided on the page.
+
+#### Installing Basic Dependencies
+
+The basic dependencies of this project are as follows. Ensure that the version requirements are met.
+
+- python >= 3.7.0 (recommended version <= 3.10)
+- gcc >= 7.3.0
+- cmake >= 3.16.0
+- pigz (optional, installing it can improve packaging speed, recommended version >= 2.4)
+- dos2unix
+- gawk
+- make
+- patch
+- googletest (required only when executing UT, recommended version [release-1.11.0](https://github.com/google/googletest/releases/tag/release-1.11.0))
+
+The preceding dependencies can be installed at once using the project script. The procedure is as follows:
+
+1. Download the source code.
+
+    Download the branch source code matching the CANN version. The command is as follows. Replace `${tag_version}` with the branch tag name.
+
+    ```bash
+    git clone -b ${tag_version} https://gitcode.com/cann/ops-ras.git
+    ```
+
+2. Install the dependencies.
+
+    First, run `install_deps.sh` in the project root directory to install the preceding dependencies at once. The command is as follows. If your system is not supported, refer to the file and adapt it yourself.
+
+    ```bash
+    bash install_deps.sh
+    ```
+
+    Then, run `requirements.txt` in the project root directory to install the third-party Python library dependencies. The command is as follows.
+
+    ```bash
+    pip3 install -r requirements.txt
+    ```
 
 ## Environment Verification
 
-After installing the CANN package, verify that the environment and driver are normal.
+After the CANN packages are installed, verify that the environment and driver are normal.
 
-- **Check NPU Device**:
+- **Check the NPU device**
 
     ```bash
-    # Run npu-smi. If device information is displayed normally, the driver is normal
+    # Run npu-smi. If device information is properly displayed, the driver is normal
     npu-smi info
     ```
 
-- **Check CANN Installation**:
+- **Check the CANN version**
 
     ```bash
-    # View CANN Toolkit version information (default path installation)
-    cat /usr/local/Ascend/ascend-toolkit/latest/opp/version.info
+    # View the CANN toolkit package version information (default installation path)
+    # Docker and manual installation scenarios:
+    cat /usr/local/Ascend/cann/${arch}-linux/ascend_toolkit_install.info
+    # CANNLab scenario:
+    cat /home/developer/Ascend/cann/${arch}-linux/ascend_toolkit_install.info
+
+    # View the CANN ops package version information (default installation path)
+    # Docker and manual installation scenarios:
+    cat /usr/local/Ascend/cann/${arch}-linux/ascend_ops_install.info
+    # CANNLab scenario:
+    cat /home/developer/Ascend/cann/${arch}-linux/ascend_ops_install.info
     ```
+
+    `${arch}` indicates the current architecture, which can be queried using `uname -m`, for example, aarch64 or x86_64.
 
 ## Environment Variable Configuration
 
-Choose the appropriate command to make the environment variables effective as needed.
+Select the appropriate command as needed to make the environment variables take effect.
 
 ```bash
-# Default path installation, taking root user as an example (for non-root users, replace /usr/local with ${HOME})
+# Default installation path, taking the root user as an example (for non-root users, replace /usr/local with ${HOME})
 source /usr/local/Ascend/cann/set_env.sh
-# Specified path installation
+# Specified installation path
 # source ${install_path}/cann/set_env.sh
 ```
-
-## Source Code Download
-
-Download the project source code through the following command, and install other dependencies. Replace $\{tag\_version\} with the branch tag name. The matching relationship between this source code repository and the CANN version can be found in the [release repository](https://gitcode.com/cann/release-management).
-
-```bash
-# Download the corresponding branch source code of the project
-git clone -b ${tag_version} https://gitcode.com/cann/ops-ras.git
-# Install root directory requirements.txt dependencies
-cd ops-ras
-pip3 install -r requirements.txt
-```
-
-> [!NOTE] Note
-> When using the HTTPS protocol on the gitcode platform, you need to configure and use a personal access token instead of the login password for cloning, pushing, and other operations.
-
-If your compilation environment cannot access the network and cannot download the code through the `git` command, you need to download the source code in a networked environment and manually upload it to the target environment.
-
-- In a networked environment, enter [this project homepage](https://gitcode.com/cann/ops-ras), and complete the source code download through the `Download ZIP` or `clone` button according to the instructions.
-- Connect to the offline environment and upload the source code to your specified directory. If you downloaded a source code compressed package, you also need to decompress it.

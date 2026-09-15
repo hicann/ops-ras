@@ -1,6 +1,18 @@
+<div align="center">
+
 # ops-ras
 
+[![CANNcommunity](https://img.shields.io/badge/docs-Community_Operators-brightgreen.svg?style=flat)](https://www.hiascend.com/document/redirect/CannCommunityOplist)
+[![repo](https://img.shields.io/badge/docs-Project_Docs-green.svg?style=flat)](docs)
+[![license](https://img.shields.io/badge/license-CANN_Open_2.0-blue.svg)](LICENSE)
+[![contributing](https://img.shields.io/badge/Contributing-teal)](CONTRIBUTING.md)
+[![SIG](https://img.shields.io/badge/SIG-ops_basic-yellow)](https://gitcode.com/cann/community/blob/master/CANN/sigs/ops-basic/README.md)
+
 English | [简体中文](./README.md)
+
+</div>
+
+---
 
 ## 🔥Latest News
 
@@ -44,6 +56,7 @@ git clone -b 9.0.0 https://gitcode.com/cann/ops-ras.git
 - [Security Statement](SECURITY.md)
 - [License](LICENSE)
 - [Affiliated SIG](https://gitcode.com/cann/community/tree/master/CANN/sigs/ops-basic)
+- [Committer List](https://gitcode.com/cann/community/blob/master/CANN/sigs/ops-basic/README.md#committer%E5%88%97%E8%A1%A8)
 
 -----
 PS: The functions and documentation of this project are being continuously updated and improved. We recommend that you follow the latest version.

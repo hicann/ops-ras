@@ -21,12 +21,12 @@ CANN Simulator是一款面向算子开发场景的SoC级芯片仿真工具，用
 * 本工具为开发工具，不建议在生产环境使用。
 * 工具的仿真功能仅支持单卡场景，无法仿真多卡环境，代码中只能设置为0卡。若修改可见卡号，将导致仿真失败。
 * 仿真环境仅支持AI Core计算类算子（不支持MC2和HCCL类型的算子）。
-CANN Simulator工具目前处于尝鲜版本阶段，仅支持Ascend950PR芯片，建议仿真器运行环境配置为16核CPU和32GB以上内存。
+* CANN Simulator工具目前处于尝鲜版本阶段，仅支持Ascend950PR芯片，建议仿真器运行环境配置为16核CPU和32GB以上内存。
 * 目前不支持arm环境仿真。
 
 ## 环境准备
 
-CANN Simulator集成在CANN toolkit包里，参考[环境部署](../install/quick_install.md)中的软件包安装 -> 安装最新版CANN toolkit包章节
+CANN Simulator集成在CANN toolkit包里，参考[环境部署](../install/quick_install.md)完成软件包的安装
 
 # 快速开始
 
@@ -38,7 +38,7 @@ CANN Simulator集成在CANN toolkit包里，参考[环境部署](../install/quic
 
 ```bash
 # 说明：进入项目根目录，执行如下编译命令，命令仅供参考，详细可以查看算子调用的说明。
-bash build.sh --pkg --soc=Ascend950 --vendor_name=custom --ops=add_example
+bash build.sh --pkg --soc=ascend950 --vendor_name=custom --ops=add_example
 # 安装自定义算子包
 ./build_out/cann-ops-ras-${vendor_name}_linux-${arch}.run
 ```
@@ -64,7 +64,7 @@ mean result[2] is: 2.000000
 
 ## 查看性能流水
 
-仿真性能流水文件在本项目`examples/add_example/examples/build/bin/cannsim_*/report`目录，流水相关文件为：
+仿真性能流水文件在本项目`examples/add_example/examples/build/bin/cannsim_*/report/results/kernel_*/core_*`目录，流水相关文件为：
 
 ```bash
 trace_core0.json
@@ -72,7 +72,7 @@ trace_core0.json
 
 在Chrome浏览器中输入“chrome://tracing”地址，并将生成的指令流水图文件（trace_core0.json）拖到空白处打开，具体参数介绍参考“仿真结果解析”章节。
 
-# 仿真执行
+# 仿真执行说明
 
 ## 命令功能
 
@@ -80,7 +80,7 @@ trace_core0.json
 
 ## 命令格式
 
-cannsim record [options] user_app --user_options
+cannsim record [options] user_app
 
 ## 参数说明
 
@@ -88,11 +88,11 @@ cannsim record [options] user_app --user_options
 
 |参数|可选/必选|说明|
 | --- | --- | --- |
-|-s \<value\> 或 --soc_version \<value\> [options]参数 | 必选 | 指定模拟目标芯片版本（如：Ascend950）。|
-|-o \<value\> 或 --output \<value\> [options]参数 | 可选| 生成文件所在路径，可配置为绝对路径或者相对路径，并且执行工具的用户需要具有读写权限。如果未指定路径，则默认在当前目录下保存数据。|
-|-g或 --gen-report[options]参数 | 可选 | 启用仿真完成后是否进行自动解析，并生成分析报告。默认不自动解析。|
-|-n或 --core-id | 可选 | 仿真期间启用日志的AI Core，格式同report -n：'all'、'0-2,12-14'、'5'。默认全开；配合 -g且未指定时回退到core 0。|
+|-s或 --soc-version | 必选 | 指定模拟目标芯片版本（如：Ascend950）。|
+|-o或 --output | 可选 | 生成文件所在路径，可配置为绝对路径或者相对路径，并且执行工具的用户需要具有读写权限。如果未指定路径，则默认在当前目录下保存数据。|
+|-g或 --gen-report | 可选 | 启用仿真完成后是否进行自动解析，并生成分析报告。默认不自动解析。|
 |-u或 --user-option | 可选 | 用户自定义算子参数，以命令行选项形式传递给算子程序。|
+|-n或 --core-id | 可选 | 仿真期间启用日志的AI Core，格式同report -n：'all'、'0-2,12-14'、'5'。默认全开；配合 -g且未指定时回退到core 0。|
 |user_app|必选|待运行的算子程序或命令（如 ./app, python train.py, bash run.sh）。|
 
 ## 使用示例
@@ -101,10 +101,10 @@ cannsim record [options] user_app --user_options
 2. 执行仿真命令，可参考以下使用示例
 
     ```bash
-    方式一：启用仿真，并将输出保存至 ./output目录，/path/to/app为算子程序
+    # 方式一：启用仿真，并将输出保存至 ./output目录，/path/to/app为算子程序
     $ cannsim record /path/to/app -o ./output -s Ascend950
 
-    方式二：启用仿真并生成报告，用于后续性能分析
+    # 方式二：启用仿真并生成报告，用于后续性能分析
     $ cannsim record /path/to/app -o ./output -s Ascend950 --gen-report
     ```
 
@@ -138,7 +138,7 @@ cannsim record [options] user_app --user_options
 
 4. 用户可以获取算子执行结果，并进行精度的对比，结果示例如下
 
-    以下输出仅为AscendC单算子直调精度比较结果举例，因版本不同略有差异，请以实际输出为准。
+    以下输出仅为Ascend C单算子直调精度比较结果举例，因版本不同略有差异，请以实际输出为准。
 
     ```bash
     INFO:root:[INFO] compare data case[ case001]
@@ -149,7 +149,7 @@ cannsim record [options] user_app --user_options
 
 5. 查看算子指令流水图，参考仿真结果解析。
 
-# 仿真结果解析
+# 仿真结果解析说明
 
 ## 命令功能
 
@@ -165,13 +165,14 @@ cannsim report [options]
 
 |参数 | 可选/必选 | 说明|
 | --- | --- | --- |
-|-e \<value\> 或 --export \<value\> [options]参数 | 必选 | 原始结果文件目录，需指定为仿真执行后生成的结果目录，指定到cannsim_{timestamp}_${user_app}层，可配置为绝对路径或者相对路径，并且工具执行用户具有可读写权限。|
-|-o或 --output  [options]参数 | 可选 | 解析结果输出目录，可配置为绝对路径或者相对路径，且执行用户需具有读写权限。若未指定路径，默认在当前目录下保存数据。如果生成的结果文件与现有文件同名，则会覆盖原有文件。|
-|-n或 --core-id  [options]参数 | 可选 | 指定生成指令流水的核ID，不指定默认生成0核的指令流水。配置的格式如下：生成所有核的流水，配置为‘all’。指定核ID的范围，如：‘0-1’。指定单核ID，如‘5’。|
+|-e或 --export | 必选 | 仿真执行结果目录，指定到cannsim_{timestamp}_${user_app}层，可配置为绝对路径或者相对路径，且执行用户需具有读写权限。|
+|-o或 --output | 可选 | 指令流水图输出目录，可配置为绝对路径或者相对路径，且执行用户需具有读写权限。若未指定路径，默认与export目录相同。|
+|-n或 --core-id | 可选 | 指定生成指令流水的核ID，支持格式：'all'、'0-2,12-14'、'5'。不指定默认生成0核的指令流水。|
+|-f或 --object-file | 可选 | 设备对象文件路径，用于辅助生成报告。|
 
 ## 使用示例
 
-1. 参考仿真执行执行算子仿真，对比输出示例，确保对应的结果执行正确。
+1. 参考仿真执行，执行算子仿真，对比输出示例，确保对应的结果执行正确。
 2. 执行仿真结果解析命令，可参考以下执行用例。
 
     ```bash
@@ -179,7 +180,7 @@ cannsim report [options]
     cannsim report -e /path/to/cannsim_{timestamp}_${user_app}
 
     在指定目录下生成核0、核1、核11、核12的性能分析报告
-    cannsim report -e /path/to/cannsim_{timestamp}_${user_app} -o /path/to/report -n ‘0-1, 11-12’
+    cannsim report -e /path/to/cannsim_{timestamp}_${user_app} -o /path/to/report -n '0-1, 11-12'
     ```
 
 3. 命令执行完后，会在output配置的目录下生成对应的流水文件，文件格式为json格式，输出结果示例如下：
@@ -191,7 +192,7 @@ cannsim report [options]
     ```
 
 4. 仿真结果查看
-    在Chrome浏览器中输入“chrome://tracing”地址，并将通过生成指令流水图文件（trace.json）拖到空白处打开，键盘上输入快捷键（W：放大，S：缩小，A：左移，D：右移）可进行查看。
+    在Chrome浏览器中输入“chrome://tracing”地址，并将生成的指令流水图文件（trace.json）拖到空白处打开，键盘上输入快捷键（W：放大，S：缩小，A：左移，D：右移）可进行查看。
     ![指令流水图](../figures/指令流水图.png)
 
     表2 关键字段说明

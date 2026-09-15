@@ -10,3 +10,5 @@
     -  [Conversion Relationship](./conversion_relationship.md)
     -  [Quant more Introduction](./quant_more_introduction.md)
     -  [Sparse Mode Introduction](./sparse_mode_introduction.md)
+    -  [Deterministic Computation](./determinism_compute.md)
+    -  [Batch Consistency](./batch_consistency.md)
