@@ -31,3 +31,4 @@
 | [aclnnObfuscationSetup](../../reliability/obfuscation_setup/docs/aclnnObfuscationSetup.md) | 完成PMCC模型混淆引擎的资源初始化和释放。 |默认确定性实现| - |
 | [aclnnObfuscationSetupV2](../../reliability/obfuscation_setup/docs/aclnnObfuscationSetupV2.md) | 完成PMCC模型混淆引擎的资源初始化和释放。 |默认确定性实现| - |
 | [aclnnCrypto](../../reliability/crypto/docs/aclnnCrypto.md) | 调用aicpu加解密算子，按输入参数执行。 |默认确定性实现| - |
+| [aclnnMatmulAbftVerify](../../reliability/matmul_abft_verify/docs/MatmulAbftVerify.md) | 基于V-ABFT对预先计算的矩阵乘结果进行容错检测，并输出逐行检测结果。 |默认确定性实现| - |

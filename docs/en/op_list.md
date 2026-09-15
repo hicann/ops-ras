@@ -27,6 +27,15 @@ All operator categories and operator lists provided by the project are as follow
     <th>op_graph</th>
   </tr></thead>
 <tbody>
-
+  <tr>
+    <td>Reliability</td>
+    <td><a href="../../reliability/matmul_abft_verify">matmul_abft_verify</a></td>
+    <td>√</td>
+    <td>√</td>
+    <td>√</td>
+    <td>-</td>
+    <td>AI Core</td>
+    <td>Performs fault detection on a precomputed matrix multiplication result based on V-ABFT.</td>
+  </tr>
 </tbody>
 </table>

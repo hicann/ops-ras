@@ -77,6 +77,24 @@ function(kernel_src_copy)
   endif()
 endfunction()
 
+# ######################################################################################################################
+# get op_type from *_def.cpp
+# ######################################################################################################################
+function(get_op_type_from_op_name OP_NAME OP_TYPE)
+  execute_process(
+    COMMAND
+      find ${CMAKE_CURRENT_SOURCE_DIR} -name ${OP_NAME}_def.cpp -exec grep OP_ADD {} \;
+    OUTPUT_VARIABLE op_type
+  )
+  if(NOT op_type)
+    set(op_type "")
+  else()
+    string(REGEX REPLACE "[\t ]*OP_ADD\\([\t ]*" "" op_type "${op_type}")
+    string(REGEX REPLACE "[\t ]*\\).*$" "" op_type "${op_type}")
+  endif()
+  set(${OP_TYPE} "${op_type}" PARENT_SCOPE)
+endfunction()
+
 function(get_op_type_and_validate OP_DIR compute_unit op_name_var op_type_var is_valid_var)
   get_filename_component(op_name "${OP_DIR}" NAME)
   set(${op_name_var} "${op_name}" PARENT_SCOPE)
@@ -95,7 +113,7 @@ function(get_op_type_and_validate OP_DIR compute_unit op_name_var op_type_var is
   endif()
 
   set(op_type "")
-  set(binary_json ${OP_DIR}/op_host/config/${compute_unit}/${op_name}_binary.json)
+  set(binary_json "${OP_DIR}/op_host/config/${compute_unit}/${op_name}_binary.json")
 
   if(NOT EXISTS "${OP_DIR}/op_kernel")
     message(STATUS "[INFO] The op_kernel folder does not exist, [${op_name}] not need to compile.")
@@ -104,7 +122,7 @@ function(get_op_type_and_validate OP_DIR compute_unit op_name_var op_type_var is
     return()
   endif()
 
-  if(EXISTS ${binary_json})
+  if(EXISTS "${binary_json}")
     get_op_type_from_binary_json("${binary_json}" op_type)
     message(STATUS "[INFO] On [${compute_unit}], [${op_name}] compile binary with self config.")
     if(NOT op_type)
@@ -125,7 +143,7 @@ function(get_op_type_and_validate OP_DIR compute_unit op_name_var op_type_var is
     check_op_supported("${op_name}" "${compute_unit}" check_op_supported_result)
     if(NOT check_op_supported_result)
       message(STATUS "[INFO] On [${compute_unit}], [${op_name}] not supported.")
-      set(${op_type_var} ${op_type} PARENT_SCOPE)
+      set(${op_type_var} "${op_type}" PARENT_SCOPE)
       set(${is_valid_var} FALSE PARENT_SCOPE)
       return()
     endif()
@@ -391,6 +409,8 @@ function(prepare_compile_from_config)
           COMMAND cp ${CMAKE_BINARY_DIR}/binary/${CONFCMP_COMPUTE_UNIT}/gen/${CONFCMP_OP_NAME}/${CONFCMP_OP_NAME}_binary.json  ${ASCEND_KERNEL_CONF_DST}/${CONFCMP_COMPUTE_UNIT}/${CONFCMP_OP_NAME}
           COMMENT "cp ${CMAKE_BINARY_DIR}/binary/${CONFCMP_COMPUTE_UNIT}/gen/${CONFCMP_OP_NAME}/${CONFCMP_OP_NAME}_binary.json  ${ASCEND_KERNEL_CONF_DST}/${CONFCMP_COMPUTE_UNIT}/${CONFCMP_OP_NAME}"
     )
+    add_dependencies(bin_conf_${CONFCMP_OP_NAME}_${CONFCMP_COMPUTE_UNIT}_copy
+      generate_bin_scripts_${CONFCMP_COMPUTE_UNIT}_${CONFCMP_OP_NAME})
   endif()
 
   if(NOT TARGET gen_opc_info_${CONFCMP_COMPUTE_UNIT})
@@ -418,9 +438,10 @@ function(prepare_compile_from_config)
     add_custom_target(prepare_binary_compile_${CONFCMP_COMPUTE_UNIT})
   endif()
 
+  file(MAKE_DIRECTORY ${CONFCMP_OP_PYTHON_DIR})
   add_custom_target(${CONFCMP_TARGET}
     COMMAND cp -r ${CONFCMP_IMPL_DIR}/*.* ${CONFCMP_OUT_DIR}/src
-    COMMAND cp ${CONFCMP_OP_PYTHON_DIR}/*.py ${CONFCMP_OUT_DIR}/src
+    COMMAND ${CMAKE_COMMAND} -E copy_directory ${CONFCMP_OP_PYTHON_DIR} ${CONFCMP_OUT_DIR}/src
   )
   add_dependencies(prepare_binary_compile_${CONFCMP_COMPUTE_UNIT} config_compile_${CONFCMP_COMPUTE_UNIT}_${CONFCMP_OP_NAME} ${CONFCMP_TARGET})
 
@@ -612,7 +633,7 @@ function(gen_ops_info_and_python)
       set(HAS_OP_COMPILE_OF_COMPUTE_UNIT FALSE)
       foreach(OP_DIR ${COMPILED_OP_DIRS})
         get_op_type_and_validate("${OP_DIR}" "${compute_unit}" op_name op_type is_valid)
-        set(binary_json ${OP_DIR}/op_host/config/${compute_unit}/${op_name}_binary.json)
+        set(binary_json "${OP_DIR}/op_host/config/${compute_unit}/${op_name}_binary.json")
         if(NOT is_valid)
           continue()
         endif()
@@ -629,7 +650,7 @@ function(gen_ops_info_and_python)
         generate_bin_scripts(
           TARGET gen_bin_scripts
           OP_NAME ${op_name}
-          OP_TYPE ${op_type}
+          OP_TYPE "${op_type}"
           OPS_INFO_DIR ${ASCEND_AUTOGEN_PATH}
           COMPUTE_UNIT ${compute_unit}
           OUT_DIR ${CMAKE_BINARY_DIR}/binary/${compute_unit}
@@ -639,7 +660,7 @@ function(gen_ops_info_and_python)
         prepare_compile_from_config(
           TARGET ascendc_bin_${compute_unit}_${op_name}
           OP_NAME ${op_name}
-          OP_TYPE ${op_type}
+          OP_TYPE "${op_type}"
           BINARY_JSON ${binary_json}
           OPS_INFO_DIR ${ASCEND_AUTOGEN_PATH}
           IMPL_DIR ${OP_DIR}/op_kernel
