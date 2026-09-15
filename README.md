@@ -1,10 +1,22 @@
+<div align="center">
+
 # ops-ras
+
+[![CANNcommunity](https://img.shields.io/badge/docs-社区全量算子-brightgreen.svg?style=flat)](https://www.hiascend.com/document/redirect/CannCommunityOplist)
+[![repo](https://img.shields.io/badge/docs-项目文档-green.svg?style=flat)](docs)
+[![license](https://img.shields.io/badge/license-CANN_Open_2.0-blue.svg)](LICENSE)
+[![contributing](https://img.shields.io/badge/贡献指南-teal)](CONTRIBUTING.md)
+[![SIG](https://img.shields.io/badge/SIG-ops_basic-yellow)](https://gitcode.com/cann/community/blob/master/CANN/sigs/ops-basic/README.md)
 
 简体中文 | [English](./README_en.md)
 
+</div>
+
+***
+
 ## 🔥Latest News
 
-- [2026/07] ops-ras项目首次上线。
+- \[2026/07] ops-ras项目首次上线。
 
 ## 🚀概述
 
@@ -23,14 +35,14 @@ ops-ras是[CANN](https://hiascend.com/software/cann)（Compute Architecture for 
 
 ## ⬇️源码下载
 
-环境准备好后，下载与CANN版本配套的分支源码，通用命令如下，\$\{tag\_version\}替换为分支标签名。以9.0.0分支源码下载为例：
+环境准备好后，下载与CANN版本配套的分支源码，通用命令如下，\${tag\_version}替换为分支标签名。以9.0.0分支源码下载为例：
 
 ```bash
 # 通用命令：git clone -b ${tag_version} https://gitcode.com/cann/ops-ras.git
 git clone -b 9.0.0 https://gitcode.com/cann/ops-ras.git
 ```
 
-> 说明：若环境中已存在配套分支源码，**可跳过本步骤**，例如CANNLab默认已提供最新最新版CANN对应的源码。
+> 说明：若环境中已存在配套分支源码，**可跳过本步骤**，例如CANNLab默认已提供最新版CANN对应的源码。
 
 ## 📖学习教程
 
@@ -44,8 +56,10 @@ git clone -b 9.0.0 https://gitcode.com/cann/ops-ras.git
 - [安全声明](SECURITY.md)
 - [许可证](LICENSE)
 - [所属SIG](https://gitcode.com/cann/community/tree/master/CANN/sigs/ops-basic)
+- [committer列表](https://gitcode.com/cann/community/blob/master/CANN/sigs/ops-basic/README.md#committer%E5%88%97%E8%A1%A8)
 
------
+***
+
 PS：本项目功能和文档正在持续更新和完善中，欢迎您关注最新版本。
 
 - **问题反馈**：通过GitCode[【Issues】](https://gitcode.com/cann/ops-ras/issues)提交问题。
