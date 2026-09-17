@@ -38,9 +38,10 @@ protected:
 
 TEST_F(add_example_test, test_case_0)
 {
-    size_t xByteSize = 32 * 4 * 4 * 4 * sizeof(float);
-    size_t yByteSize = 32 * 4 * 4 * 4 * sizeof(float);
-    size_t zByteSize = 32 * 4 * 4 * 4 * sizeof(float);
+    constexpr size_t totalLength = 32UL * 4UL * 4UL * 4UL;
+    size_t xByteSize = totalLength * sizeof(float);
+    size_t yByteSize = totalLength * sizeof(float);
+    size_t zByteSize = totalLength * sizeof(float);
     size_t tiling_data_size = sizeof(AddExampleTilingData);
     uint32_t blockDim = 8;
 
@@ -56,8 +57,16 @@ TEST_F(add_example_test, test_case_0)
 
     AddExampleTilingData* tilingDatafromBin = reinterpret_cast<AddExampleTilingData*>(tiling);
 
-    tilingDatafromBin->totalLength = 32 * 4 * 4 * 4;
+    tilingDatafromBin->totalLength = totalLength;
     tilingDatafromBin->tileNum = 8;
+
+    // 输入填入已知值，使 kernel 输出可校验（x=i, y=2i，期望 z=3i，float32 下位精确）
+    float* xFloat = reinterpret_cast<float*>(x);
+    float* yFloat = reinterpret_cast<float*>(y);
+    for (size_t i = 0; i < totalLength; ++i) {
+        xFloat[i] = static_cast<float>(i);
+        yFloat[i] = 2.0f * static_cast<float>(i);
+    }
 
     auto AddExampleKernel = [](GM_ADDR x, GM_ADDR y, GM_ADDR z, GM_ADDR workspace, GM_ADDR tiling) {
         ::add_example<0>(x, y, z, workspace, tiling);
@@ -72,6 +81,12 @@ TEST_F(add_example_test, test_case_0)
         z,
         workspace,
         (uint8_t *)(tilingDatafromBin));
+
+    // 逐元素校验输出（float32 加法位精确，可位级比较）
+    const float* zFloat = reinterpret_cast<const float*>(z);
+    for (size_t i = 0; i < totalLength; ++i) {
+        EXPECT_EQ(zFloat[i], xFloat[i] + yFloat[i]) << "add_example output mismatch at index " << i;
+    }
 
     AscendC::GmFree(x);
     AscendC::GmFree(y);
