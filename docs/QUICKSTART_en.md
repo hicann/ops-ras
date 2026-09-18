@@ -20,6 +20,8 @@ This guide aims to help you quickly get started with CANN and the `ops-ras` oper
 
 The purpose of this stage is to **quickly experience the project standard process** and verify whether the environment can successfully perform operator source code compilation, packaging, installation, and running.
 
+> This guide uses single operator compilation as an example. Compiling the entire operator library, offline compilation, and other scenarios are also supported. For more build parameter descriptions, see [build Parameter Description](en/install/build.md). For common issues during compilation, see [Source Code Build](en/install/compile.md).
+
 ### 1. Enter the Project Source Code
 
 - CANNLab Cloud Development Environment:
@@ -45,9 +47,7 @@ The purpose of this stage is to **quickly experience the project standard proces
 
 ### 2. Compile the AddExample Operator
 
-This guide uses **single operator compilation** by default: only the target operator is built, the compilation time is short, and it is suitable for quick start and daily development. The general command format: `bash build.sh --pkg --soc=<chip version> --ops=<operator name>`.
-
-> If you need to compile the entire operator library (omit `--ops`), see [build Parameter Description](zh/install/build.md).
+The general command format: `bash build.sh --pkg --soc=<chip version> --ops=<operator name>`.
 
 Taking the AddExample operator as an example, the compilation command is as follows:
 
@@ -92,8 +92,10 @@ The general running command format: `bash build.sh --run_example <operator name>
 Taking AddExample as an example, it provides a simple operator sample `add_example/examples/test_aclnn_add_example.cpp`. Run this sample to verify whether the operator function is normal.
 
 ```bash
-bash build.sh --run_example add_example eager cust --vendor_name=custom
+bash build.sh --run_example add_example eager cust --vendor_name=custom --soc=${soc_version}
 ```
+
+> **Note**: When running the sample, ensure that the `--soc` parameter is consistent with the `--soc` value used when compiling the operator package. Otherwise, `error 161001` may be reported (for example, `aclnnXxxGetWorkspaceSize failed`). If this error occurs, go back to [Section 2](#2-compile-the-addexample-operator) to check the `--soc` value, and then recompile and reinstall.
 
 Expected output: Print the addition calculation result of the operator `AddExample`, indicating that the operator has been successfully deployed and executed correctly.
 
@@ -155,7 +157,7 @@ Repeat the steps in the [Compilation and Running](#i-compilation-and-running) se
 3. **Re-verify**:
 
     ```bash
-    bash build.sh --run_example add_example eager cust --vendor_name=custom
+    bash build.sh --run_example add_example eager cust --vendor_name=custom --soc=${soc_version}
     ```
 
 4. **Success Sign**: The output result becomes the multiplication result.
@@ -214,7 +216,7 @@ When the operator function verification is correct, you can collect operator per
     Call the example sample of the AddExample operator to generate an executable file (test_aclnn_add_example), which is located in the project `ops-ras/build` directory.
 
     ```bash
-    bash build.sh --run_example add_example eager cust --vendor_name=custom
+    bash build.sh --run_example add_example eager cust --vendor_name=custom --soc=${soc_version}
     ```
 
 - **Collect Performance Data**
@@ -263,7 +265,7 @@ int main() {
 2. Re-execute the verification command:
 
     ```bash
-    bash build.sh --run_example add_example eager cust --vendor_name=custom
+    bash build.sh --run_example add_example eager cust --vendor_name=custom --soc=${soc_version}
     ```
 
 3. Observe whether the operator output result meets expectations.

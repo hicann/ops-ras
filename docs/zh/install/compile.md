@@ -264,3 +264,22 @@ Global Environment TearDown
 ```
 
 \$\{n\}表示执行了n个用例，\$\{m\}表示m项测试，\$\{x\}表示执行用例消耗的时间，单位为毫秒。
+
+## FAQ
+
+### 安装自定义run包报错权限不足
+
+默认安装目录需要当前用户具备读、写和执行权限。若提示权限不足，可选择以下一种方式：
+
+- 推荐安装到当前用户可写的绝对路径，并加载安装包生成的环境变量脚本：
+
+    ```bash
+    ./build_out/cann-ops-ras-*linux*.run --install-path=/absolute/path/to/opp
+    source /absolute/path/to/opp/vendors/custom_ras/bin/set_env.bash
+    ```
+
+- 确需安装到系统CANN目录时，使用`sudo -E`保留当前已配置的CANN环境变量：
+
+    ```bash
+    sudo -E ./build_out/cann-ops-ras-*linux*.run
+    ```

@@ -36,6 +36,8 @@ Developer contribution scenarios mainly include:
   │   ├── op_host                                      # operator definition, Tiling, InferShape related implementation
   │   │   ├── ${op_name}_def.cpp                       # operator definition file
   │   │   ├── ${op_name}_tiling.cpp                    # operator Tiling implementation file
+  │   │   ├── ${op_name}_tiling_${sub_case}.cpp        # Optional, sub-scenario Tiling implementation. ${sub_case} represents the sub-scenario (e.g., arch35)
+  │   │   ├── ${op_name}_tiling_${sub_case}.h          # Optional, sub-scenario Tiling implementation header file
   │   │   └── CMakeLists.txt
   │   ├── op_kernel                                    # operator Kernel directory
   │   │   ├── ${op_name}.cpp
@@ -46,6 +48,10 @@ Developer contribution scenarios mainly include:
   │   ├── CMakeLists.txt                               # operator compilation configuration file, keep the original file
   │   └── README.md                                    # operator description document
   ```
+
+  For the complete operator directory structure (including optional deliverables), see [Project Directory](docs/en/install/dir_structure.md#project-directory).
+
+  > **Note**: Tiling implementation files under the op_host directory that participate in compilation must contain the `_tiling` identifier in the file name (e.g., `${op_name}_tiling.cpp`, `${op_name}_tiling_${sub_case}.cpp`); otherwise, they will not be recognized by the compilation system. When splitting Tiling implementations for sub-scenarios (e.g., a specific architecture such as arch35), follow this naming rule.
 
 - Document Correction
 

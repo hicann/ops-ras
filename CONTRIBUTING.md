@@ -38,6 +38,8 @@
   │   ├── op_host                                      # 算子信息库、Tiling、InferShape相关实现
   │   │   ├── ${op_name}_def.cpp                       # 算子信息库定义文件
   │   │   ├── ${op_name}_tiling.cpp                    # 算子Tiling实现文件
+  │   │   ├── ${op_name}_tiling_${sub_case}.cpp        # 可选，子场景 Tiling 实现，${sub_case} 表示子场景（如 arch35）
+  │   │   ├── ${op_name}_tiling_${sub_case}.h          # 可选，子场景 Tiling 实现头文件
   │   │   └── CMakeLists.txt
   │   ├── op_kernel                                    # 算子Kernel目录
   │   │   ├── ${op_name}.cpp
@@ -47,6 +49,10 @@
   │   ├── CMakeLists.txt                               # 算子编译配置文件，保留原文件即可
   │   └── README.md                                    # 算子说明文档
   ```
+
+  完整的算子目录结构（含各可选交付件）参见[项目目录结构](docs/zh/install/dir_structure.md#项目目录)。
+
+  > **说明**：op_host 目录下参与编译的 Tiling 实现文件，文件名须包含 `_tiling` 标识（如 `${op_name}_tiling.cpp`、`${op_name}_tiling_${sub_case}.cpp`），否则不会被编译系统识别。针对子场景（如特定架构 arch35）拆分 Tiling 实现时，请遵循此命名规则。
 
 - 文档纠错
 
