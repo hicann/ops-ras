@@ -9,11 +9,11 @@
  */
 
 /*!
- * \file op_resource.h
+ * \file op_resource_ras.h
  * \brief
  */
-#ifndef COMMON_RAS_OP_RESOURCE_H
-#define COMMON_RAS_OP_RESOURCE_H
+#ifndef COMMON_RAS_OP_RESOURCE_RAS_H
+#define COMMON_RAS_OP_RESOURCE_RAS_H
 
 #define EXTERN_OP_RESOURCE(kernelName)                        \
 namespace l0op {                                                \
@@ -29,4 +29,4 @@ namespace l0op {                                                \
     {{l0op::kernelName##TilingRegisterResource(), l0op::kernelName##InferShapeRegisterResource(), l0op::kernelName##TuningRegisterResource()},  \
       l0op::kernelName##KernelResource(), l0op::kernelName##TuningResource()}}} \
 
-#endif  // COMMON_RAS_OP_RESOURCE_H
+#endif  // COMMON_RAS_OP_RESOURCE_RAS_H

@@ -43,7 +43,7 @@ def modify_gen_aclnn(build_path):
     for aclnn_cpp in auto_gen_cpps:
         (op_type, index) = search_file(aclnn_cpp)
         if op_type:
-            shell_exec(["bash", "-c", f"""sed -i 's/{op_type}_op_resource.h/op_resource.h/g' {aclnn_cpp}"""],
+            shell_exec(["bash", "-c", f"""sed -i 's/{op_type}_op_resource.h/op_resource_ras.h/g' {aclnn_cpp}"""],
                        shell=False)
             shell_exec(
                 ["bash", "-c", f"""sed -i 's/{op_type}_RESOURCES/AUTO_GEN_OP_RESOURCE({op_type})/g' {aclnn_cpp}"""],
