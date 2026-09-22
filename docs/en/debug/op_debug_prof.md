@@ -165,9 +165,9 @@ This chapter uses the [AddExample custom operator](../../../examples/add_example
    The collection results are in the `$PWD/pipeline_auto/OPPROF_**` directory of this project.
    The pipeline-related file path is `OPPROF**/simulator/visualize_data.bin`, which can be viewed using the [mindStudio Insight](https://www.hiascend.com/document/detail/en/mindstudio/latest/visualization_tool/MindStudioInsight/docs/en/user_guide/overview.md) tool.
 
-### Method 2 (For Ascend 950PR)
+### Method 2 (For Ascend 950PR&950DT products)
 
-If execution accuracy degradation or abnormal memory usage occurs during operator development, you can use the [CANN Simulator](./cann_simulator.md) simulation tool to analyze the operator's instruction pipeline situation, thereby identifying the root cause and performing targeted optimization.
+If execution accuracy degradation or abnormal memory usage occurs during operator development, you can use the [CANN Simulator](./cann_sim.md) simulation tool to analyze the operator's instruction pipeline situation, thereby identifying the root cause and performing targeted optimization.
 
 This chapter uses the [AddExample custom operator](../../../examples/add_example/) as an example to introduce the use of the simulation tool. It describes how to perform accuracy and performance tuning through the simulation tool.
 
@@ -187,4 +187,4 @@ This chapter uses the [AddExample custom operator](../../../examples/add_example
    trace_core0.json
    ```
 
-3. Enter "chrome://tracing" in the Chrome browser and drag the generated instruction pipeline diagram file (trace_core0.json) to the blank area to open it. For specific parameter descriptions, refer to the [Simulation Result Analysis](./cann_simulator.md#simulation-result-analysis-instructions) section in CANN Simulator.
+3. Enter "chrome://tracing" in the Chrome browser and drag the generated instruction pipeline diagram file (trace_core0.json) to the blank area to open it. For specific parameter descriptions, refer to the [Simulation Result Analysis](./cann_sim.md#execute-simulation-command) section in CANN Simulator.

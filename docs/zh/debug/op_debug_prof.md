@@ -162,7 +162,7 @@
    采集结果在本项目`$PWD/pipeline_auto/OPPROF_**`目录中。
    其中流水相关文件路径为`OPPROF**/simulator/visualize_data.bin`，可以借助[MindStudio Insight](https://www.hiascend.com/document/redirect/MindStudioInsight)工具查看。
 
-### 方式二（针对Ascend 950PR/Ascend 950DT系列产品）
+### 方式二（针对Ascend 950PR&950DT系列产品）
 
 算子开发过程中，如果出现执行精度下降、内存占用异常等问题，可以通过[CANN Simulator](./cann_sim.md)仿真工具分析算子的指令流水情况，从而确定问题根源，并针对性地优化。
 

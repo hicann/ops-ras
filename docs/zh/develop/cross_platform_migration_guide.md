@@ -178,7 +178,7 @@ SIMT采用线程级并行模型，每个线程独立处理元素：
 ```cpp
 // SIMT: 使用线程级并行，无需显式buffer管理
 __simt_vf__ LAUNCH_BOUND(2048) void GatherSimt(...) {
-    for (INDEX_SIZE_T index = Simt::GetThreadIdx(); 
+    for (INDEX_SIZE_T index = Simt::GetThreadIdx();
          index < currentCoreElements;
          index += Simt::GetThreadNum()) {  // 线程跳跃式并行
         // 每个线程独立计算单点索引并访问
@@ -231,11 +231,11 @@ __simd_vf__ __aicore__ void GenIndexBuf(ubuf int32_t* helpAddr, int32_t colFacto
     AscendC::MicroAPI::RegTensor<int32_t> v0;
     AscendC::MicroAPI::RegTensor<int32_t> v1;
     AscendC::MicroAPI::RegTensor<int32_t> vd1;
-    
+
     // 创建全量掩码
-    AscendC::MicroAPI::MaskReg preg = 
+    AscendC::MicroAPI::MaskReg preg =
         AscendC::MicroAPI::CreateMask<int32_t, AscendC::MicroAPI::MaskPattern::ALL>();
-    
+
     // 标量复制到寄存器
     AscendC::MicroAPI::Duplicate(v1, colFactor, preg);
     // 生成序列 [0, 1, 2, ...]
@@ -255,7 +255,7 @@ __simd_vf__ __aicore__ void GatherProcess(ubuf int8_t* curYAddr, uint16_t repeat
 {
     MicroAPI::RegTensor<int8_t> vregTemp;
     MicroAPI::MaskReg preg;
-    
+
     for (uint16_t r = 0; r < repeatTimes; r++) {
         // 根据剩余元素数更新掩码
         preg = MicroAPI::UpdateMask<int8_t>(sreg);
@@ -274,7 +274,7 @@ __VEC_SCOPE__
 {
     MicroAPI::RegTensor<uint32_t> indicesReg;
     MicroAPI::RegTensor<int32_t> vd0;
-    
+
     for (uint16_t indices = 0; indices < indicesLoopNum; indices++) {
         // 加载索引（E2B分发模式：将标量广播到向量）
         MicroAPI::DataCopy<uint32_t, MicroAPI::LoadDist::DIST_E2B_B32>(indicesReg, indicesAddr);
@@ -336,13 +336,13 @@ Ascend 950新架构引入UB2L1 & L0C2UB间的直连通路，实现矩阵计算�
 
 **矩阵搬出**
 
-启用L0C至UB（L0C2UB）直连通路，通过DataCopy接口，支持融合算子的矩阵计算结果直接搬入UB进行后续向量计算。 
+启用L0C至UB（L0C2UB）直连通路，通过DataCopy接口，支持融合算子的矩阵计算结果直接搬入UB进行后续向量计算。
 
 对于切K或多阶段融合场景，可将“L0C搬回GM再读回UB”改为“L0C直达UB累加/后处理”，降低GM往返带宽压力和时延。迁移时建议把中间结果归并、激活/量化前处理放到UB侧完成，并显式梳理MTE1/MTE2/MTE3与计算单元的事件同步顺序，确保跨单元流水连续，避免由于新增通路引入数据可见性或同步时序问题。关键开启接口定义可参考：
 
 ```cpp
 // 1. 新增: 搬入接口增加UB2L1的Nd2Nz搬入，支持Src&Dst都是LocalTensor的形式
-template <typename T>   
+template <typename T>  
 __aicore__ inline void DataCopy(const LocalTensor<T>& dst, const LocalTensor<T>& src, const Nd2NzParams& intriParams)；
 
 // 2. 新增: 搬出接口增加L0C2UB的搬出,支持直接从L0C搬出到UB,支持Src&Dst都是LocalTensor的形式
@@ -350,7 +350,7 @@ template <typename T, typename U, const FixpipeConfig& config = CFG_ROW_MAJOR>
 __aicore__ inline void Fixpipe(const LocalTensor<T>& dst, const LocalTensor<U>& src, const FixpipeParamsC310<config.format>& intriParams);
 template <CO2Layout format = CO2Layout::ROW_MAJOR>
 struct FixpipeParamsC310 {
-    // ... 
+    // ...
     uint8_t dualDstCtl = 0;
 };
 
@@ -383,7 +383,7 @@ Ascend 950引入集合通信加速器CCU1.0，降低了访存需求，减少了�
 
 在aclnn两段式接口中的第二段接口中，为算子执行器aclOpExecutor指定集合通信类型。
 
-以[MatmulAllReduce](https://gitcode.com/cann/ops-transformer/tree/master/mc2/matmul_all_reduce)算子迁移适配为例：
+以[MatmulAllReduce](https://gitcode.com/cann/ops-transformer/tree/9.2.0/mc2/matmul_all_reduce)算子迁移适配为例：
 设置NnopbaseSetHcclServerType枚举值，A2为NNOPBASE_HCCL_SERVER_AICPU，950为NNOPBASE_HCCL_SERVER_TYPE_CCU。
 
 ```CPP
@@ -407,7 +407,7 @@ aclnnStatus aclnnMatmulAllReduce(
 1. 用于资源计算与申请，涉及附属流相关信息的CalcParamFunc回调接口中，为GE的上下文context区分附属流的集合通信类型。
 2. 用于设置主流/附属流上自定义任务、参数定制的GenerateTask回调接口中，区分两套GE的KernelLaunch接口，分别调用AICPU通信或CCU通信的创建及定制流程。
 
-静态图GE侧创建通信task的任务类型，A2为aicpu kfc server + kfc_stream；950为ccu server + ccu_stream。涉及代码文件：[matmul_all_reduce_gen_task.cpp](https://gitcode.com/cann/ops-transformer/blob/master/mc2/matmul_all_reduce/op_graph/matmul_all_reduce_gen_task.cpp)
+静态图GE侧创建通信task的任务类型，A2为aicpu kfc server + kfc_stream；950为ccu server + ccu_stream。涉及代码文件：[matmul_all_reduce_gen_task.cpp](https://gitcode.com/cann/ops-transformer/blob/9.2.0/mc2/matmul_all_reduce/op_graph/matmul_all_reduce_gen_task.cpp)
 
 ```CPP
 // ...
@@ -423,7 +423,7 @@ ge::Status MatmulAllReduceCalcParamFunc(gert::ExeResGenerationContext *context)
 // ...
 ```
 
-静态图GenTask调用接口有区别，流程有差异。涉及代码文件：[matmul_all_reduce_gen_task.cpp](https://gitcode.com/cann/ops-transformer/blob/master/mc2/matmul_all_reduce/op_graph/matmul_all_reduce_gen_task.cpp)
+静态图GenTask调用接口有区别，流程有差异。涉及代码文件：[matmul_all_reduce_gen_task.cpp](https://gitcode.com/cann/ops-transformer/blob/9.2.0/mc2/matmul_all_reduce/op_graph/matmul_all_reduce_gen_task.cpp)
 
 ```CPP
 // ...

@@ -33,7 +33,7 @@
     # bash build.sh --pkg --experimental --soc=ascend910b --ops=${experimental_op}
     ```
 
-    - --soc：\$\{soc\_version\}表示NPU型号。Atlas A2系列产品使用"ascend910b"（默认），Atlas A3系列产品使用"ascend910_93"，Ascend 950PR/Ascend 950DT产品使用"ascend950"。
+    - --soc：\$\{soc\_version\}表示NPU型号。Atlas A2系列产品使用"ascend910b"（默认），Atlas A3系列产品使用"ascend910_93"，Ascend 950PR&950DT系列产品使用"ascend950"。
     - --vendor_name（可选）：\$\{vendor\_name\}表示构建的自定义算子包名，默认名为custom。
     - --ops（可选）：\$\{op\_list\}表示待编译算子，不指定时默认编译所有算子。格式形如"add_example,..."，多算子之间用英文逗号","分隔。
     - --experimental（可选）：表示编译experimental贡献目录下的算子，${experimental_op}为新贡献算子目录名，贡献说明参见[贡献指南](../../../CONTRIBUTING.md)。
@@ -78,7 +78,7 @@
     ```
 
     - --jit（可选）：设置后表示不编译算子二进制文件，如需使用aclnn调用算子，该选项无需设置。
-    - --soc：\$\{soc\_version\}表示NPU型号。Atlas A2系列产品使用"ascend910b"（默认），Atlas A3系列产品使用"ascend910_93"，Ascend 950PR/Ascend 950DT产品使用"ascend950"。
+    - --soc：\$\{soc\_version\}表示NPU型号。Atlas A2系列产品使用"ascend910b"（默认），Atlas A3系列产品使用"ascend910_93"，Ascend 950PR&950DT系列产品使用"ascend950"。
     - --experimental（可选）：表示编译experimental贡献目录下的算子。
 
     若提示如下信息，说明编译成功。
@@ -107,7 +107,7 @@
 
 ### ops-ras静态库
 
-> 说明：Ascend 950PR/Ascend 950DT暂不支持使用静态库。
+> 说明：Ascend 950PR&950DT系列产品暂不支持使用静态库。
 
 1. **编译ops-ras静态库**
 
@@ -167,7 +167,7 @@
 
 - **执行算子样例**
 
-    > **说明**：Ascend 950PR/Ascend 950DT产品使用仿真执行算子样例，请见[仿真指导](../debug/op_debug_prof.md#方式二针对ascend-950pr)。
+    > **说明**：Ascend 950PR&950DT系列产品使用仿真执行算子样例，请见[仿真指导](../debug/op_debug_prof.md#方式二针对ascend-950pr)。
 
   - 完成自定义算子包安装后，执行如下命令：
 

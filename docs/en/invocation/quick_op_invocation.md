@@ -56,7 +56,7 @@ After preparing the open-source third-party software, you can choose from the fo
     # bash build.sh --pkg --experimental --soc=ascend910b --ops=${experimental_op}
     ```
 
-    - --soc: ${soc_version} represents the NPU model. For Atlas A2 series products, use "ascend910b" (default). For Atlas A3 series products, use "ascend910_93". For Ascend 950PR/Ascend 950DT products, use "ascend950".
+    - --soc: ${soc_version} represents the NPU model. For Atlas A2 series products, use "ascend910b" (default). For Atlas A3 series products, use "ascend910_93". For Ascend 950PR&950DT products, use "ascend950".
     - --vendor_name (optional): ${vendor_name} represents the name of the custom operator package to build. The default name is custom.
     - --ops (optional): ${op_list} represents the operators to compile. If not specified, all operators are compiled by default. The format is "add_example,...", with multiple operators separated by commas.
     - --experimental (optional): Indicates compiling operators in the experimental contribution directory. ${experimental_op} is the directory name of the new contributed operator. For contribution instructions, refer to the [Contribution Guide](../../../CONTRIBUTING.md).
@@ -98,7 +98,7 @@ After preparing the open-source third-party software, you can choose from the fo
    # bash build.sh --pkg --experimental --soc=${soc_version}
    ```
 
-   - --soc: ${soc_version} represents the NPU model. For Atlas A2 series products, use "ascend910b" (default). For Atlas A3 series products, use "ascend910_93". For Ascend 950PR/Ascend 950DT products, use "ascend950".
+   - --soc: ${soc_version} represents the NPU model. For Atlas A2 series products, use "ascend910b" (default). For Atlas A3 series products, use "ascend910_93". For Ascend 950PR&950DT products, use "ascend950".
    - --experimental (optional): Indicates compiling operators in the experimental contribution directory.
 
    If the following message appears, the compilation is successful.
@@ -233,7 +233,7 @@ Run operators and UT test cases through the build.sh script in the project root 
 
 ### Run Operator Samples
 
-> **Note**: For Ascend 950PR products, use simulation to run operator samples. For details, refer to [Simulation Guide](../debug/op_debug_prof.md#method-2-for-ascend-950pr).
+> **Note**: For Ascend 950PR&950DT products, use simulation to run operator samples. For details, refer to [Simulation Guide](../debug/op_debug_prof.md#method-2-for-ascend-950pr950dt-products).
 
 - Run operator samples based on a **custom operator package**. After the package is installed, execute the following command:
 

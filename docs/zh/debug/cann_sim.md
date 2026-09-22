@@ -205,7 +205,7 @@ cannsim report [options]
     |MTE1|数据搬运流水，数据搬运方向为：L1 ->{L0A/L0B, UBUF}。|
     |MTE2|数据搬运流水，数据搬运方向为：{DDR/GM, L2} ->{L1, L0A/B, UBUF}。|
     |MTE3|数据搬运流水，数据搬运方向为：UBUF -> {DDR/GM, L2, L1}、L1->{DDR/L2}。|
-    |FIXP|数据搬运流水，数据搬运方向为：FIXPIPE L0C -> OUT/L1。（仅Atlas A2 训练系列产品 / Atlas A2 推理系列产品支持展示）|
+    |FIXP|数据搬运流水，数据搬运方向为：FIXPIPE L0C -> OUT/L1。（仅Atlas A2系列产品支持展示）|
     |FLOWCTRL|控制流指令。|
     |ICACHELOAD|查看未命中的ICache。|
 

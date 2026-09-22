@@ -54,7 +54,7 @@
     # bash build.sh --pkg --experimental --soc=ascend910b --ops=add_example -j16
     ```
 
-    - --soc：\$\{soc\_version\}表示NPU型号。Atlas A2 训练系列产品/Atlas A2 推理系列产品使用"ascend910b"（默认），Atlas A3 训练系列产品/Atlas A3 推理系列产品使用"ascend910_93"，Ascend 950PR/Ascend 950DT产品使用"ascend950"。
+    - --soc：\$\{soc\_version\}表示NPU型号。Atlas A2系列产品使用"ascend910b"（默认），Atlas A3系列产品使用"ascend910_93"，Ascend 950PR&950DT系列产品使用"ascend950"。
     - --vendor_name（可选）：\$\{vendor\_name\}表示构建的自定义算子包名，默认名为custom。
     - --ops（可选）：\$\{op\_list\}表示待编译算子，不指定时默认编译所有算子。格式形如"add_example,crypto,..."，多算子之间用英文逗号","分隔。
     - --experimental（可选）：表示编译用户保存在experimental贡献目录下的算子。
@@ -101,7 +101,7 @@
     # bash build.sh --pkg --experimental [--jit] --soc=${soc_version} [-j${n}]
     ```
 
-    - --soc：\$\{soc\_version\}表示NPU型号。Atlas A2 训练系列产品/Atlas A2 推理系列产品使用"ascend910b"（默认），Atlas A3 训练系列产品/Atlas A3 推理系列产品使用"ascend910_93"，Ascend 950PR/Ascend 950DT产品使用"ascend950"。
+    - --soc：\$\{soc\_version\}表示NPU型号。Atlas A2系列产品使用"ascend910b"（默认），Atlas A3系列产品使用"ascend910_93"，Ascend 950PR&950DT系列产品使用"ascend950"。
     - --jit（可选）：设置后表示不编译算子二进制文件，如需使用aclnn调用算子，该选项无需设置。
     - --experimental（可选）：表示编译用户保存在experimental目录下的算子。
     - -j（可选）：指定编译线程数，加快编译速度。
@@ -111,7 +111,7 @@
     ```bash
     Self-extractable archive "cann-${soc_name}-ops-ras_${cann_version}_linux-${arch}.run" successfully created.
     ```
-    
+
     \$\{soc\_name\}表示NPU型号名称，即\$\{soc\_version\}删除"ascend"后剩余的内容。编译成功后，run包存放于build_out目录下。
 
 2. **安装ops-ras包**
@@ -186,36 +186,36 @@
     将下载好的第三方软件上传至离线环境，可存放在`third_party`目录或自定义目录下。**推荐前者，其编译命令与联网编译场景下的命令一致。**
 
     - **third\_party目录**（推荐）
-    
+
         请在本项目根目录创建`third_party`目录（若有则无需创建），将第三方软件拷贝到该指定目录。此时编译命令与联网编译命令一致，具体参考[联网编译](#联网编译)。
-    
+
     - **自定义目录**
-    
+
         在离线环境的任意位置新建`${cann_3rd_lib_path}`目录，将第三方软件拷贝到该目录，请确保该目录有权限访问。
 
         ```bash
         mkdir -p ${cann_3rd_lib_path}
         ```
-        
+
         此时编译命令需在联网编译命令基础上额外增加`--cann_3rd_lib_path=${cann_3rd_lib_path}`用于指定第三方软件所在路径。假设存放路径为`/path/cann_3rd_lib_path`，不同编译方式对应的命令如下：
-        
+
         - 自定义算子包
-        
+
             ```bash
             bash build.sh --pkg --soc=${soc_version} [--vendor_name=${vendor_name}] [--ops=${op_list}] --cann_3rd_lib_path=${cann_3rd_lib_path}
             # 以AddExample算子编译为例
             # bash build.sh --pkg --soc=ascend910b --ops=add_example -j16 --cann_3rd_lib_path=/path/cann_3rd_lib_path
             ```
-            
+
         - ops-ras整包
-        
+
             ```bash
             bash build.sh --pkg [--jit] --soc=${soc_version} --cann_3rd_lib_path=${cann_3rd_lib_path}
             # bash build.sh --pkg --soc=ascend910b --cann_3rd_lib_path=/path/cann_3rd_lib_path
             ```
-            
+
         - ops-ras静态库
-        
+
             ```bash
             bash build.sh --pkg --static --soc=${soc_version} --cann_3rd_lib_path=${cann_3rd_lib_path}
             # bash build.sh --pkg --static --soc=ascend910b --cann_3rd_lib_path=/path/cann_3rd_lib_path

@@ -1,39 +1,38 @@
 # AscendOps
 
-## 环境部署|Prerequisites
+## Prerequisites
 
-- 请先参考[环境部署](../../docs/zh/install/quick_install.md)完成基础环境搭建
+- Refer to [Prerequisites](../../docs/en/install/quick_install.md) to complete the basic environment setup.
 - GCC 9.4.0+
 - Python 3.8+
 - PyTorch>=2.6.0
-- 对应版本的[TorchNPU](https://gitcode.com/Ascend/pytorch/releases)
+- Corresponding version of [TorchNPU](https://gitcode.com/Ascend/pytorch/releases)
 
-## 安装步骤 | Installation Steps
+## Installation Steps
 
-1. 安装依赖 | Install Dependencies:
+1. Install Dependencies:
     ```sh
     python3 -m pip install -r requirements.txt
     ```
 
-2. 构建Wheel包 | Build the Wheel:
+2. Build the Wheel:
     ```sh
     # -n: non-isolated build (uses existing environment)
     python3 -m build --wheel -n
     ```
 
-3. 安装 | Install Package:
+3. Install Package:
     ```sh
     python3 -m pip install dist/*.whl --force-reinstall --no-deps
     ```
 
-4. （可选）再次构建前建议先执行以下命令清理编译缓存
+4. (Optional) Before rebuilding, run the following command to clean the compilation cache:
    ```sh
    python3 setup.py clean
    ```
 
-## 快速开始|Quick Start
-
-安装完成后，您可以像使用普通PyTorch操作一样使用NPU算子
+## Quick Start
+After the installation is complete, use NPU operators in the same way as ordinary PyTorch operators.
 
 ```python
 import torch
@@ -56,23 +55,23 @@ assert torch.allclose(cpu_result, npu_result.cpu(), rtol=1e-6)
 print("Verification successful!")
 ```
 
-## 开发指南：新增一个算子 | Developer Guide: Adding a New Operator
+## Developer Guide: Adding a New Operator
 
-为了实现一个新算子(如`add`)，你只需要提供一个C++实现即可。
+To implement a new operator (for example, `add`), provide a C++ implementation.
 
-1. 首先你需要在csrc目录下使用算子名`add`建立一个文件夹，在此文件夹内使用你当前想要开发的soc名建立一个子文件夹`ascend910b`.
+1. Create a folder named after the operator `add` under the csrc directory. Inside this folder, create a subfolder named after the target SoC, for example, `ascend910b`.
 
-2. 在soc目录下新建一个`CMakeLists.txt`
+2. Create a `CMakeLists.txt` file in the SoC directory:
     ```
     add_sources("--npu-arch=dav-2201")
     ```
-    这里`dav-2201`为ascend910b芯片对应的编译参数
+    Here, `dav-2201` is the compilation parameter for the ascend910b chip.
 
-3. 在soc目录下新建一个`add.cpp`(建议使用算子名为文件名)。这个文件包含了开发一个AICORE算子所需要的全部模块。
-    - 算子Schema注册
-    - 算子Meta Function实现 & 注册
-    - 算子Kernel实现(AscendC)
-    - 算子NPU调用实现 & 注册
+3. Create an `add.cpp` file in the SoC directory (use the operator name as the file name). This file contains all modules required for developing an AI Core operator:
+    - Operator schema registration
+    - Operator meta function implementation and registration
+    - Operator kernel implementation (Ascend C)
+    - Operator NPU invocation implementation and registration
 
     ```cpp
     #include <ATen/Operators.h>
@@ -84,12 +83,12 @@ print("Verification successful!")
     #include "platform/platform_ascendc.h"
     #include <type_traits>
 
-    namespace ascend_ops {  // 当前项目为一个命名空间
-    namespace Add {         // 建议每个算子自己有一个独立的namespace，防止全局变量污染
+    namespace ascend_ops {  // The current project is a namespace.
+    namespace Add {         // Use an independent namespace for each operator to prevent global variable pollution.
 
     /**
-     * 将算子schema注册给PyTorch框架
-     * 框架知道有这样一个算子
+     * Register the operator schema with the PyTorch framework.
+     * The framework is aware of this operator.
      */
     // Register the operator's schema
     TORCH_LIBRARY_FRAGMENT(EXTENSION_MODULE_NAME, m)
@@ -98,8 +97,8 @@ print("Verification successful!")
     }
 
     /**
-     * 实现算子的Meta函数，即InferShape+InferDtype
-     * 根据输入推导出这个算子的输出是什么样子，需要多少空间，不需要实际计算这个算子
+     * Implement the operator meta function, that is, InferShape + InferDtype.
+     * Infer the output shape and required memory without actual computation.
      */
     // Meta function implementation of Add
     torch::Tensor add_meta(const torch::Tensor &x, const torch::Tensor &y)
@@ -110,9 +109,9 @@ print("Verification successful!")
     }
 
     /**
-     * 将算子的Meta函数注册给框架
-     * 框架可以调用这个Meta函数，在真正执行这个算子计算前知道需要多大空间
-     * 后续可以支持torch.compile/AutoGrad/AclGraph等图加速
+     * Register the operator meta function with the framework.
+     * The framework calls this meta function to determine the required memory before the operator computation.
+     * This supports torch.compile, AutoGrad, AclGraph, and other graph acceleration features.
      */
     // Register the Meta implementation
     TORCH_LIBRARY_IMPL(EXTENSION_MODULE_NAME, Meta, m)
@@ -121,7 +120,7 @@ print("Verification successful!")
     }
 
     /**
-     * NPU算子Kernel实现，使用AscendC API，面向当前的soc编写
+     * NPU operator kernel implementation using Ascend C APIs for the target SoC.
      */
     template <typename T>
     __global__ __aicore__ void add_kernel(GM_ADDR x, GM_ADDR y, GM_ADDR z, int64_t totalLength, int64_t blockLength, uint32_t tileSize)
@@ -130,11 +129,11 @@ print("Verification successful!")
     }
 
     /**
-     * 实现算子调用接口
-     * 在这个接口中,需要完成NPU Kernel的调用
-     * 1. 计算出输出的Tensor的个数/Shape/Dtype(可以调用Meta函数实现，也可以直接实现)
-     * 2. 计算Tiling：根据Shape得到如何分块计算
-     * 3. 调用NPU Kernel
+     * Implement the operator invocation interface.
+     * This interface must complete the NPU kernel invocation.
+     * 1. Compute the output tensor count, shape, and data type (call the meta function or implement directly).
+     * 2. Compute tiling: determine the block computation based on the shape.
+     * 3. Invoke the NPU kernel.
      *
      */
     torch::Tensor add_npu(const torch::Tensor &x, const torch::Tensor &y)
@@ -150,7 +149,7 @@ print("Verification successful!")
         auto acl_call = [=]() -> int {
             AT_DISPATCH_SWITCH(
                 x.scalar_type(), "add_npu",
-                // 根据不同的数据类型，调用不同的NPU Kernel
+                // Invoke different NPU kernels based on data types.
                 AT_DISPATCH_CASE(torch::kFloat32, [&] {
                     using scalar_t = float;
                     add_kernel<scalar_t><<<blockDim, nullptr, stream>>>(x_ptr, y_ptr, z_ptr,     totalLength, blockLength, tileSize);
@@ -166,14 +165,14 @@ print("Verification successful!")
             );
             return 0;
         };
-        // 需要使用RunOpApi/RunOpApiV2接口调用，保证时序与TorchNPU调用aclnn接口一致。
+        // Use the RunOpApi or RunOpApiV2 interface to ensure the invocation sequence is consistent with TorchNPU calling the aclnn interface.
         at_npu::native::OpCommand::RunOpApi("Add", acl_call);
         return z;
     }
 
     /**
-     * 将算子的调用函数注册给框架，Device为PrivateUse1
-     * 框架知道当输入均在NPU Device上时，Dispatch到这个算子实现
+     * Register the operator invocation function with the framework. The device is PrivateUse1.
+     * The framework dispatches to this operator implementation when all inputs are on the NPU device.
      */
     // Register the NPU implementation
     TORCH_LIBRARY_IMPL(EXTENSION_MODULE_NAME, PrivateUse1, m)
@@ -185,5 +184,5 @@ print("Verification successful!")
     }  // namespace ascend_ops
 
     ```
-4. 使用[安装步骤](#安装步骤--installation-steps)章节构建Wheel包，安装并测试
-5. 测试算子API请参考[test_add.py](tests/add/test_add.py)的实现
+4. Build the wheel package using the [Installation Steps](#installation-steps) section. Install and test the package.
+5. For testing the operator API, refer to the implementation in [test_add.py](tests/add/test_add.py).

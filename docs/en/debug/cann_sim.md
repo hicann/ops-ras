@@ -205,7 +205,7 @@ Table 1 Simulation Result Analysis Parameter Description
     |MTE1|Data transfer pipeline; data transfer direction: L1 ->{L0A/L0B, UBUF}.|
     |MTE2|Data transfer pipeline; data transfer direction: {DDR/GM, L2} ->{L1, L0A/B, UBUF}.|
     |MTE3|Data transfer pipeline; data transfer direction: UBUF -> {DDR/GM, L2, L1}, L1->{DDR/L2}.|
-    |FIXP|Data transfer pipeline; data transfer direction: FIXPIPE L0C -> OUT/L1. (Only the Atlas A2 training series products / Atlas A2 inference series products support the display.)|
+    |FIXP|Data transfer pipeline; data transfer direction: FIXPIPE L0C -> OUT/L1. (Only the Atlas A2 products support the display.)|
     |FLOWCTRL|Control flow instruction.|
     |ICACHELOAD|View ICache misses.|
 

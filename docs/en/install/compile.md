@@ -54,7 +54,7 @@ If compiling in an environment with internet access, third-party dependencies ar
     # bash build.sh --pkg --experimental --soc=ascend910b --ops=add_example -j16
     ```
 
-    - --soc: ${soc_version} indicates the NPU model. Use "ascend910b" (default) for Atlas A2 Training Series/Atlas A2 Inference Series, "ascend910_93" for Atlas A3 Training Series/Atlas A3 Inference Series, and "ascend950" for Ascend 950PR/Ascend 950DT.
+    - --soc: ${soc_version} indicates the NPU model. Use "ascend910b" (default) for Atlas A2 products, "ascend910_93" for Atlas A3 products, and "ascend950" for Ascend 950PR&950DT products.
     - --vendor_name (optional): ${vendor_name} indicates the name of the custom operator package to build. The default name is custom.
     - --ops (optional): ${op_list} indicates the operators to compile. If not specified, all operators are compiled by default. The format is "add_example,crypto,...", with multiple operators separated by commas ",".
     - --experimental (optional): Indicates that operators saved by users in the experimental contribution directory should be compiled.

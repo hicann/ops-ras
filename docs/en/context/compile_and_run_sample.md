@@ -3,7 +3,7 @@
 ## Prerequisites
 
 - If you need to compile and execute operator APIs, ensure that the basic environment has been set up, including driver, firmware, CANN software package, ops package, etc.
-- For the operator API calling process and compilation and running operations, refer to [Application Development (C&C++)](https://www.hiascend.com/document/detail/en/CANNCommunityEdition/latest/programug/acldevg/aclcppdevg_000006.html) under "Single Operator Invocation > Single Operator API Execution > Calling aclnn Interface Example Code".
+- For the operator API calling process and compilation and running operations, refer to [Application Development (C&C++)](https://hiascend.com/document/redirect/CannCommunityadevguide) under "Single Operator Invocation > Single Operator API Execution > Calling aclnn Interface Example Code".
 
 ## Pre-compilation Preparation
 

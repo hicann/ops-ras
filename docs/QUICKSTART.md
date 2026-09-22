@@ -21,19 +21,19 @@
 本阶段目的是**快速体验项目标准流程**，验证环境能否成功进行算子源码编译、打包、安装和运行。
 
 ### 1. 进入项目源码
-    
+
 - CANNLab云开发环境：
-   
+
    默认提供最新最新版CANN包配套的项目源码，进入源码目录，\$\{gitCode\_id\}替换为开发者个人gitCode账号。
-   
+
    ```bash
    cd /mnt/workspace/gitCode/${gitCode_id}/ops-ras
    ```
 
 - 非CANNLab云开发环境：
-  
+
   根据[release仓库](https://gitcode.com/cann/release-management)源码与CANN版本配套关系，执行如下命令下载源码，\$\{tag\_version\}替换为目标分支标签，例如9.0.0。
-    
+
   ```bash
   git clone -b ${tag_version} https://gitcode.com/cann/ops-ras.git && cd ops-ras
   ```
@@ -57,9 +57,9 @@ bash build.sh --pkg --soc=${soc_version} --ops=add_example -j16
 
 \$\{soc\_version\}取值请访问[CANN下载中心](https://www.hiascend.com/cann/download)，根据页面提示查询硬件产品名，产品名对应的${soc_version}取值如下，请按实际场景传参。
 
-- Atlas A2 训练系列产品/Atlas A2 推理系列产品：取值为ascend910b
-- Atlas A3 训练系列产品/Atlas A3 推理系列产品：取值为ascend910_93
-- 950系列产品：取值为ascend950
+- Atlas A2系列产品：取值为ascend910b
+- Atlas A3系列产品：取值为ascend910_93
+- Ascend 950PR&950DT系列产品：取值为ascend950
 
 若提示如下信息，说明编译成功。
 

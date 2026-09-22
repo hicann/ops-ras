@@ -383,7 +383,7 @@ Ascend 950 introduces the collective communication accelerator CCU1.0, which red
 
 In the second-stage interface of the aclnn two-phase interface, specify the collective communication type for the operator executor aclOpExecutor.
 
-Taking the [MatmulAllReduce](https://gitcode.com/cann/ops-transformer/tree/master/mc2/matmul_all_reduce) operator migration as an example:
+Taking the [MatmulAllReduce](https://gitcode.com/cann/ops-transformer/tree/9.2.0/mc2/matmul_all_reduce) operator migration as an example:
 Set the NnopbaseSetHcclServerType enum value. For A2, it is NNOPBASE_HCCL_SERVER_AICPU, and for 950, it is NNOPBASE_HCCL_SERVER_TYPE_CCU.
 
 ```CPP
@@ -407,7 +407,7 @@ aclnnStatus aclnnMatmulAllReduce(
 1. In the CalcParamFunc callback interface used for resource computation and application, which involves auxiliary stream-related information, differentiate the collective communication type of the auxiliary stream for the GE context context.
 2. In the GenerateTask callback interface used for setting custom tasks and parameter customization on the main stream and auxiliary streams, differentiate between the two sets of GE KernelLaunch interfaces, and call the AICPU communication or CCU communication creation and customization processes respectively.
 
-For the static graph GE side, the task type for creating communication tasks is aicpu kfc server + kfc_stream for A2, and ccu server + ccu_stream for 950. The related code file is: [matmul_all_reduce_gen_task.cpp](https://gitcode.com/cann/ops-transformer/blob/master/mc2/matmul_all_reduce/op_graph/matmul_all_reduce_gen_task.cpp)
+For the static graph GE side, the task type for creating communication tasks is aicpu kfc server + kfc_stream for A2, and ccu server + ccu_stream for 950. The related code file is: [matmul_all_reduce_gen_task.cpp](https://gitcode.com/cann/ops-transformer/blob/9.2.0/mc2/matmul_all_reduce/op_graph/matmul_all_reduce_gen_task.cpp)
 
 ```CPP
 // ...
@@ -423,7 +423,7 @@ ge::Status MatmulAllReduceCalcParamFunc(gert::ExeResGenerationContext *context)
 // ...
 ```
 
-The static graph GenTask invocation interfaces differ, and the processes are different. The related code file is: [matmul_all_reduce_gen_task.cpp](https://gitcode.com/cann/ops-transformer/blob/master/mc2/matmul_all_reduce/op_graph/matmul_all_reduce_gen_task.cpp)
+The static graph GenTask invocation interfaces differ, and the processes are different. The related code file is: [matmul_all_reduce_gen_task.cpp](https://gitcode.com/cann/ops-transformer/blob/9.2.0/mc2/matmul_all_reduce/op_graph/matmul_all_reduce_gen_task.cpp)
 
 ```CPP
 // ...

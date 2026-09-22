@@ -7,16 +7,17 @@
 本项目提供了AI Core算子和AI CPU算子的开发和调用样例，请开发者根据实际情况参考对应实现。
 
 ## 目录说明
+
 ```
-├── examples                       
+├── examples
 │   ├── add_example                # AI Core算子名
-│   │   ├── CMakeLists.txt         # 算子编译配置文件，保留原文件即可   
+│   │   ├── CMakeLists.txt         # 算子编译配置文件，保留原文件即可
 │   │   ├── examples               # 算子使用示例
 │   │   ├── op_graph               # 算子构图相关目录
 │   │   ├── op_host                # 算子信息库、Tiling、InferShape相关实现
 │   │   └── op_kernel              # 算子kernel目录
 │   ├── add_example_aicpu          # AI CPU算子名
-│   │   ├── CMakeLists.txt         # 算子编译配置文件，保留原文件即可   
+│   │   ├── CMakeLists.txt         # 算子编译配置文件，保留原文件即可
 │   │   ├── examples               # 算子使用示例
 │   │   ├── op_graph               # 算子构图相关目录
 │   │   ├── op_host                # 算子信息库、InferShape相关实现

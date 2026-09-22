@@ -57,9 +57,9 @@ bash build.sh --pkg --soc=${soc_version} --ops=add_example -j16
 
 For the value of `${soc_version}`, visit the [CANN Download Center](https://www.hiascend.com/cann/download) and query the hardware product name according to the page prompts. The corresponding `${soc_version}` values for product names are as follows. Please pass the parameter according to the actual scenario.
 
-- Atlas A2 Training Series Products/Atlas A2 Inference Series Products: `ascend910b`
-- Atlas A3 Training Series Products/Atlas A3 Inference Series Products: `ascend910_93`
-- Ascend 950 Series Products: `ascend950`
+- Atlas A2 products: `ascend910b`
+- Atlas A3 products: `ascend910_93`
+- Ascend 950PR&950DT products: `ascend950`
 
 If the following information is prompted, the compilation is successful.
 
