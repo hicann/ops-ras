@@ -101,7 +101,7 @@ aclnnStatus aclnnObfuscationSetupV2(
           <ul>
             <li>仅在cmd设置为1或2时需要填写有效值，否则填0。</li>
             <li><term>Atlas推理系列产品</term>：在{0, 1}中选择，0表示FLOAT、1表示FLOAT16。</li>
-            <li><term>Atlas A2 系列产品</term>：在{0, 1, 2, 27}中选择，0表示FLOAT、1表示FLOAT16、2表示INT8、27表示BF16。</li>
+            <li><term>Atlas A2系列产品</term>：在{0, 1, 2, 27}中选择，0表示FLOAT、1表示FLOAT16、2表示INT8、27表示BF16。</li>
           </ul>
         </td>
         <td>INT32</td>

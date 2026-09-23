@@ -101,7 +101,7 @@ aclnnStatus aclnnObfuscationSetupV2(
           <ul>
             <li>A valid value is required only when cmd is set to 1 or 2. Otherwise, enter 0.</li>
             <li><term>Atlas inference products</term>: Select from {0, 1}. 0 indicates FLOAT and 1 indicates FLOAT16.</li>
-            <li><term>Atlas A2 series products</term>: Select from {0, 1, 2, 27}. 0 indicates FLOAT, 1 indicates FLOAT16, 2 indicates INT8, and 27 indicates BF16.</li>
+            <li><term>Atlas A2 products</term>: Select from {0, 1, 2, 27}. 0 indicates FLOAT, 1 indicates FLOAT16, 2 indicates INT8, and 27 indicates BF16.</li>
           </ul>
         </td>
         <td>INT32</td>
