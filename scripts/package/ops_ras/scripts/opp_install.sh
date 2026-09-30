@@ -332,8 +332,6 @@ install_whl_package() {
     else
         logandprint "[INFO]: ${_package_name} installed successfully!"
     fi
-    chmod -R "${CUSTOM_PERM}" "${_pythonlocalpath}"/${_package_name} 2> /dev/null
-    chmod -R "${CUSTOM_PERM}" "${_pythonlocalpath}"/${_package_name}-*.dist-info 2> /dev/null
   else
     logandprint "[ERROR]: ERR_NO:0x0080;ERR_DES:install ${_package_name} failed, can not find the matched package for this platform."
     exit 1
@@ -350,10 +348,6 @@ install_es_whl() {
   local python_es_whl_name="es_ras"
   local whl_install_dir_path="${TARGET_VERSION_DIR}/python/site-packages"
   install_whl_package "${es_whl_path}" "${python_es_whl_name}" "${whl_install_dir_path}"
-
-  if [ -d "${TARGET_VERSION_DIR}/ops_ras" ]; then
-    rm -rf "${TARGET_VERSION_DIR}/ops_ras"
-  fi
 }
 
 install_cann_ops_ras_whl() {
@@ -407,6 +401,10 @@ add_init_py() {
   if [ -n "${opp_builtin_mod}" ]; then
     chmod ${opp_builtin_mod} -R "${built_in_impl_path}" 2>/dev/null
   fi
+
+  if [ -d "${TARGET_VERSION_DIR}/ops_ras" ]; then
+    rm -rf "${TARGET_VERSION_DIR}/ops_ras"
+  fi
 }
 
 install_opp() {
@@ -420,6 +418,11 @@ install_opp() {
   update_install_infos "${TARGET_USERNAME}" "${TARGET_USERGROUP}" "${INSTALL_TYPE}" "${relative_path_val}"
   log_with_errorlevel "$?" "error" "[ERROR]: ERR_NO:${INSTALL_FAILED};ERR_DES:Update opp install info failed."
 
+  # whl安装移动到 install_common_parser 前面，先安装再统一权限规范
+  install_es_whl
+
+  install_cann_ops_ras_whl
+
   bash "${COMMON_PARSER_FILE}" --copy_all --package="${OPP_PLATFORM_DIR}" --install --username="${TARGET_USERNAME}" \
     --usergroup="${TARGET_USERGROUP}" --set-cann-uninstall --version=$RUN_PKG_VERSION \
     --use-share-info --version-dir=$PKG_VERSION_DIR $INSTALL_OPTION ${INSTALL_FOR_ALL} "--feature=all" "--chip=all" \
@@ -429,10 +432,6 @@ install_opp() {
   logandprint "[INFO]: upgradePercentage:30%"
 
   add_init_py
-
-  install_es_whl
-
-  install_cann_ops_ras_whl
 
   logandprint "[INFO]: upgradePercentage:50%"
 }
