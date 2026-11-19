@@ -1,0 +1,213 @@
+name: PR-pipeline_ops-ras
+
+concurrency:
+  max: 15
+  exceed-action: QUEUE
+  enable: true
+  preemption:
+    enable: true
+    events: [mr_id]
+
+on:
+  pull_request_comment:
+    types: [created]
+    branches: [ '**' ]
+    comments: [ '^/?compile(@[A-Za-z0-9._-]+)?$' ]
+  pr_comment:
+    types: [ created ]
+    keyword: '^/?compile(@[A-Za-z0-9._-]+)?$'
+
+env:
+  org_name: "${{ vars.ORG_NAME }}"
+  repo_name: ${{atomgit.event.repository.name}}
+  MERGE_ID: ${{atomgit.event.pull_request.number}}
+  obs_path: "${{ env.org_name }}/${{ env.repo_name }}/ci/package/${{ env.MERGE_ID }}"
+  TARGET_BRANCH: ${{atomgit.ref_name}}
+  SOURCE_BRANCH: ${{atomgit.head_ref}}
+  online: ${{ vars.APPLY_LABEL }}
+
+stages:
+  stage1:
+    name: PreBuild
+    jobs:
+      JOB_image:
+        name: Test_image
+        steps:
+          - name: revise_image
+            identifier: revise_image
+            uses: cann/.gitcode/actions/revise-img@master
+            with:
+              repo_name: ${{ env.repo_name }}
+              target_branch: ${{ env.TARGET_BRANCH }}
+              comment: ${{ atomgit.event.comment.body }}
+              token: ${{ secrets.TESTTOKEN }}
+          -
+            name: show_output
+            run: |
+              echo "image: ${{ steps.revise_image.outputs.Compile_Ascend_X86 }}"
+        if: "${{ default() }}"
+        runs-on: ["self-hosted", "arch=x64", "spec=small"]
+        container:
+          image: swr.cn-north-4.myhuaweicloud.com/ci_cann/ubuntu20.04.05_x86:k8s_v1.1006
+      JOB_pre:
+        permissions:
+          repository: read
+          id-token: write
+        name: Test_PreBuild
+        uses: cann/.gitcode/.gitcode/workflows/pre_action.yml@master
+    pre:
+    - type: auto
+    fail-fast: true
+  stage2:
+    name: Compile
+    jobs:
+      JOB_Compile_Ascend_X86:
+        permissions:
+          repository: read
+          id-token: write
+        name: Compile_Ascend_X86
+        uses: .gitcode/workflows/compile_action.yml
+        with:
+          task_name: 'Compile_Ascend_X86'
+          package_name: 'cann-ops-ras_linux-x86_64.run'
+          image_version: ${{ jobs.JOB_image.outputs.Compile_Ascend_X86 }}
+          arch: 'x64'
+      JOB_Compile_Ascend_X86_ubuntu24:
+        permissions:
+          repository: read
+          id-token: write
+        name: Compile_Ascend_X86_ubuntu24
+        uses: .gitcode/workflows/compile_action.yml
+        with:
+          task_name: 'Compile_Ascend_X86_ubuntu24'
+          package_name: 'cann-ops-ras_linux-x86_64_ubuntu24.run'
+          image_version: ${{ jobs.JOB_image.outputs.Compile_Ascend_X86_ubuntu24 }}
+          arch: 'x64'
+      JOB_Compile_Ascend_X86_mobile_station:
+        permissions:
+          repository: read
+          id-token: write
+        name: Compile_Ascend_X86_mobile_station
+        uses: .gitcode/workflows/compile_action.yml
+        with:
+          task_name: 'Compile_Ascend_X86_mobile_station'
+          package_name: 'cann-ops-ras-kirinx90_linux-x86_64.run'
+          ge_st_rt2: 'kirinx90'
+          image_version: ${{ jobs.JOB_image.outputs.Compile_Ascend_X86_mobile_station }}
+          arch: 'x64'
+      JOB_Compile_Ascend_X86_mobile_station_ubuntu24:
+        permissions:
+          repository: read
+          id-token: write
+        name: Compile_Ascend_X86_mobile_station_ubuntu24
+        uses: .gitcode/workflows/compile_action.yml
+        with:
+          task_name: 'Compile_Ascend_X86_mobile_station_ubuntu24'
+          package_name: 'cann-ops-ras-kirinx90_linux-x86_64_ubuntu24.run'
+          ge_st_rt2: 'kirinx90'
+          image_version: ${{ jobs.JOB_image.outputs.Compile_Ascend_X86_mobile_station_ubuntu24 }}
+          arch: 'x64'
+      JOB_Compile_Ascend_ARM:
+        permissions:
+          repository: read
+          id-token: write
+        name: Compile_Ascend_ARM
+        uses: .gitcode/workflows/compile_action.yml
+        with:
+          task_name: 'Compile_Ascend_ARM'
+          package_name: 'cann-ops-ras_linux-aarch64.run'
+          image_version: ${{ jobs.JOB_image.outputs.Compile_Ascend_ARM }}
+          arch: 'arm64'
+      JOB_Compile_Ascend_ARM_ubuntu24:
+        permissions:
+          repository: read
+          id-token: write
+        name: Compile_Ascend_ARM_ubuntu24
+        uses: .gitcode/workflows/compile_action.yml
+        with:
+          task_name: 'Compile_Ascend_ARM_ubuntu24'
+          package_name: 'cann-ops-ras_linux-aarch64_ubuntu24.run'
+          image_version: ${{ jobs.JOB_image.outputs.Compile_Ascend_ARM_ubuntu24 }}
+          arch: 'arm64'
+      JOB_Compile_Ascend_single:
+        permissions:
+          repository: read
+          id-token: write
+        name: Compile_Ascend_single
+        uses: .gitcode/workflows/compile_action.yml
+        with:
+          task_name: 'Compile_Ascend_single'
+          package_name: 'single.tar.gz'
+          ge_st_rt2: 'single'
+          image_version: ${{ jobs.JOB_image.outputs.Compile_Ascend_single }}
+          arch: 'arm64'
+      JOB_Compile_Ascend_single_ubuntu24:
+        permissions:
+          repository: read
+          id-token: write
+        name: Compile_Ascend_single_ubuntu24
+        uses: .gitcode/workflows/compile_action.yml
+        with:
+          task_name: 'Compile_Ascend_single_ubuntu24'
+          package_name: 'single_ubuntu24.tar.gz'
+          ge_st_rt2: 'single'
+          image_version: ${{ jobs.JOB_image.outputs.Compile_Ascend_single_ubuntu24 }}
+          arch: 'arm64'
+    pre:
+    - type: auto
+    fail-fast: false
+  stage3:
+    name: API_Check
+    jobs:
+      JOB_api_check:
+        name: API_Check
+        steps:
+          -
+            name: api-check
+            identifier: api-check
+            uses: cann/.gitcode/actions/api-check@master
+            with:
+              org_name: ${{ env.org_name }}
+              mode: check
+              repo_name: ${{ env.repo_name }}
+              merge_id: ${{ env.MERGE_ID }}
+        if: env.TARGET_BRANCH == 'master'
+        runs-on: ["self-hosted", "arch=x64", "spec=small"]
+        container:
+          image: swr.cn-north-4.myhuaweicloud.com/ci_cann/${{ jobs.JOB_image.outputs.API_Check }}
+    pre:
+    - type: auto
+    fail-fast: false
+  stage4:
+    name: UT
+    jobs:
+      JOB_UT_Test_ophost:
+        permissions:
+          repository: read
+          id-token: write
+        name: UT_Test_ophost
+        uses: .gitcode/workflows/llt_action.yml
+        with:
+          ut_type: 'UT_Test_ophost'
+          ut_package: 'coverage_*.info'
+          ge_st_rt2: 'ophost'
+          image_version: ${{ jobs.JOB_image.outputs.UT_Test_ophost }}
+      JOB_UT_Test_opapi:
+        permissions:
+          repository: read
+          id-token: write
+        name: UT_Test_opapi
+        uses: .gitcode/workflows/llt_action.yml
+        with:
+          ut_type: 'UT_Test_opapi'
+          ut_package: 'coverage_*.info'
+          ge_st_rt2: 'opapi'
+          image_version: ${{ jobs.JOB_image.outputs.UT_Test_opapi }}
+    pre:
+    - type: auto
+    fail-fast: false
+post:
+  jobs:
+    job_post:
+      name: Test_post
+      uses: cann/.gitcode/.gitcode/workflows/post_action.yml@master
